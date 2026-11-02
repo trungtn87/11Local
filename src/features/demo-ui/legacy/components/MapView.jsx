@@ -1,66 +1,28 @@
-import { useMemo, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Minus, LocateFixed, Utensils, Coffee, BedDouble, Mountain, ShoppingBag, MapPin, Navigation, X } from 'lucide-react';
+import { Plus, Minus, LocateFixed, MapPin, Navigation, X } from 'lucide-react';
+import { MapCanvas } from '../../../map/map-canvas';
 import { Button, PlaceArt, Rating, ManageBadge } from './ui.jsx';
 import { catLabel } from '../data/demo.js';
 
-const catIcon = { food: Utensils, cafe: Coffee, stay: BedDouble, sight: Mountain, shop: ShoppingBag };
-
-/** Bản đồ GIẢ LẬP — chỉ để thử bố cục (ghim, gộp ghim, thẻ địa điểm, tìm trong vùng).
- *  Chưa dùng nhà cung cấp bản đồ thật; vị trí x,y là phần trăm trên khung, không phải tọa độ. */
-export function MapView({ places, selectedId, onSelect, full, showMe, onSearchArea, onLocate, className = '', height }) {
-  const [zoom, setZoom] = useState(0);
+/** Bản đồ thật (MapLibre + OpenFreeMap, đã loại POI mặc định). Chưa có ghim địa điểm 11Local —
+ *  ghim/cụm sẽ đến từ database ở MAP-02; x,y của dữ liệu demo không phải tọa độ nên không vẽ. */
+export function MapView({ places, selectedId, onSelect, full, onSearchArea, onLocate, className = '', height }) {
   const [dirty, setDirty] = useState(false);
-
-  const items = useMemo(() => {
-    if (zoom > 0) return places.map((p) => ({ type: 'pin', p }));
-    const used = new Set(); const out = [];
-    places.forEach((a) => {
-      if (used.has(a.id)) return;
-      const group = places.filter((b) => !used.has(b.id) && Math.hypot(a.x - b.x, a.y - b.y) < 8);
-      group.forEach((g) => used.add(g.id));
-      if (group.length > 1) out.push({ type: 'cluster', n: group.length, x: group.reduce((s, g) => s + g.x, 0) / group.length, y: group.reduce((s, g) => s + g.y, 0) / group.length, ids: group.map((g) => g.id) });
-      else out.push({ type: 'pin', p: a });
-    });
-    return out;
-  }, [places, zoom]);
-
+  const mapRef = useRef(null);
   const sel = places.find((p) => p.id === selectedId);
-  const scale = zoom ? 1.25 : 1;
 
   return (
-    <div className={`map-wrap ${full ? 'full' : ''} ${className}`} style={{ height }} role="application" aria-label="Bản đồ giả lập các địa điểm">
-      <div style={{ position: 'absolute', inset: 0, transform: `scale(${scale})`, transformOrigin: 'center', transition: 'transform .25s' }}>
-        <svg className="terrain" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-          <rect width="100" height="100" fill="#e9efe3" />
-          <path d="M0 78 Q20 70 36 76 T70 72 T100 80 V100 H0Z" fill="#dfe8d6" />
-          <path d="M-5 30 Q25 18 40 34 T75 30 T105 18" stroke="#9fd0e0" strokeWidth="4" fill="none" strokeLinecap="round" />
-          <path d="M-5 30 Q25 18 40 34 T75 30 T105 18" stroke="#c7e7f1" strokeWidth="1.5" fill="none" />
-          {[[18, 22, 12], [74, 52, 14], [30, 80, 10], [88, 70, 9], [8, 50, 8], [58, 12, 9]].map(([x, y, r], i) => (
-            <g key={i}><ellipse cx={x} cy={y} rx={r} ry={r * .8} fill="#cfdcc3" /><ellipse cx={x} cy={y} rx={r * .55} ry={r * .45} fill="#b9cba9" /></g>
-          ))}
-          <path d="M5 62 L30 58 L48 52 L66 60 L95 48" stroke="#fff" strokeWidth="1.4" fill="none" />
-          <path d="M48 52 L52 30 L60 8" stroke="#fff" strokeWidth="1" fill="none" />
-          <g fontSize="2.8" fill="#6a7a70" fontFamily="inherit"><text x="40" y="60">TP. Cao Bằng</text><text x="68" y="24">Trùng Khánh</text><text x="14" y="58">Nguyên Bình</text><text x="30" y="36">Hòa An</text></g>
-        </svg>
-      </div>
-
-      {showMe && <div className="me-dot" style={{ left: '47%', top: '58%' }} aria-label="Vị trí tham chiếu của bạn (mô phỏng)" />}
-
-      {items.map((it, i) => it.type === 'cluster'
-        ? <button key={'c' + i} className="cluster" style={{ left: `${it.x}%`, top: `${it.y}%` }} aria-label={`${it.n} địa điểm gần nhau — phóng to`} onClick={() => { setZoom(1); setDirty(true); }}>{it.n}</button>
-        : (() => { const I = catIcon[it.p.cat] || MapPin; return (
-          <button key={it.p.id} className={`pin ${selectedId === it.p.id ? 'selected' : ''}`} style={{ left: `${it.p.x}%`, top: `${it.p.y}%` }} aria-label={`${it.p.name}, ${catLabel(it.p.cat)}`} onClick={() => onSelect?.(it.p.id)}>
-            <span className="pin-body"><I size={selectedId === it.p.id ? 20 : 16} /></span>
-          </button>); })())}
+    <div className={`map-wrap ${full ? 'full' : ''} ${className}`} style={{ height }}>
+      <MapCanvas embedded onReady={(m) => { mapRef.current = m; }} onMoveEnd={() => setDirty(true)} />
 
       <div className="map-top">
         {dirty && <Button size="sm" variant="primary" onClick={() => { setDirty(false); onSearchArea?.(); }}>Tìm trong vùng này</Button>}
       </div>
       <div className="map-ctrl">
-        <Button variant="outline" className="btn-icon" aria-label="Phóng to" onClick={() => { setZoom(1); setDirty(true); }}><Plus size={18} /></Button>
+        <Button variant="outline" className="btn-icon" aria-label="Phóng to" onClick={() => mapRef.current?.zoomIn()}><Plus size={18} /></Button>
         {onLocate && <Button variant="primary" className="btn-icon" aria-label="Gần tôi" onClick={onLocate}><LocateFixed size={18} /></Button>}
-        <Button variant="outline" className="btn-icon" aria-label="Thu nhỏ" onClick={() => { setZoom(0); setDirty(true); }}><Minus size={18} /></Button>
+        <Button variant="outline" className="btn-icon" aria-label="Thu nhỏ" onClick={() => mapRef.current?.zoomOut()}><Minus size={18} /></Button>
       </div>
 
       {sel && (
@@ -81,7 +43,7 @@ export function MapView({ places, selectedId, onSelect, full, showMe, onSearchAr
           </div>
         </div>
       )}
-      <span className="map-badge">Bản đồ giả lập — chưa kết nối bản đồ thật</span>
+      <span className="map-badge">Chưa hiển thị địa điểm 11Local trên bản đồ</span>
     </div>
   );
 }

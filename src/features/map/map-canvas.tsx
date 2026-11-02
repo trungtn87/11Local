@@ -17,7 +17,20 @@ setWorkerUrl(
   new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString(),
 );
 
-export function MapCanvas() {
+type MapCanvasProps = {
+  /** Nhúng vào khung có sẵn: không có shell toàn màn hình và header thương hiệu. */
+  embedded?: boolean;
+  onReady?: (map: MapLibreMap) => void;
+  onMoveEnd?: () => void;
+};
+
+export function MapCanvas({ embedded = false, onReady, onMoveEnd }: MapCanvasProps) {
+  const onReadyRef = useRef(onReady);
+  const onMoveEndRef = useRef(onMoveEnd);
+  useEffect(() => {
+    onReadyRef.current = onReady;
+    onMoveEndRef.current = onMoveEnd;
+  });
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
@@ -58,6 +71,12 @@ export function MapCanvas() {
           }
         }
         setStatus("ready");
+        onReadyRef.current?.(map);
+      });
+      map.on("moveend", (event) => {
+        if (event.originalEvent) {
+          onMoveEndRef.current?.();
+        }
       });
       map.on("error", () => setStatus("error"));
       mapRef.current = map;
@@ -72,10 +91,16 @@ export function MapCanvas() {
     };
   }, []);
 
+  const Root = embedded ? "div" : "main";
+
   return (
-    <main className={styles.shell} aria-label="Bản đồ Cao Bằng">
+    <Root
+      className={embedded ? styles.embedded : styles.shell}
+      aria-label="Bản đồ Cao Bằng"
+    >
       <div ref={containerRef} className={styles.map} />
 
+      {!embedded && (
       <header className={styles.brand} aria-label="11Local">
         <span className={styles.mark} aria-hidden="true">
           11
@@ -83,6 +108,7 @@ export function MapCanvas() {
         <span className={styles.wordmark}>Local</span>
         <span className={styles.location}>Cao Bằng</span>
       </header>
+      )}
 
       {status !== "ready" && (
         <div className={styles.status} role="status" aria-live="polite">
@@ -96,6 +122,6 @@ export function MapCanvas() {
           )}
         </div>
       )}
-    </main>
+    </Root>
   );
 }
