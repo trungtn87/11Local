@@ -1,12 +1,13 @@
 # 11Local
 
-Nền tảng khám phá địa phương, bắt đầu từ bản đồ Cao Bằng. Phạm vi hiện tại là **MAP-01A**: bản đồ toàn màn hình tại `/map`, hỗ trợ zoom/pan và chưa có marker, tìm kiếm, bộ lọc, chỉ đường hay dữ liệu địa điểm.
+Nền tảng khám phá địa phương, bắt đầu từ Cao Bằng. Ứng dụng gồm giao diện demo đa màn hình cho khách, thành viên, chủ địa điểm và quản trị viên; bản đồ MapLibre thật của **MAP-01A** vẫn có tại `/map`.
 
 ## Công nghệ
 
 - Next.js (App Router) + TypeScript
 - MapLibre GL JS
 - OpenFreeMap Bright (dữ liệu OpenStreetMap), không cần API key cho giai đoạn prototype
+- Giao diện demo V1 với dữ liệu hư cấu, chưa kết nối backend hoặc xác thực thật
 
 ## Chạy local
 
@@ -17,7 +18,9 @@ npm ci
 npm run dev
 ```
 
-Mở `http://localhost:3000/map`. Route `/` tự chuyển tới `/map`.
+Mở `http://localhost:3000` để xem giao diện chính hoặc `http://localhost:3000/map` để xem bản đồ MapLibre thật.
+
+Các route demo tiêu biểu: `/tim-kiem`, `/ban-do`, `/dia-diem/p1`, `/dong-gop`, `/quan-ly` và `/admin`. Công cụ ở góc màn hình cho phép đổi vai trò và trạng thái giao diện; đây không phải phân quyền thật.
 
 Các bước kiểm tra:
 

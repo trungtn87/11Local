@@ -8,17 +8,20 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --test src/features/map/map-config.test.ts",
+    "test": "node --experimental-strip-types --test src/features/map/map-config.test.ts src/features/map/map-style.test.ts",
     "check": "npm run lint && npm run test && npm run build"
   },
   "engines": {
     "node": ">=22 <25"
   },
   "dependencies": {
+    "@fontsource/plus-jakarta-sans": "^5.3.0",
+    "lucide-react": "^1.66.0",
     "maplibre-gl": "^6.16.0",
     "next": "16.4.4",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "react-router-dom": "^6.30.6"
   },
   "devDependencies": {
     "@types/node": "^20",
