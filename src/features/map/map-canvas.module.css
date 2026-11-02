@@ -120,3 +120,11 @@
     animation-duration: 1.5s;
   }
 }
+
+.embedded {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  isolation: isolate;
+  background: #dff4ff;
+}
