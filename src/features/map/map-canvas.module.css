@@ -1,0 +1,122 @@
+.shell {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  min-height: 420px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 20% 20%, rgb(255 255 255 / 80%), transparent 32%),
+    #dff4ff;
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+}
+
+.brand {
+  position: absolute;
+  z-index: 1;
+  top: max(18px, env(safe-area-inset-top));
+  left: max(18px, env(safe-area-inset-left));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 7px 13px 7px 8px;
+  border: 1px solid rgb(255 255 255 / 85%);
+  border-radius: 18px;
+  color: #075d99;
+  background: rgb(255 255 255 / 90%);
+  box-shadow: 0 10px 30px rgb(4 80 128 / 16%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  user-select: none;
+}
+
+.mark {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 12px;
+  color: white;
+  background: linear-gradient(145deg, #28b8ff, #087ed4);
+  box-shadow: 0 5px 14px rgb(12 140 233 / 28%);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.wordmark {
+  color: #063f66;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.location {
+  margin-left: 2px;
+  padding-left: 10px;
+  border-left: 1px solid #cae8f8;
+  color: #4f7b96;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.status {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  max-width: min(340px, calc(100vw - 36px));
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgb(255 255 255 / 85%);
+  border-radius: 16px;
+  color: #195879;
+  background: rgb(255 255 255 / 92%);
+  box-shadow: 0 16px 45px rgb(4 80 128 / 18%);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.spinner {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #bfe8ff;
+  border-top-color: #0c8ce9;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 480px) {
+  .brand {
+    top: max(12px, env(safe-area-inset-top));
+    left: max(12px, env(safe-area-inset-left));
+  }
+
+  .location {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 1.5s;
+  }
+}
