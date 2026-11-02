@@ -5,10 +5,12 @@ import {
   Map,
   setWorkerUrl,
   type Map as MapLibreMap,
+  type StyleSpecification,
 } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 
 import { CAO_BANG_CAMERA, MAP_STYLE_URL } from "./map-config";
+import { isPoiLayer, loadCleanStyle, type StyleLayer } from "./map-style";
 import styles from "./map-canvas.module.css";
 
 setWorkerUrl(
@@ -25,14 +27,16 @@ export function MapCanvas() {
   useEffect(() => {
     let cancelled = false;
 
-    function createMap() {
+    async function createMap() {
+      const style = await loadCleanStyle(MAP_STYLE_URL);
+
       if (cancelled || !containerRef.current || mapRef.current) {
         return;
       }
 
       const map = new Map({
         container: containerRef.current,
-        style: MAP_STYLE_URL,
+        style: style as StyleSpecification | string,
         center: CAO_BANG_CAMERA.center,
         zoom: CAO_BANG_CAMERA.zoom,
         minZoom: CAO_BANG_CAMERA.minZoom,
@@ -44,12 +48,22 @@ export function MapCanvas() {
 
       map.addControl(new AttributionControl({ compact: true }), "bottom-right");
       map.touchZoomRotate.disableRotation();
-      map.once("load", () => setStatus("ready"));
+      map.once("load", () => {
+        // Fallback (style URL gốc): gỡ POI sau khi tải để basemap vẫn sạch.
+        if (typeof style === "string") {
+          for (const layer of map.getStyle().layers) {
+            if (isPoiLayer(layer as StyleLayer)) {
+              map.removeLayer(layer.id);
+            }
+          }
+        }
+        setStatus("ready");
+      });
       map.on("error", () => setStatus("error"));
       mapRef.current = map;
     }
 
-    createMap();
+    void createMap();
 
     return () => {
       cancelled = true;

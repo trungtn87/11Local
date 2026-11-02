@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --test src/features/map/map-config.test.ts",
+    "test": "node --experimental-strip-types --test src/features/map/map-config.test.ts src/features/map/map-style.test.ts",
     "check": "npm run lint && npm run test && npm run build"
   },
   "engines": {
