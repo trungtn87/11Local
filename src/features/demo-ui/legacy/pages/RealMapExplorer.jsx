@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Marker, Popup } from 'maplibre-gl';
-import { ChevronLeft, List, MapPin, Minus, Navigation, Plus, Star, X } from 'lucide-react';
+import { ChevronLeft, ImageOff, List, MapPin, Minus, Navigation, Plus, Star, X } from 'lucide-react';
 
 import { MapCanvas } from '../../../map/map-canvas';
 import { CAO_BANG_CAMERA } from '../../../map/map-config';
 import { getGoogleMapsDirectionsUrl } from '../../../places/google-maps';
 import { useApp } from '../store.jsx';
-import { PlaceArt } from '../components/ui.jsx';
 import '../styles/map-explorer.css';
 
 const hasCoordinates = (p) => Number.isFinite(Number(p.latitude)) &&
@@ -20,9 +19,17 @@ function normalized(text) {
     .replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
 }
 
-function categoryArt(place) {
-  return ['food', 'cafe', 'stay', 'sight', 'shop'].includes(place.category_id)
-    ? place.category_id : 'def';
+function PlaceThumbnail({ place }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <span className="local-map-entry-art">
+      {place.cover_photo_id && !failed
+        ? <img src={'/api/place-photos/' + encodeURIComponent(place.cover_photo_id)}
+            loading="lazy" alt={'Ảnh đại diện ' + place.name}
+            onError={() => setFailed(true)} />
+        : <span className="local-map-entry-placeholder"><ImageOff size={21} /> Chưa có ảnh</span>}
+    </span>
+  );
 }
 
 function score(place) {
@@ -36,9 +43,7 @@ function PlaceRow({ place, selected, onSelect }) {
     <article className={'local-map-entry' + (selected ? ' selected' : '')}>
       <button className="local-map-entry-main" type="button" onClick={() => onSelect(place.slug)}
         aria-pressed={selected} aria-label={'Xem ' + place.name + ' trên bản đồ'}>
-        <span className="local-map-entry-art">
-          <PlaceArt kind={categoryArt(place)} seed={place.name.length} label={false} />
-        </span>
+        <PlaceThumbnail place={place} />
         <span className="local-map-entry-text">
           <strong>{place.name}</strong>
           <small>{place.category_name || 'Địa điểm'} · {place.area}</small>
@@ -157,7 +162,7 @@ function PlaceMap({ places, selectedPlace, onSelect }) {
 
     map.easeTo({
       center: [Number(selectedPlace.longitude), Number(selectedPlace.latitude)],
-      zoom: Math.max(map.getZoom(), 14),
+      zoom: Math.min(Math.max(map.getZoom(), 14), 16),
       duration: 500,
       essential: true,
     });
