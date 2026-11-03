@@ -1,20 +1,64 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Marker, Popup } from 'maplibre-gl';
 import { Plus, Minus, LocateFixed, MapPin, Navigation, X } from 'lucide-react';
 import { MapCanvas } from '../../../map/map-canvas';
 import { Button, PlaceArt, Rating, ManageBadge } from './ui.jsx';
 import { catLabel } from '../data/demo.js';
 
-/** Bản đồ thật (MapLibre + OpenFreeMap, đã loại POI mặc định). Chưa có ghim địa điểm 11Local —
- *  ghim/cụm sẽ đến từ database ở MAP-02; x,y của dữ liệu demo không phải tọa độ nên không vẽ. */
+/** MAP-02: approved coordinates from Neon. Legacy list cards remain clearly marked as demo. */
 export function MapView({ places, selectedId, onSelect, full, onSearchArea, onLocate, className = '', height }) {
   const [dirty, setDirty] = useState(false);
+  const [readyMap, setReadyMap] = useState(null);
+  const [livePlaces, setLivePlaces] = useState([]);
+  const [liveState, setLiveState] = useState('loading');
   const mapRef = useRef(null);
   const sel = places.find((p) => p.id === selectedId);
 
+  useEffect(() => {
+    const ctrl = new AbortController();
+    fetch('/api/places', { signal: ctrl.signal })
+      .then((res) => { if (!res.ok) throw new Error('API failed'); return res.json(); })
+      .then((body) => {
+        setLivePlaces(Array.isArray(body.places) ? body.places : []);
+        setLiveState('ready');
+      })
+      .catch((err) => { if (err.name !== 'AbortError') setLiveState('error'); });
+    return () => ctrl.abort();
+  }, []);
+
+  useEffect(() => {
+    if (!readyMap) return;
+    const pins = livePlaces.filter((p) =>
+      Number.isFinite(p.latitude) && Number.isFinite(p.longitude) &&
+      p.latitude >= -90 && p.latitude <= 90 && p.longitude >= -180 && p.longitude <= 180
+    ).map((p) => {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.title = p.name;
+      el.setAttribute('aria-label', `Xem địa điểm ${p.name}`);
+      el.style.cssText = 'background:#0F766E;border:3px solid white;box-shadow:0 1px 8px #0004;border-radius:50%;width:25px;height:25px;cursor:pointer;';
+
+      const node = document.createElement('div');
+      node.style.cssText = 'max-width:220px;display:flex;flex-direction:column;gap:5px;';
+      const title = document.createElement('strong');
+      title.textContent = p.name;
+      const address = document.createElement('span');
+      address.textContent = p.address || p.area || 'Cao Bằng';
+      const link = document.createElement('a');
+      link.href = `/dia-diem/real/${encodeURIComponent(p.slug)}`;
+      link.textContent = 'Xem chi tiết';
+      link.style.color = '#0F766E';
+      node.append(title, address, link);
+      const popup = new Popup({ offset: 14, closeButton: true }).setDOMContent(node);
+      return new Marker({ element: el }).setLngLat([p.longitude, p.latitude]).setPopup(popup).addTo(readyMap);
+    });
+    return () => pins.forEach((pin) => pin.remove());
+  }, [readyMap, livePlaces]);
+
   return (
     <div className={`map-wrap ${full ? 'full' : ''} ${className}`} style={{ height }}>
-      <MapCanvas embedded onReady={(m) => { mapRef.current = m; }} onMoveEnd={() => setDirty(true)} />
+      <MapCanvas embedded onReady={(m) => { mapRef.current = m; setReadyMap(m); }} onMoveEnd={() => setDirty(true)} />
 
       <div className="map-top">
         {dirty && <Button size="sm" variant="primary" onClick={() => { setDirty(false); onSearchArea?.(); }}>Tìm trong vùng này</Button>}
@@ -43,7 +87,12 @@ export function MapView({ places, selectedId, onSelect, full, onSearchArea, onLo
           </div>
         </div>
       )}
-      <span className="map-badge">Chưa hiển thị địa điểm 11Local trên bản đồ</span>
+      <span className="map-badge" role="status">
+        {liveState === 'loading' ? 'Đang tải địa điểm từ Neon…'
+          : liveState === 'error' ? 'Chưa kết nối được dữ liệu địa điểm'
+          : livePlaces.length === 0 ? 'Chưa có địa điểm nào được duyệt'
+          : `Đã hiển thị ${livePlaces.length} địa điểm từ Neon`}
+      </span>
     </div>
   );
 }
