@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { adminQueue as seedQueue, claims as seedClaims, myContributions as seedContribs, categories as fallbackCategories } from './data/demo.js';
 
-// Trạng thái GIAO DIỆN thuần (in-memory). Không có xác thực, API hay database.
-// "role" chỉ là công tắc xem trước giao diện — KHÔNG phải quyền thật (xem PreviewTools).
+// Phần lớn state dưới đây phục vụ UI preview. Riêng currentUser/authState đọc session Google thật.
+// "role" vẫn là state trình bày; quyền server-side phải kiểm tra session/API riêng.
 const Ctx = createContext(null);
 export const useApp = () => useContext(Ctx);
 
@@ -24,7 +24,28 @@ export function AppProvider({ children }) {
   const [geoPosition, setGeoPosition] = useState(null); // { latitude, longitude, accuracy }
   const [categories, setCategories] = useState(fallbackCategories);
   const [categoriesState, setCategoriesState] = useState('loading'); // loading | ready | fallback
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authState, setAuthState] = useState('loading'); // loading | ready | error
   const tid = useRef(0);
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+    fetch('/api/auth/session', { signal: ctrl.signal, cache: 'no-store' })
+      .then((res) => { if (!res.ok) throw new Error('session API failed'); return res.json(); })
+      .then((body) => {
+        const user = body?.authenticated ? body.user : null;
+        setCurrentUser(user);
+        setAuthState('ready');
+        if (user) setRole((current) => current === 'guest' ? 'member' : current);
+      })
+      .catch((error) => {
+        if (error.name !== 'AbortError') {
+          setCurrentUser(null);
+          setAuthState('error');
+        }
+      });
+    return () => ctrl.abort();
+  }, []);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -60,7 +81,8 @@ export function AppProvider({ children }) {
     hiddenIds, setHiddenIds, myReviews, setMyReviews, favs,
     toggleFav: (id) => setFavs((f) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id])),
     geo, setGeo, geoPosition, setGeoPosition, categories, categoriesState,
-  }), [role, filters, forced, toasts, toast, queue, claims, contribs, hiddenIds, myReviews, favs, geo, geoPosition, categories, categoriesState]);
+    currentUser, setCurrentUser, authState,
+  }), [role, filters, forced, toasts, toast, queue, claims, contribs, hiddenIds, myReviews, favs, geo, geoPosition, categories, categoriesState, currentUser, authState]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
