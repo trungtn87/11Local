@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Marker, Popup } from 'maplibre-gl';
 import { ChevronLeft, ImageOff, List, MapPin, Minus, Navigation, Plus, Star, X } from 'lucide-react';
@@ -114,9 +114,21 @@ function createPlacePopup(place, onOpenDetails) {
   return wrapper;
 }
 
-function PlaceMap({ places, selectedPlace, onSelect, onOpenDetails }) {
+function PlaceMap({ places, selectedPlace, onSelect, onOpenDetails, showPopup = true }) {
   const [map, setMap] = useState(null);
   const markerRefs = useRef(new Map());
+  const viewportRef = useRef(null);
+
+  // Changing the desktop grid columns resizes the map's container, not the window.
+  // MapLibre needs resize() so selected pins and tiles stay aligned with the actual viewport.
+  useEffect(() => {
+    if (!map || !viewportRef.current) return;
+    map.resize();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => map.resize());
+    observer.observe(viewportRef.current);
+    return () => observer.disconnect();
+  }, [map]);
 
   useEffect(() => {
     if (!map) return;
@@ -147,7 +159,9 @@ function PlaceMap({ places, selectedPlace, onSelect, onOpenDetails }) {
     marker?.getElement().classList.add('selected');
 
     let cleanUp = false;
-    const popup = new Popup({
+    // On desktop the full information rail replaces the small pin popup.
+    // Keeping both overlays caused duplicate details and clipped the map.
+    const popup = showPopup ? new Popup({
       anchor: 'bottom',
       offset: [0, -29],
       maxWidth: '310px',
@@ -156,9 +170,9 @@ function PlaceMap({ places, selectedPlace, onSelect, onOpenDetails }) {
     })
       .setLngLat([Number(selectedPlace.longitude), Number(selectedPlace.latitude)])
       .setDOMContent(createPlacePopup(selectedPlace, onOpenDetails))
-      .addTo(map);
+      .addTo(map) : null;
 
-    popup.on('close', () => {
+    popup?.on('close', () => {
       if (!cleanUp) onSelect(null);
     });
 
@@ -171,13 +185,13 @@ function PlaceMap({ places, selectedPlace, onSelect, onOpenDetails }) {
 
     return () => {
       cleanUp = true;
-      popup.remove();
+      popup?.remove();
       marker?.getElement().classList.remove('selected');
     };
-  }, [map, selectedPlace, onSelect, onOpenDetails]);
+  }, [map, selectedPlace, onSelect, onOpenDetails, showPopup]);
 
   return (
-    <div className="local-map-viewport">
+    <div className="local-map-viewport" ref={viewportRef}>
       <MapCanvas embedded onReady={setMap} />
       <div className="local-map-controls">
         <button type="button" onClick={() => map?.zoomIn()} aria-label="Phóng to"><Plus size={19} /></button>
@@ -244,11 +258,11 @@ export function RealMapExplorer() {
     }, { replace: true });
   }, [setParams]);
 
-  const matched = data.places.filter((place) =>
+  const matched = useMemo(() => data.places.filter((place) =>
     hasCoordinates(place) &&
     (category === 'all' || category === place.category_id) &&
     (!query || normalized(place.name + ' ' + place.address + ' ' + place.area).includes(normalized(query)))
-  );
+  ), [data.places, category, query]);
   const selectedPlace = matched.find((place) => place.slug === selectedSlug) || null;
 
   return (
@@ -269,7 +283,7 @@ export function RealMapExplorer() {
         ))}
       </div>
 
-      <div className="local-map-body">
+      <div className={"local-map-body" + (selectedPlace && detailOpen ? " details-open" : "")}>
         <aside className={'local-map-sidebar' + (showMobileList ? ' open' : '')} aria-label="Danh sách địa điểm">
           <div className="local-map-sidebar-head">
             <strong>Địa điểm đã công khai</strong>
@@ -291,17 +305,17 @@ export function RealMapExplorer() {
           </div>
         </aside>
         <div className="local-map-area">
-          <PlaceMap places={matched} selectedPlace={selectedPlace} onSelect={onSelect} onOpenDetails={onOpenDetails} />
+          <PlaceMap places={matched} selectedPlace={selectedPlace} onSelect={onSelect} onOpenDetails={onOpenDetails} showPopup={!detailOpen} />
           {data.status === 'error' && <div className="local-map-alert" role="alert">Chưa kết nối được dữ liệu địa điểm.</div>}
           {data.status === 'ready' && selectedSlug && !selectedPlace &&
             <div className="local-map-alert" role="status">
               Địa điểm này chưa công khai hoặc không thuộc bộ lọc hiện tại.
               <button type="button" onClick={() => { setCategory('all'); setQuery(''); }}>Bỏ bộ lọc</button>
             </div>}
-          {selectedPlace && detailOpen && (
-            <PlaceDetailPanel key={selectedPlace.slug} place={selectedPlace} onClose={onCloseDetails} mode="map" />
-          )}
         </div>
+        {selectedPlace && detailOpen && (
+          <PlaceDetailPanel key={selectedPlace.slug} place={selectedPlace} onClose={onCloseDetails} mode="map" />
+        )}
       </div>
     </div>
   );

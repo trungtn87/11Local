@@ -65,3 +65,25 @@
 }
 /* Details action opens the 11Local sidebar without navigating away. */
 .local-map-entry-actions button,.local-map-popup-actions button{cursor:pointer;font-family:inherit;border:0}
+
+
+/* Desktop detail mode: three genuine columns, never a panel laid over the map. */
+@media (min-width:801px) {
+  .local-map-body.details-open {
+    grid-template-columns: clamp(265px, 22vw, 306px) minmax(0, 1fr) clamp(348px, 29vw, 408px);
+  }
+  .local-map-body.details-open .local-map-sidebar {
+    box-shadow: none;
+    border-right-color: #dbe9e3;
+  }
+  .local-map-body.details-open .local-map-area {
+    grid-column: 2;
+    min-width: 0;
+  }
+}
+/* Laptop widths still show a useful large map beside the right-hand detail. */
+@media (min-width:801px) and (max-width:1120px) {
+  .local-map-body.details-open { grid-template-columns: minmax(0, 1fr) minmax(340px, 37%); }
+  .local-map-body.details-open .local-map-sidebar { display:none; }
+  .local-map-body.details-open .local-map-area { grid-column:1; }
+}
