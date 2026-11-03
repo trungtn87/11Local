@@ -1,30 +1,36 @@
-# MAP-02 — Data foundation status (2026-11-03)
+# 11Local MAP-02 — Neon-only implementation (2026-11-03)
 
-Dedicated Neon project: `falling-union-71877098` (PostgreSQL 17; Singapore), database `11local`.
+## Decision
+- All initial data, including compressed images, in Neon PostgreSQL. No R2, Drive or paid-card dependency.
+- Existing dedicated Neon project: `falling-union-71877098`, database `11local`, Singapore, PostgreSQL 17.
+- Keep 11Ship and AutoTrade fully isolated.
 
-## Implemented
-- Eight tables: `categories`, `places`, `place_photos`, `contributions`, `users`, `reviews`, `ownership_claims`, `moderation_logs`.
-- Initial six category rows.
-- Latitude and longitude validation, approval/visibility filters, supporting indexes.
-- Migration: `migrations/0001_map02_initial.sql`. Applied successfully to dedicated Neon database and read back (8 tables, 6 categories, 0 places).
+## Applied database migrations
+- `migrations/0001_map02_initial.sql`: categories, places, place_photos, contributions, users, reviews, ownership_claims, moderation_logs. Six categories, no real places.
+- `migrations/0002_neon_media_and_public_api.sql`: `place_image_blobs` with `bytea`, MIME whitelist and 300-KiB max/file; `api.public_places` view limited to approved and visible places.
+- Neon Data API enabled for schema `api` exclusively. `anonymous` has SELECT on public view, no SELECT on `public.places` or `public.users`. Verified via database permissions and `SET LOCAL ROLE anonymous` query.
+- The Neon Data API URL is public routing information (not a secret); no privileged database password is used in the Next.js app.
 
-## NOT implemented yet
-- Public geospatial endpoint and MapLibre markers; existing UI remains preview/demo.
-- R2 bucket and image upload. Cloudflare API returns error 10042: **enable R2 in Cloudflare Dashboard**. Do not claim R2 configured.
-- Render database environment variable. Never expose credentials in source control, public client bundles or logs.
-- Authentication, review/claim/moderation backend. Schema does not constitute enabled business flows.
+## Code in feature branch
+- `GET /api/places`: server-side proxy through the Neon public Data API, no credentials or mutations, limit 500, rejects bad slug, handles unavailable database.
+- MapLibre `MapView` reads the API and draws real geographic markers; empty database -> clear 'no approved places' message (no fake pins).
+- `/dia-diem/real/:slug`: detail route for approved Neon places. Legacy `/dia-diem/:id` remains demo.
+- Existing search/list UI still uses synthetic demo fixtures; **not yet connected to Neon**.
+- The pin-picker in user contribution UI remains a mocked SVG and has no real save/approval integration.
 
-## Safety rules
-- Public map API must return only `moderation_status='approved'` AND `visibility='visible'`.
-- Client cannot write directly to database. All mutations go via authenticated/verified API and Admin moderation.
-- Default `moderation_status='pending'`; never auto-publish new contributions.
-- Photo uploads should be private pending review; R2 credentials server-side only, object keys stored in `place_photos`.
-- No automatic transfer, mutation, or sharing of 11Ship/AutoTrade data.
-- Add dedicated database role with SELECT on approved-public content only or enforce server query whitelist; avoid using owner credentials in production.
+## Images
+- Binary storage schema is ready; image upload/moderation/download endpoints are **not** released.
+- Image blobs must never be returned through the public Data API.
+- No open anonymous upload endpoint: require verified Admin or a moderated submission flow; validate dimensions/MIME, process images to WebP/AVIF, enforce quota and deduplicate before storing.
+- This 300 KiB limit is intentionally conservative for Neon Free; replace storage later through adapter without changing place IDs.
 
-## Next delivery
-1. Enable R2, create `11local-images` private bucket.
-2. Implement Next.js API `/api/places` with server-only Neon driver and map bbox query.
-3. MapLibre points from real `longitude,latitude` + open detail by slug.
-4. Add test fixtures as pending or staging-only; load real approved places only after Admin review.
-5. Test/build/CI, configure Render secrets, release and smoke-test deployed app.
+## Remaining acceptance criteria
+1. CI on final branch SHA must pass before merge.
+2. Confirm `/api/places` returns `{ "places": [] }` on a running deployment (there are currently 0 approved places).
+3. Verify real map marker/detail with one owner-approved genuine place (do not invent records).
+4. Add real bbox/filter search and public list integration to replace demo data.
+5. Implement moderated upload and admin workflow before community submissions.
+6. Document periodic PostgreSQL backups, image volume caps and retention.
+
+## Security
+All public fields are filtered in `api.public_places`. Private tables are outside Neon exposed API schema, not directly queryable by anonymous users. Do not add default grants or place Neon database credentials in the client bundle.
