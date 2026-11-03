@@ -9,7 +9,7 @@ const place = (partial: Partial<PublicPlace>): PublicPlace => ({
   address:"Trường Hà",latitude:22.98,longitude:106.18,
   ownership_status:"unverified",phone:null,...partial,
 });
-const items = [place({}), place({id:"2",slug:"ban-gioc",name:"Thác Bản Giốc",area:"Trùng Khánh",latitude:22.85,longitude:106.73})];
+const items = [place({}), place({id:"2",slug:"ban-gioc",name:"Thác Bản Giốc",area:"Trùng Khánh",description:"Thác nước",latitude:22.85,longitude:106.73})];
 const filters = {q:"",cat:"all",area:"all",verifiedOnly:false,sort:"relevance"};
 
 test("Vietnamese search ignores tone and matches real descriptive fields",()=>{

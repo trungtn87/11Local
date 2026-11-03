@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, X, TriangleAlert, WifiOff, Lock, Info, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../store.jsx';
@@ -15,51 +15,6 @@ export function Logo({ to = '/' }) {
       </svg>
       <span>11<em>Local</em></span>
     </Link>
-  );
-}
-
-/* ---------- Illustrated place art (generated, NOT a real photo) ---------- */
-function rng(seed) {
-  let a = seed * 2654435761 >>> 0;
-  return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-}
-const PAL = {
-  food:  { sky: ['#fbe3b8', '#f3b266'], m: ['#8a5a2b', '#6e4421', '#4f2f16'], acc: '#c8742b' },
-  cafe:  { sky: ['#dfe9e4', '#b6cfc6'], m: ['#6f9a8c', '#4c7a6c', '#2f5a4d'], acc: '#ffffff' },
-  stay:  { sky: ['#cfe6f2', '#9ccbe0'], m: ['#4f8c78', '#2f6b5a', '#174d41'], acc: '#b9661a' },
-  sight: { sky: ['#fde7c8', '#f6a56b'], m: ['#6c7f8d', '#445a69', '#27394a'], acc: '#fff3cf' },
-  water: { sky: ['#d8f0f0', '#9fd8d6'], m: ['#4a8f87', '#2f6f69', '#17504b'], acc: '#ffffff' },
-  shop:  { sky: ['#fce1d2', '#f4b79a'], m: ['#a56a4b', '#80482f', '#5b2f1c'], acc: '#2b3a6b' },
-  def:   { sky: ['#e6efe9', '#c3d9cf'], m: ['#8fb3a5', '#6a9585', '#4a7565'], acc: '#ffffff' },
-};
-export function PlaceArt({ kind = 'def', seed = 1, label = true, className = '' }) {
-  const p = PAL[kind] || PAL.def;
-  const id = `g${kind}${seed}${Math.random().toString(36).slice(2, 6)}`;
-  const layers = useMemo(() => {
-    const r = rng(seed + 1);
-    return [0, 1, 2].map((i) => {
-      const base = 150 + i * 42; const pts = [`0,300`, `0,${base}`];
-      let x = 0;
-      while (x < 400) { x += 40 + r() * 50; const h = base - 30 - r() * (70 - i * 14); pts.push(`${Math.min(x - 20, 400)},${h}`, `${Math.min(x, 400)},${base + r() * 8}`); }
-      pts.push('400,300');
-      return pts.join(' ');
-    });
-  }, [seed]);
-  return (
-    <div className={`art-wrap ${className}`} style={{ width: '100%', height: '100%' }}>
-      <svg className="art" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <defs><linearGradient id={id} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={p.sky[0]} /><stop offset="1" stopColor={p.sky[1]} /></linearGradient></defs>
-        <rect width="400" height="300" fill={`url(#${id})`} />
-        <circle cx={90 + (seed % 5) * 55} cy="70" r="26" fill={p.acc} opacity=".7" />
-        {layers.map((pts, i) => <polygon key={i} points={pts} fill={p.m[i]} />)}
-        {kind === 'water' && [0, 1, 2, 3].map((i) => <rect key={i} x={170 + i * 14} y="120" width="6" height="180" rx="3" fill="#fff" opacity={0.85 - i * 0.12} />)}
-        {kind === 'stay' && <g fill={p.acc}><rect x="180" y="205" width="60" height="30" /><polygon points="172,205 210,178 248,205" fill="#7a3d0d" /><rect x="190" y="235" width="4" height="25" /><rect x="226" y="235" width="4" height="25" /></g>}
-        {kind === 'food' && [0, 1, 2, 3].map((i) => <path key={i} d={`M0 ${250 + i * 12} Q100 ${236 + i * 12} 200 ${250 + i * 12} T400 ${250 + i * 12}`} stroke="#f0c36b" strokeWidth="5" fill="none" opacity=".7" />)}
-        {kind === 'cafe' && [0, 1].map((i) => <ellipse key={i} cx={120 + i * 150} cy={200 + i * 16} rx="130" ry="10" fill="#fff" opacity=".45" />)}
-        {kind === 'shop' && [0, 1, 2, 3, 4].map((i) => <rect key={i} x={40 + i * 66} y="225" width="56" height="22" rx="4" fill={['#d9822b', '#2b3a6b', '#1d9684', '#b3261e', '#e0a100'][i]} opacity=".9" />)}
-      </svg>
-      {label && <span className="art-label">Ảnh minh họa</span>}
-    </div>
   );
 }
 
