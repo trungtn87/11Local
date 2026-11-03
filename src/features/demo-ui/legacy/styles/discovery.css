@@ -1,12 +1,23 @@
-.home-search-hidden { display: none; }
 .discovery-hero-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7,61,53,.15), rgba(7,61,53,.78)); }
 .discovery-section-head { align-items: end; }
 .discovery-section-head p { margin-top: 5px; max-width: 660px; }
 .discovery-location { min-height: 112px; }
-.discovery-categories { margin-top: 18px; padding-top: 24px; border-top: 1px solid var(--c-border); }
+.discovery-categories { margin: 0; }
 .discovery-categories .cat-grid { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
 .real-place-card { position: relative; padding-bottom: 48px; }
 .real-place-main { color: inherit; }
 .real-place-direction { position: absolute; left: 12px; right: 12px; bottom: 10px; min-height: 34px; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: var(--r-sm); color: var(--c-primary); background: var(--c-primary-soft); font-size: 13px; font-weight: 700; }
 .real-place-direction:hover { background: var(--c-primary); color: white; }
 @media (max-width: 720px) { .discovery-home { padding-top: 12px; } .discovery-section-head { align-items: start; } }
+
+/* Compact category shortcuts directly below the persistent header search. */
+@media (max-width: 720px) {
+  .discovery-categories .cat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .discovery-categories .cat-item { gap: 5px; padding: 10px 3px; font-size: 11.5px; line-height: 1.25; min-height: 78px; }
+  .discovery-categories .cat-item .ico { width: 34px; height: 34px; border-radius: 11px; }
+  .discovery-categories .cat-item .ico svg { width: 18px; height: 18px; }
+}
+.real-place-cover { position: relative; width: 100%; height: 100%; overflow: hidden; }
+.real-place-cover .art-wrap { position: absolute; inset: 0; }
+.real-place-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.real-place-detail-cover { width: 100%; aspect-ratio: 16 / 9; max-height: 410px; overflow: hidden; border-radius: var(--r-lg); }

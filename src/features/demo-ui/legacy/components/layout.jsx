@@ -11,13 +11,12 @@ export function DemoRibbon() {
 export function Header() {
   const { filters, setFilters, role } = useApp();
   const nav = useNavigate();
-  const { pathname } = useLocation();
   return (
     <header className="app-header">
       <div className="container">
         <Logo />
-        <div className={`header-search ${pathname === '/' ? 'home-search-hidden' : ''}`}>
-          <SearchBar compact value={filters.q} onChange={(q) => setFilters((f) => ({ ...f, q }))} onSubmit={() => nav('/tim-kiem')} placeholder="Tìm quán, cafe, điểm đến…" />
+        <div className="header-search">
+          <SearchBar compact value={filters.q} onChange={(q) => setFilters((f) => ({ ...f, q }))} onSubmit={() => nav('/tim-kiem')} placeholder="Tìm địa điểm…" />
         </div>
         <nav className="header-nav" aria-label="Điều hướng chính">
           <NavLink to="/" end>Khám phá</NavLink>

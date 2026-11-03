@@ -372,3 +372,14 @@ table.table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); m
 .btn { border-radius: var(--r-md); font-weight: 700; }
 .chip { border-width: 1px; font-weight: 600; }
 .input, .select, .textarea { border-width: 1px; }
+
+/* Search is available on the homepage as well as inner pages, next to 11Local. */
+@media (max-width: 600px) {
+  .app-header .container { gap: 8px; padding-left: 12px; padding-right: 12px; }
+  .app-header .logo { font-size: 15px; gap: 5px; }
+  .app-header .logo-mark { width: 28px; height: 28px; }
+  .app-header .header-search { flex: 1; min-width: 0; }
+  .app-header .searchbar { min-height: 38px; gap: 6px; padding-left: 10px; }
+  .app-header .searchbar input { font-size: 13px; min-height: 36px; }
+  .app-header .searchbar > svg { width: 16px; height: 16px; }
+}
