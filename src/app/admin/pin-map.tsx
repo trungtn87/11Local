@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Map, Marker, setWorkerUrl } from "maplibre-gl";
+import { Map, Marker, setWorkerUrl, type StyleSpecification } from "maplibre-gl";
 import { MAP_STYLE_URL } from "@/features/map/map-config";
+import { isPoiLayer, loadCleanStyle, type StyleLayer } from "@/features/map/map-style";
 
 setWorkerUrl(new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString());
 
@@ -17,41 +18,64 @@ export function PinMap({ latitude, longitude, onChange }: Props) {
   const map = useRef<Map | null>(null);
   const marker = useRef<Marker | null>(null);
   const change = useRef(onChange);
-  const initial = useRef({ latitude, longitude });
+  const latest = useRef({ latitude, longitude });
   const lastMapSelection = useRef<{ latitude: number; longitude: number } | null>(null);
 
   useEffect(() => { change.current = onChange; }, [onChange]);
+  useEffect(() => { latest.current = { latitude, longitude }; }, [latitude, longitude]);
 
   useEffect(() => {
-    if (!el.current) return;
-    const start = initial.current;
-    const m = new Map({
-      container: el.current,
-      style: MAP_STYLE_URL,
-      center: [start.longitude, start.latitude],
-      zoom: 14,
-    });
-    const pin = new Marker({ draggable: true })
-      .setLngLat([start.longitude, start.latitude])
-      .addTo(m);
+    let cancelled = false;
+    let instance: Map | null = null;
 
-    function choosePosition(longitude: number, latitude: number) {
-      lastMapSelection.current = { longitude, latitude };
-      change.current(longitude, latitude);
+    async function createMap() {
+      // The raw OpenFreeMap style contains POIs such as homestays and shops.
+      // Use the same sanitized basemap as 11Local's public map.
+      const style = await loadCleanStyle(MAP_STYLE_URL);
+      if (cancelled || !el.current) return;
+
+      const start = latest.current;
+      const m = new Map({
+        container: el.current,
+        style: style as StyleSpecification | string,
+        center: [start.longitude, start.latitude],
+        zoom: 14,
+      });
+      instance = m;
+
+      // Defense in depth when the style request falls back to its original URL.
+      m.once("load", () => {
+        for (const layer of m.getStyle().layers ?? []) {
+          if (isPoiLayer(layer as StyleLayer)) m.removeLayer(layer.id);
+        }
+      });
+
+      const pin = new Marker({ draggable: true })
+        .setLngLat([start.longitude, start.latitude])
+        .addTo(m);
+
+      function choosePosition(longitude: number, latitude: number) {
+        lastMapSelection.current = { longitude, latitude };
+        change.current(longitude, latitude);
+      }
+
+      pin.on("dragend", () => {
+        const p = pin.getLngLat();
+        choosePosition(p.lng, p.lat);
+      });
+      m.on("click", (event) => {
+        pin.setLngLat(event.lngLat);
+        choosePosition(event.lngLat.lng, event.lngLat.lat);
+      });
+
+      map.current = m;
+      marker.current = pin;
     }
 
-    pin.on("dragend", () => {
-      const p = pin.getLngLat();
-      choosePosition(p.lng, p.lat);
-    });
-    m.on("click", (event) => {
-      pin.setLngLat(event.lngLat);
-      choosePosition(event.lngLat.lng, event.lngLat.lat);
-    });
-    map.current = m;
-    marker.current = pin;
+    void createMap();
     return () => {
-      m.remove();
+      cancelled = true;
+      instance?.remove();
       map.current = null;
       marker.current = null;
     };
@@ -71,8 +95,6 @@ export function PinMap({ latitude, longitude, onChange }: Props) {
       Math.abs(fromMap.longitude - longitude) < 0.0000001
     ) return;
 
-    // Manual coordinates, search results, or selecting a different place:
-    // move the camera as well as the marker so the new position is visible.
     m.easeTo({
       center: [longitude, latitude],
       zoom: Math.max(m.getZoom(), 14),
