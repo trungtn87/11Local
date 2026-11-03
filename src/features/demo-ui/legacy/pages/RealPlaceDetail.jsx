@@ -31,7 +31,7 @@ export function RealPlaceDetail() {
   const coords = `${p.latitude},${p.longitude}`;
   return (
     <div className="container page stack">
-      <Link to="/ban-do" className="small muted"><ArrowLeft size={16} style={{ verticalAlign: 'middle' }} /> Trở lại bản đồ</Link>
+      <Link to={"/ban-do?place=" + encodeURIComponent(p.slug)} className="small muted"><ArrowLeft size={16} style={{ verticalAlign: 'middle' }} /> Trở lại bản đồ</Link>
       <div className="stack-sm">
         <h1>{p.name}</h1>
         <p className="muted">{p.category_name} · {p.area}</p>
@@ -42,7 +42,7 @@ export function RealPlaceDetail() {
       <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
         <a className="btn btn-primary" href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(coords)}`} target="_blank" rel="noreferrer"><Navigation size={16} /> Chỉ đường</a>
         {p.phone && <a className="btn btn-outline" href={`tel:${p.phone}`}><Phone size={16} /> Gọi điện</a>}
-        <Link to="/ban-do"><Button variant="outline">Xem bản đồ</Button></Link>
+        <Link to={"/ban-do?place=" + encodeURIComponent(p.slug)}><Button variant="outline">Xem bản đồ</Button></Link>
       </div>
       <div style={{ height: 340, borderRadius: 16, overflow: 'hidden' }}>
         <MapCanvas embedded onReady={(map) => {
