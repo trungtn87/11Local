@@ -45,3 +45,37 @@
   .local-detail-name h2{font-size:20px}
 }
 @media(prefers-reduced-motion:reduce){.local-detail-photo-prev,.local-detail-photo-next{transition:none}}
+
+/* On desktop, the map rail is a GRID ITEM rather than an absolute overlay.
+   The same component remains a bottom sheet on phones. */
+@media (min-width:801px) {
+  .local-detail-layer--map {
+    position: relative;
+    inset: auto;
+    grid-column: 3;
+    width: auto;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    z-index: 4;
+    pointer-events: auto;
+  }
+  .local-detail-layer--map .local-detail-panel {
+    box-shadow: -3px 0 16px rgba(23,52,44,.07);
+    border-left: 1px solid #dce9e3;
+  }
+  .local-detail-layer--map .local-detail-gallery {
+    height: 225px;
+    min-height: 225px;
+  }
+  .local-detail-layer--map .local-detail-topbar {
+    padding: 12px 19px;
+  }
+  .local-detail-layer--map .local-detail-content {
+    padding: 20px 20px 32px;
+    gap: 16px;
+  }
+}
+@media (min-width:801px) and (max-width:1120px) {
+  .local-map-body.details-open .local-detail-layer--map { grid-column: 2; }
+}
