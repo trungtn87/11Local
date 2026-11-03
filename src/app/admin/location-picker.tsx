@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { MapPin, Search } from "lucide-react";
 import { parseCoordinateInput } from "@/lib/coordinate-input";
 import { PinMap } from "./pin-map";
@@ -16,17 +16,21 @@ type Props = {
 };
 
 export function LocationPicker({ latitude, longitude, onChange }: Props) {
-  const [latText, setLatText] = useState(latitude.toFixed(6));
-  const [lngText, setLngText] = useState(longitude.toFixed(6));
+  // Derive displayed values from fresh props when the marker changes, without
+  // synchronously setting state in an effect (React 19 lint requirement).
+  const [draft, setDraft] = useState(() => ({
+    baseLatitude: latitude,
+    baseLongitude: longitude,
+    lat: latitude.toFixed(6),
+    lng: longitude.toFixed(6),
+  }));
+  const synchronized = draft.baseLatitude === latitude && draft.baseLongitude === longitude;
+  const latText = synchronized ? draft.lat : latitude.toFixed(6);
+  const lngText = synchronized ? draft.lng : longitude.toFixed(6);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [feedback, setFeedback] = useState("");
-
-  useEffect(() => {
-    setLatText(latitude.toFixed(6));
-    setLngText(longitude.toFixed(6));
-  }, [latitude, longitude]);
 
   const applyCoordinates = () => {
     const lat = parseCoordinateInput(latText, -90, 90);
@@ -37,8 +41,12 @@ export function LocationPicker({ latitude, longitude, onChange }: Props) {
     }
     setFeedback("");
     setResults([]);
-    setLatText(lat.toFixed(6));
-    setLngText(lng.toFixed(6));
+    setDraft({
+      baseLatitude: lat,
+      baseLongitude: lng,
+      lat: lat.toFixed(6),
+      lng: lng.toFixed(6),
+    });
     onChange(lng, lat);
   };
 
@@ -130,7 +138,12 @@ export function LocationPicker({ latitude, longitude, onChange }: Props) {
             inputMode="decimal"
             aria-label="Vĩ độ"
             value={latText}
-            onChange={(event) => setLatText(event.target.value)}
+            onChange={(event) => setDraft({
+              baseLatitude: latitude,
+              baseLongitude: longitude,
+              lat: event.target.value,
+              lng: lngText,
+            })}
             onKeyDown={(event) => {
               if (event.key === "Enter") { event.preventDefault(); applyCoordinates(); }
             }}
@@ -143,7 +156,12 @@ export function LocationPicker({ latitude, longitude, onChange }: Props) {
             inputMode="decimal"
             aria-label="Kinh độ"
             value={lngText}
-            onChange={(event) => setLngText(event.target.value)}
+            onChange={(event) => setDraft({
+              baseLatitude: latitude,
+              baseLongitude: longitude,
+              lat: latText,
+              lng: event.target.value,
+            })}
             onKeyDown={(event) => {
               if (event.key === "Enter") { event.preventDefault(); applyCoordinates(); }
             }}
