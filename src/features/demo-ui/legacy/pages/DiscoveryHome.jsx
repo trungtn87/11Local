@@ -6,7 +6,8 @@ import { distanceProvider, formatApproximateDistance } from '../../../distance/d
 import { getGoogleMapsDirectionsUrl } from '../../../places/google-maps';
 import { selectExplorePlaces, selectHotPlaces } from '../../../places/public-place';
 import { useApp } from '../store.jsx';
-import { Button, CardSkeletons, PlaceArt, SearchBar, StateBlock } from '../components/ui.jsx';
+import { Button, CardSkeletons, StateBlock } from '../components/ui.jsx';
+import { RealPlaceCover } from '../components/RealPlaceCover.jsx';
 
 const categoryIcons = { utensils: Utensils, coffee: Coffee, bed: BedDouble, mountain: Mountain, 'shopping-bag': ShoppingBag, wrench: Wrench };
 
@@ -22,7 +23,7 @@ function requestBrowserLocation() {
 }
 
 export function DiscoveryHome() {
-  const { filters, setFilters, geo, setGeo, geoPosition, setGeoPosition, toast, categories } = useApp();
+  const { setFilters, geo, setGeo, geoPosition, setGeoPosition, toast, categories, categoriesState } = useApp();
   const navigate = useNavigate();
   const [data, setData] = useState({ status: 'loading', places: [] });
 
@@ -63,13 +64,14 @@ export function DiscoveryHome() {
 
   return (
     <div className="container page stack-lg discovery-home">
-      <section className="hero" aria-labelledby="discovery-title">
-        <div className="art-bg"><PlaceArt kind="sight" seed={4} label={false} /></div>
-        <div className="discovery-hero-overlay" />
-        <div className="hero-content">
-          <h1 id="discovery-title">Khám phá <span className="hl">Cao Bằng</span><br />như người địa phương</h1>
-          <p>Địa điểm thật do cộng đồng đóng góp và Admin kiểm duyệt.</p>
-          <SearchBar value={filters.q} onChange={(q) => setFilters((current) => ({ ...current, q }))} onSubmit={() => navigate('/tim-kiem')} />
+      <section className="discovery-categories" aria-labelledby="categories-heading">
+        <div className="section-head"><h2 id="categories-heading">Danh mục</h2></div>
+        {categoriesState === "error" && <p className="small muted">Không tải được danh mục từ Neon.</p>}
+        <div className="cat-grid">
+          {categories.filter((category) => category.enabled).map((category) => {
+            const Icon = categoryIcons[category.icon] || Mountain;
+            return <button key={category.id} className="cat-item" onClick={() => openCategory(category.id)}><span className="ico"><Icon size={20} /></span>{category.label}</button>;
+          })}
         </div>
       </section>
 
@@ -98,15 +100,6 @@ export function DiscoveryHome() {
         <PlacesState data={data} places={hot} />
       </section>
 
-      <section className="discovery-categories" aria-labelledby="categories-heading">
-        <div className="section-head"><h2 id="categories-heading">Danh mục</h2></div>
-        <div className="cat-grid">
-          {categories.filter((category) => category.enabled).map((category) => {
-            const Icon = categoryIcons[category.icon] || Mountain;
-            return <button key={category.id} className="cat-item" onClick={() => openCategory(category.id)}><span className="ico"><Icon size={20} /></span>{category.label}</button>;
-          })}
-        </div>
-      </section>
     </div>
   );
 }
@@ -122,13 +115,12 @@ function PlacesState({ data, places }) {
   return <div className="place-grid">{places.map((place) => <RealPlaceCard key={place.id} place={place} />)}</div>;
 }
 
-function RealPlaceCard({ place, distance }) {
-  const artKind = ['food', 'cafe', 'stay', 'sight'].includes(place.category_id) ? place.category_id : 'def';
+export function RealPlaceCard({ place, distance }) {
   const ratingCount = Number(place.rating_count) || 0;
   return (
     <article className="place-card real-place-card">
-      <Link to={`/dia-diem/real/${place.slug}`} className="real-place-main">
-        <div className="pc-img"><PlaceArt kind={artKind} seed={place.name.length} label={false} /></div>
+      <Link to={`/dia-diem/${place.slug}`} className="real-place-main">
+        <div className="pc-img"><RealPlaceCover place={place} /></div>
         <div className="pc-body">
           <span className="pc-name">{place.name}</span>
           <span className="pc-meta">{place.category_name} · {place.area}</span>

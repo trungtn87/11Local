@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, MapPin, Navigation, Phone, ShieldCheck } from 'lucide-react';
 import { MapCanvas } from '../../../map/map-canvas';
 import { Button, StateBlock } from '../components/ui.jsx';
+import { RealPlaceCover } from '../components/RealPlaceCover.jsx';
 
 /** Real approved 11Local listing. Deliberately separate from synthetic preview records. */
 export function RealPlaceDetail() {
@@ -32,6 +33,7 @@ export function RealPlaceDetail() {
   return (
     <div className="container page stack">
       <Link to="/ban-do" className="small muted"><ArrowLeft size={16} style={{ verticalAlign: 'middle' }} /> Trở lại bản đồ</Link>
+      <div className="real-place-detail-cover"><RealPlaceCover place={p} /></div>
       <div className="stack-sm">
         <h1>{p.name}</h1>
         <p className="muted">{p.category_name} · {p.area}</p>

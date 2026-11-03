@@ -1,47 +1,41 @@
 import { useEffect } from 'react';
-import { Routes, Route, useLocation, Navigate, Link } from 'react-router-dom';
-import { DemoRibbon, PublicShell, PreviewTools, Toasts } from './components/layout.jsx';
-import { StateBlock, Button } from './components/ui.jsx';
+import { Link, Route, Routes, useLocation } from 'react-router-dom';
+import { PublicShell, Toasts } from './components/layout.jsx';
+import { StateBlock } from './components/ui.jsx';
 import { Search, MapPage } from './pages/Public.jsx';
-import { DiscoveryHome as Home } from './pages/DiscoveryHome.jsx';
-import { PlaceDetail } from './pages/Detail.jsx';
+import { DiscoveryHome } from './pages/DiscoveryHome.jsx';
 import { RealPlaceDetail } from './pages/RealPlaceDetail.jsx';
-import { Contribute, ReportError, Track } from './pages/Contribute.jsx';
-import { Login, Account, Claim } from './pages/Auth.jsx';
-import { OwnerDashboard, OwnerEdit } from './pages/Owner.jsx';
-import { AdminHome, AdminQueue, AdminReview, AdminPlaces, AdminClaims } from './pages/Admin.jsx';
+import { Login, Account } from './pages/Auth.jsx';
 
-const pub = (el, opts) => <PublicShell {...opts}>{el}</PublicShell>;
+const publicPage = (page, options) => <PublicShell {...options}>{page}</PublicShell>;
+
+function NotAvailable({ title }) {
+  return <div className="container page">
+    <StateBlock title={title} actions={<Link to="/tim-kiem" className="btn btn-primary">Xem địa điểm thật</Link>}>
+      Tính năng này chưa kết nối cơ sở dữ liệu và không hiển thị dữ liệu giả lập.
+    </StateBlock>
+  </div>;
+}
 
 export default function App() {
   const { pathname } = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
-  return (
-    <>
-      {pathname !== '/' && <DemoRibbon />}
-      <Routes>
-        <Route path="/" element={pub(<Home />)} />
-        <Route path="/tim-kiem" element={pub(<Search />)} />
-        <Route path="/ban-do" element={pub(<MapPage />, { hideFooter: true })} />
-        <Route path="/dia-diem/real/:slug" element={pub(<RealPlaceDetail />)} />
-        <Route path="/dia-diem/:id" element={pub(<PlaceDetail />)} />
-        <Route path="/dong-gop" element={pub(<Contribute />)} />
-        <Route path="/bao-sai/:id" element={pub(<ReportError />)} />
-        <Route path="/theo-doi" element={pub(<Track />)} />
-        <Route path="/dang-nhap" element={pub(<Login />)} />
-        <Route path="/tai-khoan" element={pub(<Account />)} />
-        <Route path="/nhan-quyen/:id" element={pub(<Claim />)} />
-        <Route path="/quan-ly" element={<OwnerDashboard />} />
-        <Route path="/quan-ly/chinh-sua/:id" element={<OwnerEdit />} />
-        <Route path="/admin" element={<AdminHome />} />
-        <Route path="/admin/hang-cho" element={<AdminQueue />} />
-        <Route path="/admin/ho-so/:id" element={<AdminReview />} />
-        <Route path="/admin/dia-diem" element={<AdminPlaces />} />
-        <Route path="/admin/xac-minh" element={<AdminClaims />} />
-        <Route path="*" element={pub(<div className="container page"><StateBlock kind="empty" title="Không tìm thấy trang" actions={<Link className="btn btn-primary" to="/">Về trang chủ</Link>}>Đường dẫn không tồn tại.</StateBlock></div>)} />
-      </Routes>
-      {pathname !== '/' && <PreviewTools />}
-      <Toasts />
-    </>
-  );
+  return <>
+    <Routes>
+      <Route path="/" element={publicPage(<DiscoveryHome />)}/>
+      <Route path="/tim-kiem" element={publicPage(<Search />)}/>
+      <Route path="/ban-do" element={publicPage(<MapPage />, { hideFooter: true })}/>
+      <Route path="/dia-diem/real/:slug" element={publicPage(<RealPlaceDetail />)}/>
+      <Route path="/dia-diem/:slug" element={publicPage(<RealPlaceDetail />)}/>
+      <Route path="/dang-nhap" element={publicPage(<Login />)}/>
+      <Route path="/tai-khoan" element={publicPage(<Account />)}/>
+      <Route path="/dong-gop" element={publicPage(<NotAvailable title="Đóng góp địa điểm đang hoàn thiện" />)}/>
+      <Route path="/theo-doi" element={publicPage(<NotAvailable title="Tra cứu đóng góp chưa khả dụng" />)}/>
+      <Route path="/bao-sai/:id" element={publicPage(<NotAvailable title="Báo sai đang hoàn thiện" />)}/>
+      <Route path="/nhan-quyen/:id" element={publicPage(<NotAvailable title="Nhận quyền quản lý đang hoàn thiện" />)}/>
+      <Route path="/quan-ly/*" element={publicPage(<NotAvailable title="Quản lý địa điểm đang hoàn thiện" />)}/>
+      <Route path="*" element={publicPage(<NotAvailable title="Không tìm thấy trang" />)}/>
+    </Routes>
+    <Toasts />
+  </>;
 }
