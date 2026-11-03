@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, MapPin, Search, X, BadgeCheck, Heart, ImageOff, WifiOff, TriangleAlert, Lock, Info, CheckCircle2, Loader2 } from 'lucide-react';
-import { statusLabel, opLabel, catLabel } from '../data/demo.js';
+import { Search, X, TriangleAlert, WifiOff, Lock, Info, CheckCircle2 } from 'lucide-react';
+import { useApp } from '../store.jsx';
 
 /* ---------- Logo ---------- */
 export function Logo({ to = '/' }) {
@@ -61,64 +61,6 @@ export function PlaceArt({ kind = 'def', seed = 1, label = true, className = '' 
       {label && <span className="art-label">Ảnh minh họa</span>}
     </div>
   );
-}
-
-/* ---------- Badges ---------- */
-export function StatusBadge({ status }) {
-  const [t, v] = statusLabel[status] || [status, 'neutral'];
-  return <span className={`badge badge-${v}`}>{t}</span>;
-}
-export function OpBadge({ op }) {
-  const [t, v] = opLabel[op] || opLabel.unknown;
-  return <span className={`badge badge-${v}`}>{t}</span>;
-}
-export function ManageBadge({ managed }) {
-  return managed
-    ? <span className="badge badge-verified"><BadgeCheck size={13} /> Đã xác minh quản lý</span>
-    : <span className="badge badge-neutral">Chưa xác minh quản lý</span>;
-}
-export const DemoBadge = ({ children = 'DEMO' }) => <span className="badge badge-demo">{children}</span>;
-
-/* ---------- Rating ---------- */
-export function Rating({ rating, compact }) {
-  if (!rating) return <span className="rating none">Chưa có đánh giá</span>;
-  return <span className="rating"><Star size={14} /> {rating.avg.toFixed(1)}{!compact && <span className="muted" style={{ fontWeight: 400 }}>({rating.count})</span>}</span>;
-}
-
-/* ---------- Place card ---------- */
-export function PlaceCard({ place, horizontal, distance }) {
-  const { favs, toggleFav } = useAppLite();
-  const fav = favs.includes(place.id);
-  return (
-    <Link to={`/dia-diem/${place.id}`} className={`place-card ${horizontal ? 'horizontal' : ''}`}>
-      <div className="pc-img">
-        {place.photos.official + place.photos.community > 0
-          ? <PlaceArt kind={place.art.kind} seed={place.art.seed} label={false} />
-          : <DefaultImage />}
-        {place.op !== 'active' && place.op !== 'unknown' && <div className="pc-tags"><OpBadge op={place.op} /></div>}
-        {!horizontal && (
-          <button className="pc-fav" aria-label={fav ? 'Bỏ lưu địa điểm' : 'Lưu địa điểm'} onClick={(e) => { e.preventDefault(); toggleFav(place.id); }}>
-            <Heart size={18} fill={fav ? '#b3261e' : 'none'} color={fav ? '#b3261e' : '#1d2623'} />
-          </button>
-        )}
-      </div>
-      <div className="pc-body">
-        <span className="pc-name">{place.name}</span>
-        <span className="pc-meta">{catLabel(place.cat)} · {place.area}</span>
-        <div className="row between" style={{ marginTop: 2 }}>
-          <Rating rating={place.rating} />
-          {distance && <span className="xs muted">~{distance} km · đường thẳng</span>}
-        </div>
-        {place.managed && <span style={{ marginTop: 2 }}><ManageBadge managed /></span>}
-      </div>
-    </Link>
-  );
-}
-import { useApp } from '../store.jsx';
-const useAppLite = () => useApp();
-
-export function DefaultImage() {
-  return <div style={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', background: 'var(--c-surface-2)', color: 'var(--c-text-3)' }}><div className="center"><ImageOff size={28} /><div className="xs">Chưa có ảnh</div></div></div>;
 }
 
 /* ---------- Buttons ---------- */
@@ -206,20 +148,6 @@ export function Sheet({ open, onClose, title, children }) {
   );
 }
 
-export function ConfirmDialog({ open, onClose, title, children, confirmLabel = 'Xác nhận', danger, onConfirm, loading }) {
-  return (
-    <Sheet open={open} onClose={onClose} title={title}>
-      <div className="stack">
-        <div className="text-2">{children}</div>
-        <div className="row" style={{ justifyContent: 'flex-end' }}>
-          <Button variant="outline" onClick={onClose}>Hủy</Button>
-          <Button variant={danger ? 'danger' : 'primary'} loading={loading} onClick={onConfirm}>{confirmLabel}</Button>
-        </div>
-      </div>
-    </Sheet>
-  );
-}
-
 export function Toasts() {
   const { toasts } = useApp();
   const I = { success: CheckCircle2, error: TriangleAlert, info: Info };
@@ -230,17 +158,3 @@ export function Toasts() {
   );
 }
 
-export function Tabs({ tabs, value, onChange, label }) {
-  return (
-    <div className="tabs" role="tablist" aria-label={label}>
-      {tabs.map((t) => <button key={t.id} role="tab" aria-selected={value === t.id} onClick={() => onChange(t.id)}>{t.label}</button>)}
-    </div>
-  );
-}
-
-export function Steps({ total, current }) {
-  return <div className="steps" role="progressbar" aria-valuemin={1} aria-valuemax={total} aria-valuenow={current} aria-label={`Bước ${current}/${total}`}>{Array.from({ length: total }, (_, i) => <i key={i} className={i < current ? 'done' : ''} />)}</div>;
-}
-
-export function Spinner() { return <Loader2 className="spinner" style={{ border: 0, animation: 'spin .8s linear infinite' }} />; }
-export { MapPin };

@@ -1,95 +1,65 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { adminQueue as seedQueue, claims as seedClaims, myContributions as seedContribs, categories as fallbackCategories } from './data/demo.js';
 
-// Phần lớn state dưới đây phục vụ UI preview. Riêng currentUser/authState đọc session Google thật.
-// "role" vẫn là state trình bày; quyền server-side phải kiểm tra session/API riêng.
-const Ctx = createContext(null);
-export const useApp = () => useContext(Ctx);
+const Context = createContext(null);
+export const useApp = () => useContext(Context);
 
-const defaultFilters = { q: '', cat: 'all', area: 'all', verifiedOnly: false, openNowOnly: false, sort: 'relevance' };
+const defaultFilters = {
+  q: '', cat: 'all', area: 'all', verifiedOnly: false, openNowOnly: false, sort: 'relevance',
+};
 
 export function AppProvider({ children }) {
-  const qs = new URLSearchParams(window.location.search); // ?role=admin&state=error — chỉ tiện xem thử giao diện
-  const [role, setRole] = useState(['guest', 'member', 'owner', 'admin'].includes(qs.get('role')) ? qs.get('role') : 'guest'); // guest | member | owner | admin
-  const [filters, setFilters] = useState(defaultFilters); // giữ nguyên khi chuyển danh sách <-> bản đồ (v1 tr.4)
-  const [forced, setForced] = useState(qs.get('state') || 'none'); // none | loading | empty | error | offline
-  const [toasts, setToasts] = useState([]);
-  const [queue, setQueue] = useState(seedQueue);
-  const [claims, setClaims] = useState(seedClaims);
-  const [contribs, setContribs] = useState(seedContribs);
-  const [hiddenIds, setHiddenIds] = useState([]);
-  const [myReviews, setMyReviews] = useState({}); // placeId -> {stars,text,status}
-  const [favs, setFavs] = useState([]);
-  const [geo, setGeo] = useState('off'); // off | granted | denied
-  const [geoPosition, setGeoPosition] = useState(null); // { latitude, longitude, accuracy }
-  const [categories, setCategories] = useState(fallbackCategories);
-  const [categoriesState, setCategoriesState] = useState('loading'); // loading | ready | fallback
+  const [filters, setFilters] = useState(defaultFilters);
+  const [categories, setCategories] = useState([]);
+  const [categoriesState, setCategoriesState] = useState('loading');
   const [currentUser, setCurrentUser] = useState(null);
-  const [authState, setAuthState] = useState('loading'); // loading | ready | error
-  const tid = useRef(0);
+  const [authState, setAuthState] = useState('loading');
+  const [geo, setGeo] = useState('off');
+  const [geoPosition, setGeoPosition] = useState(null);
+  const [toasts, setToasts] = useState([]);
+  const toastId = useRef(0);
 
   useEffect(() => {
-    const ctrl = new AbortController();
-    fetch('/api/auth/session', { signal: ctrl.signal, cache: 'no-store' })
-      .then((res) => { if (!res.ok) throw new Error('session API failed'); return res.json(); })
+    const controller = new AbortController();
+    fetch('/api/categories', { signal: controller.signal, cache: 'no-store' })
+      .then((response) => { if (!response.ok) throw new Error('CATEGORIES_UNAVAILABLE'); return response.json(); })
       .then((body) => {
-        const user = body?.authenticated ? body.user : null;
-        setCurrentUser(user);
-        setAuthState('ready');
-        if (user) setRole((current) => current === 'guest' ? 'member' : current);
-      })
-      .catch((error) => {
-        if (error.name !== 'AbortError') {
-          setCurrentUser(null);
-          setAuthState('error');
-        }
-      });
-    return () => ctrl.abort();
-  }, []);
-
-  useEffect(() => {
-    const ctrl = new AbortController();
-    fetch('/api/categories', { signal: ctrl.signal })
-      .then((res) => { if (!res.ok) throw new Error('categories API failed'); return res.json(); })
-      .then((body) => {
-        if (!Array.isArray(body.categories) || body.categories.length === 0) throw new Error('empty categories');
+        if (!Array.isArray(body.categories)) throw new Error('INVALID_CATEGORIES');
         setCategories(body.categories.map((row) => ({
-          id: row.id,
-          label: row.name,
-          icon: row.icon,
-          sortOrder: row.sort_order,
-          enabled: true,
+          id: row.id, label: row.name, icon: row.icon,
+          sortOrder: row.sort_order, enabled: true,
         })));
         setCategoriesState('ready');
       })
       .catch((error) => {
-        if (error.name !== 'AbortError') setCategoriesState('fallback');
+        if (error.name !== 'AbortError') setCategoriesState('error');
       });
-    return () => ctrl.abort();
+    return () => controller.abort();
   }, []);
 
-  const toast = useCallback((msg, type = 'success') => {
-    const id = ++tid.current;
-    setToasts((t) => [...t, { id, msg, type }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3600);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch('/api/auth/session', { signal: controller.signal, cache: 'no-store' })
+      .then((response) => { if (!response.ok) throw new Error('SESSION_UNAVAILABLE'); return response.json(); })
+      .then((body) => {
+        setCurrentUser(body.authenticated ? body.user : null);
+        setAuthState('ready');
+      })
+      .catch((error) => {
+        if (error.name !== 'AbortError') setAuthState('error');
+      });
+    return () => controller.abort();
   }, []);
 
+  const toast = useCallback((message, type = 'success') => {
+    const id = ++toastId.current;
+    setToasts((items) => [...items, { id, msg: message, type }]);
+    setTimeout(() => setToasts((items) => items.filter((item) => item.id !== id)), 3600);
+  }, []);
+  const resetFilters = useCallback(() => setFilters(defaultFilters), []);
   const value = useMemo(() => ({
-    role, setRole, filters, setFilters, resetFilters: () => setFilters(defaultFilters),
-    forced, setForced, toasts, toast, queue, setQueue, claims, setClaims,
-    contribs, addContrib: (c) => setContribs((l) => [c, ...l]),
-    hiddenIds, setHiddenIds, myReviews, setMyReviews, favs,
-    toggleFav: (id) => setFavs((f) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id])),
-    geo, setGeo, geoPosition, setGeoPosition, categories, categoriesState,
-    currentUser, setCurrentUser, authState,
-  }), [role, filters, forced, toasts, toast, queue, claims, contribs, hiddenIds, myReviews, favs, geo, geoPosition, categories, categoriesState, currentUser, authState]);
-
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+    filters, setFilters, resetFilters,
+    categories, categoriesState, currentUser, setCurrentUser, authState,
+    geo, setGeo, geoPosition, setGeoPosition, toasts, toast,
+  }), [filters, resetFilters, categories, categoriesState, currentUser, authState, geo, geoPosition, toasts, toast]);
+  return <Context.Provider value={value}>{children}</Context.Provider>;
 }
-
-// Mã tra cứu DEMO — không phải cơ chế bảo mật thật (v1 tr.7: mã thật phải khó đoán, sinh phía máy chủ)
-export const demoCode = () => {
-  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const r = (n) => Array.from({ length: n }, () => c[Math.floor(Math.random() * c.length)]).join('');
-  return `DEMO-${r(4)}-${r(4)}`;
-};

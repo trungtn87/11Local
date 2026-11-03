@@ -23,7 +23,7 @@ function requestBrowserLocation() {
 }
 
 export function DiscoveryHome() {
-  const { filters, setFilters, geo, setGeo, geoPosition, setGeoPosition, toast, categories } = useApp();
+  const { setFilters, geo, setGeo, geoPosition, setGeoPosition, toast, categories, categoriesState } = useApp();
   const navigate = useNavigate();
   const [data, setData] = useState({ status: 'loading', places: [] });
 
@@ -66,6 +66,7 @@ export function DiscoveryHome() {
     <div className="container page stack-lg discovery-home">
       <section className="discovery-categories" aria-labelledby="categories-heading">
         <div className="section-head"><h2 id="categories-heading">Danh mục</h2></div>
+        {categoriesState === "error" && <p className="small muted">Không tải được danh mục từ Neon.</p>}
         <div className="cat-grid">
           {categories.filter((category) => category.enabled).map((category) => {
             const Icon = categoryIcons[category.icon] || Mountain;
@@ -114,11 +115,11 @@ function PlacesState({ data, places }) {
   return <div className="place-grid">{places.map((place) => <RealPlaceCard key={place.id} place={place} />)}</div>;
 }
 
-function RealPlaceCard({ place, distance }) {
+export function RealPlaceCard({ place, distance }) {
   const ratingCount = Number(place.rating_count) || 0;
   return (
     <article className="place-card real-place-card">
-      <Link to={`/dia-diem/real/${place.slug}`} className="real-place-main">
+      <Link to={`/dia-diem/${place.slug}`} className="real-place-main">
         <div className="pc-img"><RealPlaceCover place={place} /></div>
         <div className="pc-body">
           <span className="pc-name">{place.name}</span>

@@ -21,3 +21,5 @@
 .real-place-cover .art-wrap { position: absolute; inset: 0; }
 .real-place-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .real-place-detail-cover { width: 100%; aspect-ratio: 16 / 9; max-height: 410px; overflow: hidden; border-radius: var(--r-lg); }
+
+.real-place-no-photo{display:flex;position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--c-text-3);background:var(--c-surface-2);font-size:var(--fs-sm)}
