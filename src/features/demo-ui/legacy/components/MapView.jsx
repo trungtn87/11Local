@@ -7,7 +7,7 @@ import { Button, PlaceArt, Rating, ManageBadge } from './ui.jsx';
 import { catLabel } from '../data/demo.js';
 
 /** MAP-02: approved coordinates from Neon. Legacy list cards remain clearly marked as demo. */
-export function MapView({ places, selectedId, onSelect, full, onSearchArea, onLocate, className = '', height }) {
+export function MapView({ places, selectedId, onSelect, full, onSearchArea, onLocate, currentLocation, className = '', height }) {
   const [dirty, setDirty] = useState(false);
   const [readyMap, setReadyMap] = useState(null);
   const [livePlaces, setLivePlaces] = useState([]);
@@ -26,6 +26,23 @@ export function MapView({ places, selectedId, onSelect, full, onSearchArea, onLo
       .catch((err) => { if (err.name !== 'AbortError') setLiveState('error'); });
     return () => ctrl.abort();
   }, []);
+
+  useEffect(() => {
+    if (!readyMap || !currentLocation) return;
+    const { longitude, latitude, accuracy } = currentLocation;
+    if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return;
+
+    const el = document.createElement('div');
+    el.setAttribute('aria-label', 'Vị trí hiện tại của bạn');
+    el.title = accuracy ? `Vị trí của bạn (độ chính xác khoảng ${Math.round(accuracy)} m)` : 'Vị trí của bạn';
+    el.style.cssText = 'width:18px;height:18px;border-radius:50%;background:#0F766E;border:4px solid white;box-shadow:0 0 0 6px rgba(15,118,110,.2),0 2px 8px #0005;';
+    const marker = new Marker({ element: el, anchor: 'center' })
+      .setLngLat([longitude, latitude])
+      .addTo(readyMap);
+
+    readyMap.flyTo({ center: [longitude, latitude], zoom: Math.max(readyMap.getZoom(), 14), essential: true });
+    return () => marker.remove();
+  }, [readyMap, currentLocation]);
 
   useEffect(() => {
     if (!readyMap) return;

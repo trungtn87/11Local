@@ -9,15 +9,50 @@ import { useResults, distKm } from '../components/hooks.jsx';
 
 const catIcons = { utensils: Utensils, coffee: Coffee, bed: BedDouble, mountain: Mountain, 'shopping-bag': ShoppingBag, wrench: Wrench };
 
+function requestBrowserLocation() {
+  return new Promise((resolve, reject) => {
+    if (!('geolocation' in navigator)) {
+      reject(new Error('Trình duyệt này không hỗ trợ lấy vị trí.'));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => resolve({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy,
+      }),
+      reject,
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 },
+    );
+  });
+}
+
+function locationErrorMessage(error) {
+  if (error?.code === 1) return 'Bạn đã từ chối quyền vị trí. Hãy cho phép vị trí trong cài đặt trình duyệt rồi thử lại.';
+  if (error?.code === 2) return 'Không xác định được vị trí hiện tại. Hãy bật GPS/dịch vụ vị trí rồi thử lại.';
+  if (error?.code === 3) return 'Lấy vị trí quá lâu. Hãy kiểm tra GPS hoặc kết nối rồi thử lại.';
+  return error?.message || 'Chưa thể lấy vị trí hiện tại.';
+}
+
 /* ===================== Trang chủ ===================== */
 export function Home() {
-  const { filters, setFilters, geo, setGeo, toast, hiddenIds } = useApp();
+  const { filters, setFilters, geo, setGeo, setGeoPosition, toast, hiddenIds } = useApp();
   const nav = useNavigate();
   const visible = places.filter((p) => !hiddenIds.includes(p.id));
   const newest = [...visible].sort((a, b) => b.updated.localeCompare(a.updated)).slice(0, 6);
   const nearby = geo === 'granted' ? [...visible].sort((a, b) => Math.hypot(a.x - 47, a.y - 58) - Math.hypot(b.x - 47, b.y - 58)).slice(0, 4) : [];
   const goCat = (id) => { setFilters((f) => ({ ...f, cat: id, q: '' })); nav('/tim-kiem'); };
-  const askGeo = () => { setGeo('granted'); toast('Đã dùng vị trí mô phỏng (không đọc vị trí thật)', 'info'); };
+  const askGeo = async () => {
+    try {
+      const position = await requestBrowserLocation();
+      setGeoPosition(position);
+      setGeo('granted');
+      toast('Đã lấy vị trí hiện tại', 'success');
+    } catch (error) {
+      setGeo(error?.code === 1 ? 'denied' : 'off');
+      toast(locationErrorMessage(error), 'error');
+    }
+  };
   return (
     <div className="container page stack-lg">
       <section className="hero" aria-labelledby="hero-title">
@@ -167,7 +202,7 @@ export function Search() {
 
 /* ===================== Bản đồ khám phá (mobile full) ===================== */
 export function MapPage() {
-  const { filters, setFilters, resetFilters, setForced, geo, setGeo, toast } = useApp();
+  const { filters, setFilters, resetFilters, setForced, geo, setGeo, geoPosition, setGeoPosition, toast } = useApp();
   const { status, list } = useResults();
   const [sel, setSel] = useState(null);
   const [sheet, setSheet] = useState(false);
@@ -192,7 +227,17 @@ export function MapPage() {
       ) : status === 'empty' ? (
         <div className="container grow"><StateBlock kind="empty" title="Không có địa điểm trong vùng này" actions={<Button variant="outline" onClick={resetFilters}>Bỏ bộ lọc</Button>}>Hãy thử bỏ bộ lọc hoặc đề xuất thêm địa điểm mới.</StateBlock></div>
       ) : (
-        <MapView full onLocate={() => { setGeo('granted'); toast('Đã dùng vị trí mô phỏng', 'info'); }} places={list} selectedId={sel} onSelect={setSel} showMe={geo === 'granted'} onSearchArea={() => toast(`Tìm trong vùng: ${list.length} địa điểm`, 'info')} />
+        <MapView full currentLocation={geoPosition} onLocate={async () => {
+          try {
+            const position = await requestBrowserLocation();
+            setGeoPosition(position);
+            setGeo('granted');
+            toast('Đã lấy vị trí hiện tại', 'success');
+          } catch (error) {
+            setGeo(error?.code === 1 ? 'denied' : 'off');
+            toast(locationErrorMessage(error), 'error');
+          }
+        }} places={list} selectedId={sel} onSelect={setSel} onSearchArea={() => toast(`Tìm trong vùng: ${list.length} địa điểm`, 'info')} />
       )}
       <div style={{ position: 'absolute' }} />
             {geo === 'denied' && <div className="container" style={{ position: 'absolute', left: 0, right: 0 }}><Banner type="warning">Bạn đã từ chối vị trí. Hãy chọn khu vực hoặc ghim vị trí thủ công.</Banner></div>}

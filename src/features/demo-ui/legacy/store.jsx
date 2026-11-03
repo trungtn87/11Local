@@ -21,6 +21,7 @@ export function AppProvider({ children }) {
   const [myReviews, setMyReviews] = useState({}); // placeId -> {stars,text,status}
   const [favs, setFavs] = useState([]);
   const [geo, setGeo] = useState('off'); // off | granted | denied
+  const [geoPosition, setGeoPosition] = useState(null); // { latitude, longitude, accuracy }
   const tid = useRef(0);
 
   const toast = useCallback((msg, type = 'success') => {
@@ -35,8 +36,8 @@ export function AppProvider({ children }) {
     contribs, addContrib: (c) => setContribs((l) => [c, ...l]),
     hiddenIds, setHiddenIds, myReviews, setMyReviews, favs,
     toggleFav: (id) => setFavs((f) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id])),
-    geo, setGeo,
-  }), [role, filters, forced, toasts, toast, queue, claims, contribs, hiddenIds, myReviews, favs, geo]);
+    geo, setGeo, geoPosition, setGeoPosition,
+  }), [role, filters, forced, toasts, toast, queue, claims, contribs, hiddenIds, myReviews, favs, geo, geoPosition]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
