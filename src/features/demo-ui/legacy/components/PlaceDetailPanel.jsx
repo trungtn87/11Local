@@ -1,0 +1,156 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  BadgeCheck, ChevronLeft, ChevronRight, Clock3, ImageOff, Images,
+  Info, MapPin, Navigation, Phone, Star, Tag, X,
+} from "lucide-react";
+import { getGoogleMapsDirectionsUrl } from "../../../places/google-maps";
+import "../styles/place-detail-panel.css";
+
+function PhotoGallery({ place, photos }) {
+  const [index, setIndex] = useState(0);
+  const [failedIds, setFailedIds] = useState([]);
+  const active = photos[index];
+  const canDisplay = Boolean(active && !failedIds.includes(active.id));
+  const move = (delta) => setIndex((current) => (current + delta + photos.length) % photos.length);
+
+  return (
+    <div className="local-detail-gallery">
+      {canDisplay ? (
+        <img
+          key={active.id}
+          src={"/api/place-photos/" + encodeURIComponent(active.id)}
+          alt={place.name + " — ảnh " + (index + 1)}
+          onError={() => setFailedIds((current) => current.includes(active.id) ? current : [...current, active.id])}
+        />
+      ) : (
+        <div className="local-detail-empty-photo">
+          <ImageOff size={32} strokeWidth={1.5} />
+          <span>{active ? "Không tải được ảnh" : "Địa điểm chưa có ảnh được duyệt"}</span>
+        </div>
+      )}
+      {photos.length > 1 && (
+        <>
+          <button className="local-detail-photo-prev" type="button" onClick={() => move(-1)} aria-label="Ảnh trước"><ChevronLeft size={20} /></button>
+          <button className="local-detail-photo-next" type="button" onClick={() => move(1)} aria-label="Ảnh sau"><ChevronRight size={20} /></button>
+        </>
+      )}
+      {photos.length > 0 && (
+        <span className="local-detail-photo-count"><Images size={14} /> {index + 1}/{photos.length} ảnh</span>
+      )}
+    </div>
+  );
+}
+
+function DetailSection({ icon: Icon, heading, children }) {
+  return (
+    <section className="local-detail-section">
+      <h3><Icon size={16} /> {heading}</h3>
+      {children}
+    </section>
+  );
+}
+
+/**
+ * Shared desktop right-side panel (map or search) / mobile bottom sheet.
+ * Receives only approved places returned by /api/places, fetches additional
+ * moderation-gated information, and never fabricates operating hours or prices.
+ */
+export function PlaceDetailPanel({ place, onClose, mode = "map" }) {
+  const [state, setState] = useState({ status: "loading", detail: null });
+  const closeButton = useRef(null);
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+    fetch("/api/places/" + encodeURIComponent(place.slug) + "/detail", {
+      signal: ctrl.signal, cache: "no-store",
+    })
+      .then((res) => { if (!res.ok) throw new Error("DETAIL_UNAVAILABLE"); return res.json(); })
+      .then((body) => setState({ status: "ready", detail: body.place }))
+      .catch((error) => {
+        if (error.name !== "AbortError") setState({ status: "error", detail: null });
+      });
+    return () => ctrl.abort();
+  }, [place.slug]);
+
+  useEffect(() => {
+    closeButton.current?.focus();
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
+  const detail = state.detail || place;
+  const photos = state.detail?.photos || [];
+  const ratingCount = Number(place.rating_count) || 0;
+  const ratingAvg = Number(place.rating_avg);
+  const hasRating = ratingCount > 0 && Number.isFinite(ratingAvg);
+
+  return (
+    <div className={"local-detail-layer local-detail-layer--" + mode}>
+      <button type="button" className="local-detail-scrim" aria-label="Đóng thông tin chi tiết" onClick={onClose} />
+      <aside className="local-detail-panel" role="dialog" aria-label={"Chi tiết " + place.name}>
+        <div className="local-detail-topbar">
+          <span><Info size={16} /> Thông tin địa điểm</span>
+          <button ref={closeButton} type="button" onClick={onClose} className="local-detail-close" aria-label="Đóng bảng thông tin"><X size={18} /> Đóng</button>
+        </div>
+
+        {state.status === "loading" ? (
+          <div className="local-detail-loading" role="status">Đang tải ảnh và thông tin chi tiết…</div>
+        ) : state.status === "error" ? (
+          <p className="local-detail-error" role="alert">Chưa tải được thông tin mở rộng. Các thông tin cơ bản bên dưới vẫn có thể xem.</p>
+        ) : null}
+
+        <PhotoGallery key={place.slug} place={detail} photos={photos} />
+        <div className="local-detail-content">
+          <div className="local-detail-name">
+            <span className="local-detail-category">{detail.category_name || "Địa điểm"}</span>
+            <h2>{detail.name}</h2>
+            <p className="local-detail-address"><MapPin size={16} /> {detail.address || detail.area || "Cao Bằng"}</p>
+            <div className="local-detail-badges">
+              {hasRating ? (
+                <span className="local-detail-rating"><Star size={16} fill="currentColor" /> {ratingAvg.toFixed(1)} <small>({ratingCount} đánh giá)</small></span>
+              ) : <span className="local-detail-muted">Chưa có đánh giá</span>}
+              <span className="local-detail-ownership"><BadgeCheck size={15} /> {detail.ownership_status === "verified" ? "Đã xác minh quản lý" : "Chưa xác minh quản lý"}</span>
+            </div>
+          </div>
+
+          <div className="local-detail-quick-actions">
+            <a href={getGoogleMapsDirectionsUrl(detail)} target="_blank" rel="noopener noreferrer" className="primary">
+              <Navigation size={17} /> Chỉ đường
+            </a>
+            {detail.phone ? <a href={"tel:" + detail.phone} className="secondary"><Phone size={17} /> Gọi điện</a> : null}
+          </div>
+
+          <DetailSection icon={Clock3} heading="Giờ hoạt động">
+            {state.status === "ready" && detail.opening_hours
+              ? <p>{detail.opening_hours}</p>
+              : <p className="local-detail-muted">Chưa có thông tin giờ hoạt động.</p>}
+            <small>Không xác định trạng thái mở cửa theo thời gian thực.</small>
+          </DetailSection>
+
+          <DetailSection icon={Tag} heading="Khoảng giá">
+            {state.status === "ready" && detail.price_note
+              ? <p>{detail.price_note}</p>
+              : <p className="local-detail-muted">Chưa cập nhật khoảng giá.</p>}
+          </DetailSection>
+
+          <DetailSection icon={Info} heading="Giới thiệu">
+            {detail.description
+              ? <p className="local-detail-description">{detail.description}</p>
+              : <p className="local-detail-muted">Địa điểm chưa có mô tả.</p>}
+          </DetailSection>
+
+          <Link to={"/dia-diem/real/" + encodeURIComponent(detail.slug)} className="local-detail-full-link" onClick={onClose}>
+            Xem trang thông tin đầy đủ <ChevronRight size={16} />
+          </Link>
+          <p className="local-detail-note">Thông tin và hình ảnh công khai đã qua kiểm duyệt 11Local.</p>
+        </div>
+      </aside>
+    </div>
+  );
+}
