@@ -1,247 +1,138 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Utensils, Coffee, BedDouble, Mountain, ShoppingBag, Wrench, SlidersHorizontal, Map as MapIcon, List, Plus, LocateFixed, Lock, RefreshCw, ChevronRight, Sparkles, MapPinOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { LocateFixed, List, Map as MapIcon, RefreshCw, SlidersHorizontal } from 'lucide-react';
 import { useApp } from '../store.jsx';
-import { areas, places, byId } from '../data/demo.js';
-import { PlaceCard, SearchBar, Button, StateBlock, CardSkeletons, Sheet, PlaceArt, Banner, DemoBadge, Field } from '../components/ui.jsx';
+import { Button, CardSkeletons, Field, Sheet, StateBlock } from '../components/ui.jsx';
+import { RealPlaceCard } from './DiscoveryHome.jsx';
 import { MapView } from '../components/MapView.jsx';
-import { useResults, distKm } from '../components/hooks.jsx';
+import { useResults } from '../components/hooks.jsx';
+import { distanceProvider } from '../../../distance/distance-service';
 
-const catIcons = { utensils: Utensils, coffee: Coffee, bed: BedDouble, mountain: Mountain, 'shopping-bag': ShoppingBag, wrench: Wrench };
-
-function requestBrowserLocation() {
+function requestLocation() {
   return new Promise((resolve, reject) => {
-    if (!('geolocation' in navigator)) {
-      reject(new Error('Trình duyệt này không hỗ trợ lấy vị trí.'));
-      return;
-    }
+    if (!navigator.geolocation) return reject(new Error('Trình duyệt không hỗ trợ GPS.'));
     navigator.geolocation.getCurrentPosition(
-      (position) => resolve({
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        accuracy: position.coords.accuracy,
-      }),
-      reject,
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 },
+      ({ coords }) => resolve({ latitude: coords.latitude, longitude: coords.longitude, accuracy: coords.accuracy }),
+      reject, { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 },
     );
   });
 }
 
-function locationErrorMessage(error) {
-  if (error?.code === 1) return 'Bạn đã từ chối quyền vị trí. Hãy cho phép vị trí trong cài đặt trình duyệt rồi thử lại.';
-  if (error?.code === 2) return 'Không xác định được vị trí hiện tại. Hãy bật GPS/dịch vụ vị trí rồi thử lại.';
-  if (error?.code === 3) return 'Lấy vị trí quá lâu. Hãy kiểm tra GPS hoặc kết nối rồi thử lại.';
-  return error?.message || 'Chưa thể lấy vị trí hiện tại.';
-}
-
-/* ===================== Trang chủ ===================== */
-export function LegacyHome() {
-  const { filters, setFilters, geo, setGeo, setGeoPosition, toast, hiddenIds, categories } = useApp();
-  const nav = useNavigate();
-  const visible = places.filter((p) => !hiddenIds.includes(p.id));
-  const newest = [...visible].sort((a, b) => b.updated.localeCompare(a.updated)).slice(0, 6);
-  const nearby = geo === 'granted' ? [...visible].sort((a, b) => Math.hypot(a.x - 47, a.y - 58) - Math.hypot(b.x - 47, b.y - 58)).slice(0, 4) : [];
-  const goCat = (id) => { setFilters((f) => ({ ...f, cat: id, q: '' })); nav('/tim-kiem'); };
-  const askGeo = async () => {
+function Filters({ areas, close }) {
+  const { filters, setFilters, categories, geoPosition, setGeoPosition, setGeo, toast } = useApp();
+  const set = (name, value) => setFilters((current) => ({ ...current, [name]: value }));
+  const locate = async () => {
     try {
-      const position = await requestBrowserLocation();
-      setGeoPosition(position);
-      setGeo('granted');
-      toast('Đã lấy vị trí hiện tại', 'success');
+      const coords = await requestLocation();
+      setGeoPosition(coords); setGeo('granted');
+      toast('Đã lấy vị trí thật. Khoảng cách được tính theo đường thẳng.', 'success');
     } catch (error) {
       setGeo(error?.code === 1 ? 'denied' : 'off');
-      toast(locationErrorMessage(error), 'error');
+      toast(error?.code === 1 ? 'Hãy cấp quyền vị trí cho trình duyệt.' : 'Không lấy được vị trí hiện tại.', 'error');
     }
   };
-  return (
-    <div className="container page stack-lg">
-      <section className="hero" aria-labelledby="hero-title">
-        <div className="art-bg"><PlaceArt kind="sight" seed={4} label={false} /></div>
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(7,61,53,.15), rgba(7,61,53,.78))' }} />
-        <div className="hero-content">
-          <h1 id="hero-title">Khám phá <span className="hl">Cao Bằng</span><br />như người địa phương</h1>
-          <p>Quán ăn, cafe, chỗ nghỉ, điểm đến — do cộng đồng đóng góp và Admin kiểm duyệt.</p>
-          <SearchBar value={filters.q} onChange={(q) => setFilters((f) => ({ ...f, q }))} onSubmit={() => nav('/tim-kiem')} />
-        </div>
-      </section>
 
-      <section aria-label="Danh mục">
-        <div className="cat-grid">
-          {categories.map((c) => { const I = catIcons[c.icon]; return c.enabled
-            ? <button key={c.id} className="cat-item" onClick={() => goCat(c.id)}><span className="ico"><I size={22} /></span>{c.label}</button>
-            : <div key={c.id} className="cat-item disabled" aria-disabled="true" title="Chưa có dữ liệu — chưa mở"><span className="ico"><Lock size={18} /></span>{c.label}<span className="xs muted">Sắp có</span></div>; })}
-        </div>
-      </section>
-
-      <section aria-label="Gần bạn">
-        <div className="section-head"><h2>Gần bạn</h2>{geo === 'granted' && <Link to="/ban-do">Xem bản đồ</Link>}</div>
-        {geo === 'granted' ? (
-          <div className="hscroll">{nearby.map((p) => <PlaceCard key={p.id} place={p} distance={distKm(p)} />)}</div>
-        ) : (
-          <div className="card-flat row" style={{ flexWrap: 'wrap' }}>
-            <MapPinOff size={22} className="muted" />
-            <div className="grow"><b>Xem địa điểm quanh bạn</b><div className="small text-2">Chỉ xin vị trí khi bạn bấm. Nếu từ chối, bạn vẫn chọn được khu vực hoặc ghim thủ công.</div></div>
-            <Button size="sm" icon={LocateFixed} onClick={askGeo}>Gần tôi</Button>
-            <Button size="sm" variant="outline" onClick={() => { setGeo('denied'); nav('/tim-kiem'); toast('Chọn khu vực để tiếp tục tra cứu', 'info'); }}>Chọn khu vực</Button>
-          </div>
-        )}
-      </section>
-
-      <section aria-label="Địa điểm mới được duyệt">
-        <div className="section-head"><h2>Mới được duyệt</h2><Link to="/tim-kiem">Xem tất cả</Link></div>
-        <div className="place-grid">{newest.map((p) => <PlaceCard key={p.id} place={p} />)}</div>
-        <div style={{ marginTop: 8 }}><DemoBadge>Danh sách demo — không phải địa điểm thật</DemoBadge></div>
-      </section>
-
-      <section className="cta-banner" aria-label="Đóng góp địa điểm">
-        <span className="ico"><Plus size={26} /></span>
-        <div className="grow"><h3>Biết một địa điểm hay?</h3><p className="small text-2">Không cần tài khoản. Gửi địa điểm, nhận mã tra cứu, Admin duyệt rồi mới công khai.</p></div>
-        <Link to="/dong-gop" className="btn btn-accent">Đóng góp địa điểm</Link>
-      </section>
-    </div>
-  );
-}
-
-/* ===================== Bộ lọc ===================== */
-function Filters({ onDone }) {
-  const { filters, setFilters, resetFilters, geo, setGeo, categories } = useApp();
-  const set = (k, v) => setFilters((f) => ({ ...f, [k]: v }));
   return (
     <div className="stack">
-      <Field label="Danh mục">
-        <div className="row-wrap">
-          <button className="chip" aria-pressed={filters.cat === 'all'} onClick={() => set('cat', 'all')}>Tất cả</button>
-          {categories.filter((c) => c.enabled).map((c) => <button key={c.id} className="chip" aria-pressed={filters.cat === c.id} onClick={() => set('cat', c.id)}>{c.label}</button>)}
-        </div>
-      </Field>
-      <Field label="Khu vực" htmlFor="f-area">
-        <select id="f-area" className="select" value={filters.area} onChange={(e) => set('area', e.target.value)}>
-          <option value="all">Toàn Cao Bằng</option>
-          {areas.map((a) => <option key={a}>{a}</option>)}
-        </select>
-      </Field>
-      <label className="check"><input type="checkbox" checked={filters.verifiedOnly} onChange={(e) => set('verifiedOnly', e.target.checked)} /><span>Chỉ địa điểm “Đã xác minh quản lý”<br /><span className="hint">Nhãn này nói về quyền quản lý, không phải điểm chất lượng.</span></span></label>
-      <Field label="Sắp xếp" htmlFor="f-sort">
-        <select id="f-sort" className="select" value={filters.sort} onChange={(e) => { if (e.target.value === 'nearest' && geo !== 'granted') { setGeo('granted'); } set('sort', e.target.value); }}>
-          <option value="relevance">Phù hợp nhất</option>
-          <option value="name">Tên A → Z</option>
-          <option value="nearest">Gần nhất (cần vị trí)</option>
-        </select>
-      </Field>
-      {filters.sort === 'nearest' && <p className="hint">Khoảng cách là đường thẳng từ vị trí tham chiếu, không phải chiều dài chuyến đi.</p>}
-      <div className="row">
-        <Button variant="outline" onClick={resetFilters}>Xóa bộ lọc</Button>
-        {onDone && <Button onClick={onDone}>Xem kết quả</Button>}
+      <Field label="Danh mục"><div className="row-wrap">
+        <button className="chip" aria-pressed={filters.cat === 'all'} onClick={() => set('cat', 'all')}>Tất cả</button>
+        {categories.filter((category) => category.enabled).map((category) => (
+          <button key={category.id} className="chip" aria-pressed={filters.cat === category.id} onClick={() => set('cat', category.id)}>{category.label}</button>
+        ))}
+      </div></Field>
+      <Field label="Khu vực" htmlFor="search-area"><select className="select" id="search-area" value={filters.area} onChange={(event) => set('area', event.target.value)}>
+        <option value="all">Toàn Cao Bằng</option>
+        {areas.map((area) => <option key={area} value={area}>{area}</option>)}
+      </select></Field>
+      <label className="check"><input type="checkbox" checked={filters.verifiedOnly} onChange={(event) => set('verifiedOnly', event.target.checked)} /><span>Chỉ địa điểm đã xác minh chủ quản lý</span></label>
+      <Field label="Sắp xếp" htmlFor="search-sort"><select className="select" id="search-sort" value={filters.sort} onChange={(event) => set('sort', event.target.value)}>
+        <option value="relevance">Mới cập nhật / phù hợp</option>
+        <option value="name">Tên A → Z</option>
+        <option value="nearest">Gần nhất (theo GPS)</option>
+      </select></Field>
+      {filters.sort === 'nearest' && !geoPosition && <div className="stack-sm">
+        <p className="small muted">Cần vị trí thật để sắp xếp theo khoảng cách. Không dùng tọa độ giả.</p>
+        <Button icon={LocateFixed} size="sm" onClick={locate}>Lấy vị trí của tôi</Button>
+      </div>}
+      {filters.sort === 'nearest' && geoPosition && <p className="small muted">Sắp xếp theo khoảng cách đường thẳng ước tính từ GPS.</p>}
+      <div className="row-wrap">
+        <Button variant="outline" onClick={() => setFilters({ q: '', cat: 'all', area: 'all', verifiedOnly: false, openNowOnly: false, sort: 'relevance' })}>Xóa bộ lọc</Button>
+        {close && <Button onClick={close}>Xem kết quả</Button>}
       </div>
     </div>
   );
 }
 
-function ResultState({ status, onRetry, resetFilters, q }) {
-  const nav = useNavigate();
-  if (status === 'loading') return <CardSkeletons />;
-  if (status === 'error') return <StateBlock kind="error" title="Không tải được danh sách" actions={<Button icon={RefreshCw} onClick={onRetry}>Thử lại</Button>}>Có lỗi khi lấy dữ liệu. Từ khóa và bộ lọc của bạn vẫn được giữ.</StateBlock>;
-  if (status === 'offline') return <StateBlock kind="offline" title="Bạn đang mất mạng" actions={<Button icon={RefreshCw} onClick={onRetry}>Thử lại</Button>}>Kiểm tra kết nối rồi thử lại. Bộ lọc của bạn vẫn được giữ.</StateBlock>;
-  return (
-    <StateBlock kind="empty" title="Không có kết quả phù hợp" actions={<><Button variant="outline" onClick={resetFilters}>Bỏ bộ lọc</Button><Button variant="accent" onClick={() => nav('/dong-gop')}>Đề xuất thêm địa điểm</Button></>}>
-      {q ? <>Không tìm thấy “{q}”. Từ khóa được giữ nguyên để bạn chỉnh lại.</> : 'Thử bỏ bớt bộ lọc hoặc chọn khu vực khác.'}
-    </StateBlock>
-  );
+function Results({ results, position, horizontal, retry, clear }) {
+  if (results.status === 'loading') return <CardSkeletons n={4} />;
+  if (results.status === 'error') return <StateBlock kind="error" title="Không tải được dữ liệu Neon" actions={<Button icon={RefreshCw} onClick={retry}>Thử lại</Button>}>Địa điểm thật tạm thời không khả dụng; hệ thống không thay bằng địa điểm mẫu.</StateBlock>;
+  if (results.status === 'empty') return <StateBlock title="Không tìm thấy địa điểm phù hợp" actions={<Button variant="outline" onClick={clear}>Xóa bộ lọc</Button>}>Chỉ các địa điểm đã được Admin công khai mới xuất hiện.</StateBlock>;
+  return <div className={horizontal ? 'stack-sm' : 'place-grid'}>{results.list.map((place) => (
+    <RealPlaceCard key={place.id} place={place} distance={position ? distanceProvider.calculate(position, place) : undefined} />
+  ))}</div>;
 }
 
-/* ===================== Tìm kiếm + danh sách + bản đồ ===================== */
 export function Search() {
-  const { filters, setFilters, resetFilters, setForced, geo, categories } = useApp();
-  const { status, list } = useResults();
+  const { filters, categories, geoPosition, resetFilters } = useApp();
+  const results = useResults();
   const [view, setView] = useState('list');
   const [sheet, setSheet] = useState(false);
-  const [sel, setSel] = useState(null);
-  const nav = useNavigate();
-  const activeCount = (filters.cat !== 'all') + (filters.area !== 'all') + filters.verifiedOnly;
-  const retry = () => setForced('none');
+  const [selected, setSelected] = useState(null);
+  const navigate = useNavigate();
+  const active = Number(filters.cat !== 'all') + Number(filters.area !== 'all') + Number(filters.verifiedOnly);
   const withMap = view === 'map';
-  const showDist = filters.sort === 'nearest' && geo === 'granted';
-
-  return (
-    <div className="container page stack">
-      <div className="hide-desktop"><SearchBar compact value={filters.q} onChange={(q) => setFilters((f) => ({ ...f, q }))} /></div>
-      <div className="row between" style={{ flexWrap: 'wrap' }}>
-        <div>
-          <h1>{filters.cat === 'all' ? 'Địa điểm ở Cao Bằng' : categories.find((c) => c.id === filters.cat)?.label}</h1>
-          <p className="small muted" aria-live="polite">{status === 'ok' ? `${list.length} kết quả` : status === 'loading' ? 'Đang tải…' : ''}{filters.q && status === 'ok' ? ` cho “${filters.q}”` : ''}</p>
-        </div>
-        <div className="row">
-          <Button variant="outline" size="sm" icon={SlidersHorizontal} className="hide-desktop" onClick={() => setSheet(true)}>Bộ lọc{activeCount ? ` (${activeCount})` : ''}</Button>
-          <div className="seg" role="group" aria-label="Chế độ xem">
-            <button aria-pressed={!withMap} onClick={() => setView('list')}><List size={16} />Danh sách</button>
-            <button aria-pressed={withMap} onClick={() => { if (window.innerWidth < 960) nav('/ban-do'); else setView('map'); }}><MapIcon size={16} />Bản đồ</button>
-          </div>
+  return <div className="container page stack">
+    <div className="row between" style={{ flexWrap: 'wrap' }}>
+      <div>
+        <h1>{filters.cat === 'all' ? 'Địa điểm ở Cao Bằng' : categories.find((item) => item.id === filters.cat)?.label || 'Địa điểm'}</h1>
+        <p className="small muted" aria-live="polite">{results.status === 'loading' ? 'Đang tải…' : results.status === 'error' ? 'Lỗi tải dữ liệu' : results.list.length + ' địa điểm thật'}{filters.q ? ' cho “' + filters.q + '”' : ''}</p>
+      </div>
+      <div className="row">
+        <Button variant="outline" size="sm" icon={SlidersHorizontal} onClick={() => setSheet(true)}>Bộ lọc{active ? ' (' + active + ')' : ''}</Button>
+        <div className="seg" role="group" aria-label="Chế độ xem">
+          <button aria-pressed={!withMap} onClick={() => setView('list')}><List size={16} />Danh sách</button>
+          <button aria-pressed={withMap} onClick={() => { if (window.innerWidth < 960) navigate('/ban-do'); else setView('map'); }}><MapIcon size={16} />Bản đồ</button>
         </div>
       </div>
-
-      <div className={`results-layout ${withMap ? 'with-map' : ''}`}>
-        <aside className="filters card hide-mobile" aria-label="Bộ lọc"><h3 className="card-title">Bộ lọc</h3><Filters /></aside>
-        <div className="stack">
-          {status === 'ok' ? (
-            <div className={withMap ? 'stack-sm' : 'place-grid'} style={withMap ? undefined : undefined}>
-              {list.map((p) => <PlaceCard key={p.id} place={p} horizontal={withMap} distance={showDist ? distKm(p) : undefined} />)}
-            </div>
-          ) : <ResultState status={status} onRetry={retry} resetFilters={resetFilters} q={filters.q} />}
-        </div>
-        {withMap && (
-          status === 'error' || status === 'offline'
-            ? <div className="card"><StateBlock kind="error" title="Bản đồ chưa tải được">Danh sách bên cạnh vẫn dùng được bình thường.</StateBlock></div>
-            : <MapView places={list} selectedId={sel} onSelect={setSel} className="sticky" height={620} />
-        )}
-      </div>
-
-      <Sheet open={sheet} onClose={() => setSheet(false)} title="Bộ lọc"><Filters onDone={() => setSheet(false)} /></Sheet>
     </div>
-  );
+    <div className={'results-layout ' + (withMap ? 'with-map' : '')}>
+      <aside className="filters card hide-mobile"><h3 className="card-title">Bộ lọc</h3><Filters areas={results.areas}/></aside>
+      <Results results={results} position={geoPosition} horizontal={withMap} retry={results.retry} clear={resetFilters}/>
+      {withMap && results.status !== 'error' && <MapView places={results.list} selectedId={selected} onSelect={setSelected} height={620} className="sticky" />}
+    </div>
+    <Sheet open={sheet} title="Bộ lọc" onClose={() => setSheet(false)}><Filters areas={results.areas} close={() => setSheet(false)}/></Sheet>
+  </div>;
 }
 
-/* ===================== Bản đồ khám phá (mobile full) ===================== */
 export function MapPage() {
-  const { filters, setFilters, resetFilters, setForced, geo, setGeo, geoPosition, setGeoPosition, toast, categories } = useApp();
-  const { status, list } = useResults();
-  const [sel, setSel] = useState(null);
+  const { filters, setFilters, categories, geoPosition, setGeoPosition, setGeo, toast, resetFilters } = useApp();
+  const results = useResults();
+  const [selected, setSelected] = useState(null);
   const [sheet, setSheet] = useState(false);
-  const nav = useNavigate();
-  const activeCount = (filters.cat !== 'all') + (filters.area !== 'all') + filters.verifiedOnly;
-  return (
-    <div className="map-page">
-      <div className="container" style={{ padding: '10px var(--s-4)' }}>
-        <div className="row">
-          <div className="grow"><SearchBar compact value={filters.q} onChange={(q) => setFilters((f) => ({ ...f, q }))} /></div>
-          <Button variant="outline" size="sm" icon={SlidersHorizontal} onClick={() => setSheet(true)}>Lọc{activeCount ? ` (${activeCount})` : ''}</Button>
-        </div>
-        <div className="chip-scroll" style={{ marginTop: 8, paddingBottom: 0 }}>
-          <button className="chip" aria-pressed={filters.cat === 'all'} onClick={() => setFilters((f) => ({ ...f, cat: 'all' }))}>Tất cả</button>
-          {categories.filter((c) => c.enabled).map((c) => <button key={c.id} className="chip" aria-pressed={filters.cat === c.id} onClick={() => setFilters((f) => ({ ...f, cat: c.id }))}>{c.label}</button>)}
-        </div>
+  const locate = async () => {
+    try {
+      const coords = await requestLocation();
+      setGeoPosition(coords);setGeo('granted');toast('Đã lấy vị trí hiện tại.', 'success');
+    } catch (error) {
+      setGeo(error?.code === 1 ? 'denied' : 'off');
+      toast('Không lấy được vị trí hiện tại. Hãy kiểm tra quyền GPS.', 'error');
+    }
+  };
+  return <div className="map-page">
+    <div className="container" style={{ paddingTop: 10, paddingBottom: 10 }}>
+      <div className="row between"><b>Bản đồ địa điểm thật</b><Button variant="outline" size="sm" icon={SlidersHorizontal} onClick={() => setSheet(true)}>Bộ lọc</Button></div>
+      <div className="chip-scroll" style={{ marginTop: 8, paddingBottom: 0 }}>
+        <button className="chip" aria-pressed={filters.cat === 'all'} onClick={() => setFilters((value) => ({ ...value, cat: 'all' }))}>Tất cả</button>
+        {categories.filter((category) => category.enabled).map((category) => <button key={category.id} className="chip" aria-pressed={filters.cat === category.id} onClick={() => setFilters((value) => ({ ...value, cat: category.id }))}>{category.label}</button>)}
       </div>
-      {status === 'error' || status === 'offline' ? (
-        <div className="container grow"><StateBlock kind="error" title="Bản đồ chưa tải được" actions={<><Button onClick={() => setForced('none')} icon={RefreshCw}>Thử lại</Button><Button variant="outline" onClick={() => nav('/tim-kiem')}>Xem dạng danh sách</Button></>}>Danh sách vẫn dùng được. Bộ lọc của bạn được giữ nguyên.</StateBlock></div>
-      ) : status === 'loading' ? (
-        <div className="map-wrap full skeleton" aria-busy="true" aria-label="Đang tải bản đồ" />
-      ) : status === 'empty' ? (
-        <div className="container grow"><StateBlock kind="empty" title="Không có địa điểm trong vùng này" actions={<Button variant="outline" onClick={resetFilters}>Bỏ bộ lọc</Button>}>Hãy thử bỏ bộ lọc hoặc đề xuất thêm địa điểm mới.</StateBlock></div>
-      ) : (
-        <MapView full currentLocation={geoPosition} onLocate={async () => {
-          try {
-            const position = await requestBrowserLocation();
-            setGeoPosition(position);
-            setGeo('granted');
-            toast('Đã lấy vị trí hiện tại', 'success');
-          } catch (error) {
-            setGeo(error?.code === 1 ? 'denied' : 'off');
-            toast(locationErrorMessage(error), 'error');
-          }
-        }} places={list} selectedId={sel} onSelect={setSel} onSearchArea={() => toast(`Tìm trong vùng: ${list.length} địa điểm`, 'info')} />
-      )}
-      <div style={{ position: 'absolute' }} />
-            {geo === 'denied' && <div className="container" style={{ position: 'absolute', left: 0, right: 0 }}><Banner type="warning">Bạn đã từ chối vị trí. Hãy chọn khu vực hoặc ghim vị trí thủ công.</Banner></div>}
-      <Sheet open={sheet} onClose={() => setSheet(false)} title="Bộ lọc"><Filters onDone={() => setSheet(false)} /></Sheet>
+      <p className="xs muted" aria-live="polite">{results.status === 'error' ? 'Không tải được dữ liệu Neon' : results.status === 'loading' ? 'Đang tải địa điểm…' : results.list.length + ' địa điểm đã công khai'}</p>
     </div>
-  );
+    {results.status === 'error'
+      ? <div className="container grow"><StateBlock kind="error" title="Không thể lấy địa điểm" actions={<Button onClick={results.retry}>Thử lại</Button>}>Không hiển thị ghim giả lập.</StateBlock></div>
+      : results.status === 'loading'
+        ? <div className="map-wrap full skeleton" aria-busy="true" aria-label="Đang tải bản đồ"/>
+        : <MapView full places={results.list} selectedId={selected} onSelect={setSelected} currentLocation={geoPosition} onLocate={locate}/>}
+    {results.status === 'empty' && <div className="container" style={{ position: 'relative', zIndex: 2 }}><p className="small muted">Không có địa điểm phù hợp. <button className="chip" onClick={resetFilters}>Xóa bộ lọc</button></p></div>}
+    <Sheet open={sheet} title="Bộ lọc" onClose={() => setSheet(false)}><Filters areas={results.areas} close={() => setSheet(false)}/></Sheet>
+  </div>;
 }
