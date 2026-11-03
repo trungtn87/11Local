@@ -91,7 +91,7 @@ export function Search() {
         <Button variant="outline" size="sm" icon={SlidersHorizontal} onClick={() => setSheet(true)}>Bộ lọc{active ? ' (' + active + ')' : ''}</Button>
         <div className="seg" role="group" aria-label="Chế độ xem">
           <button aria-pressed={!withMap} onClick={() => setView('list')}><List size={16} />Danh sách</button>
-          <button aria-pressed={withMap} onClick={() => { if (window.innerWidth < 960) navigate('/ban-do'); else setView('map'); }}><MapIcon size={16} />Bản đồ</button>
+          <button aria-pressed={withMap} onClick={() => navigate('/ban-do')}><MapIcon size={16} />Bản đồ</button>
         </div>
       </div>
     </div>
