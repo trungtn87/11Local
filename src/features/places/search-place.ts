@@ -1,4 +1,4 @@
-import { distanceProvider, type Coordinates } from "../distance/distance-service";
+import { distanceProvider, type Coordinates } from "../distance/distance-service.ts";
 import type { PublicPlace } from "./public-place";
 
 export type PlaceFilters = {
