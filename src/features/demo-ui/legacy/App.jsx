@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import { Link, Route, Routes, useLocation } from 'react-router-dom';
 import { PublicShell, Toasts } from './components/layout.jsx';
 import { StateBlock } from './components/ui.jsx';
-import { Search, MapPage } from './pages/Public.jsx';
+import { Search } from './pages/Public.jsx';
+import { RealMapExplorer } from './pages/RealMapExplorer.jsx';
 import { DiscoveryHome } from './pages/DiscoveryHome.jsx';
 import { RealPlaceDetail } from './pages/RealPlaceDetail.jsx';
 import { Login, Account } from './pages/Auth.jsx';
@@ -24,7 +25,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={publicPage(<DiscoveryHome />)}/>
       <Route path="/tim-kiem" element={publicPage(<Search />)}/>
-      <Route path="/ban-do" element={publicPage(<MapPage />, { hideFooter: true })}/>
+      <Route path="/ban-do" element={publicPage(<RealMapExplorer />, { hideFooter: true })}/>
       <Route path="/dia-diem/real/:slug" element={publicPage(<RealPlaceDetail />)}/>
       <Route path="/dia-diem/:slug" element={publicPage(<RealPlaceDetail />)}/>
       <Route path="/dang-nhap" element={publicPage(<Login />)}/>
