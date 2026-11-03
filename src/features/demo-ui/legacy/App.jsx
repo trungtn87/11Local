@@ -4,6 +4,7 @@ import { DemoRibbon, PublicShell, PreviewTools, Toasts } from './components/layo
 import { StateBlock, Button } from './components/ui.jsx';
 import { Home, Search, MapPage } from './pages/Public.jsx';
 import { PlaceDetail } from './pages/Detail.jsx';
+import { RealPlaceDetail } from './pages/RealPlaceDetail.jsx';
 import { Contribute, ReportError, Track } from './pages/Contribute.jsx';
 import { Login, Account, Claim } from './pages/Auth.jsx';
 import { OwnerDashboard, OwnerEdit } from './pages/Owner.jsx';
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/" element={pub(<Home />)} />
         <Route path="/tim-kiem" element={pub(<Search />)} />
         <Route path="/ban-do" element={pub(<MapPage />, { hideFooter: true })} />
+        <Route path="/dia-diem/real/:slug" element={pub(<RealPlaceDetail />)} />
         <Route path="/dia-diem/:id" element={pub(<PlaceDetail />)} />
         <Route path="/dong-gop" element={pub(<Contribute />)} />
         <Route path="/bao-sai/:id" element={pub(<ReportError />)} />
