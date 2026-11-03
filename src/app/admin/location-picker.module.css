@@ -2,20 +2,10 @@
 .heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
 .heading b { display: inline-flex; align-items: center; gap: 7px; }
 .heading span { font: 12px ui-monospace, SFMono-Regular, Consolas, monospace; color: #475569; }
-.searchRow { display: flex; gap: 8px; }
-.searchRow input { flex: 1; min-width: 0; padding: 11px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; }
-.searchRow button, .apply { background: #0f766e; color: white; border: 0; border-radius: 8px; padding: 10px 14px; font: inherit; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 7px; white-space: nowrap; }
-.searchRow button:disabled { opacity: .65; cursor: wait; }
-.results { margin-top: 8px; padding: 4px; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; max-height: 270px; overflow: auto; }
-.results button { width: 100%; padding: 10px; border: 0; background: transparent; text-align: left; display: flex; align-items: flex-start; gap: 9px; cursor: pointer; border-radius: 7px; color: #172033; font: inherit; }
-.results button:hover, .results button:focus-visible { background: #f0fdfa; }
-.results button svg { color: #0f766e; flex-shrink: 0; margin-top: 2px; }
-.results button span { min-width: 0; overflow-wrap: anywhere; }
-.results small { display: block; color: #64748b; font-size: 12px; margin-top: 4px; }
 .coordinates { margin-top: 13px; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) auto; gap: 10px; align-items: end; }
 .coordinates label { display: grid; gap: 6px; font-size: 13px; font-weight: 700; }
 .coordinates input { width: 100%; min-width: 0; padding: 11px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; font-variant-numeric: tabular-nums; }
-.apply { min-height: 43px; }
+.apply { background: #0f766e; color: white; border: 0; border-radius: 8px; padding: 10px 14px; font: inherit; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 7px; white-space: nowrap; min-height: 43px; }
 .hint, .attribution { font-size: 12px; line-height: 1.5; color: #64748b; margin: 9px 0; }
 .attribution { margin-top: 7px; }
 .attribution a { color: #0f766e; text-decoration: underline; }
@@ -23,9 +13,4 @@
 @media(max-width: 700px) {
   .coordinates { grid-template-columns: 1fr 1fr; }
   .coordinates .apply { grid-column: 1 / -1; }
-}
-@media(max-width: 430px) {
-  .searchRow { flex-wrap: wrap; }
-  .searchRow input { flex-basis: 100%; }
-  .searchRow button { width: 100%; }
 }
