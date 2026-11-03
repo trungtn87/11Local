@@ -16,10 +16,11 @@ const pub = (el, opts) => <PublicShell {...opts}>{el}</PublicShell>;
 
 export default function App() {
   const { pathname } = useLocation();
+  const isRealPlaceScreen = pathname === '/ban-do' || pathname.startsWith('/dia-diem/real/');
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
   return (
     <>
-      {pathname !== '/' && <DemoRibbon />}
+      {pathname !== '/' && !isRealPlaceScreen && <DemoRibbon />}
       <Routes>
         <Route path="/" element={pub(<Home />)} />
         <Route path="/tim-kiem" element={pub(<Search />)} />
@@ -41,7 +42,7 @@ export default function App() {
         <Route path="/admin/xac-minh" element={<AdminClaims />} />
         <Route path="*" element={pub(<div className="container page"><StateBlock kind="empty" title="Không tìm thấy trang" actions={<Link className="btn btn-primary" to="/">Về trang chủ</Link>}>Đường dẫn không tồn tại.</StateBlock></div>)} />
       </Routes>
-      {pathname !== '/' && <PreviewTools />}
+      {pathname !== '/' && !isRealPlaceScreen && <PreviewTools />}
       <Toasts />
     </>
   );
