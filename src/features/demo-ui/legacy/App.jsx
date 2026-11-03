@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import { Routes, Route, useLocation, Navigate, Link } from 'react-router-dom';
 import { DemoRibbon, PublicShell, PreviewTools, Toasts } from './components/layout.jsx';
 import { StateBlock, Button } from './components/ui.jsx';
-import { Search, MapPage } from './pages/Public.jsx';
+import { Search } from './pages/Public.jsx';
+import { RealMapExplorer } from './pages/RealMapExplorer.jsx';
 import { DiscoveryHome as Home } from './pages/DiscoveryHome.jsx';
 import { PlaceDetail } from './pages/Detail.jsx';
 import { RealPlaceDetail } from './pages/RealPlaceDetail.jsx';
@@ -22,7 +23,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={pub(<Home />)} />
         <Route path="/tim-kiem" element={pub(<Search />)} />
-        <Route path="/ban-do" element={pub(<MapPage />, { hideFooter: true })} />
+        <Route path="/ban-do" element={pub(<RealMapExplorer />, { hideFooter: true })} />
         <Route path="/dia-diem/real/:slug" element={pub(<RealPlaceDetail />)} />
         <Route path="/dia-diem/:id" element={pub(<PlaceDetail />)} />
         <Route path="/dong-gop" element={pub(<Contribute />)} />
