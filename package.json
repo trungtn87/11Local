@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --test src/features/map/map-config.test.ts src/features/map/map-style.test.ts",
+    "test": "node --experimental-strip-types --test src/features/map/map-config.test.ts src/features/map/map-style.test.ts src/lib/place-input.test.ts",
     "check": "npm run lint && npm run test && npm run build"
   },
   "engines": {
@@ -19,9 +19,11 @@
     "lucide-react": "^1.66.0",
     "maplibre-gl": "^6.16.0",
     "next": "16.4.4",
+    "postgres": "^4.0.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "react-router-dom": "^6.30.6"
+    "react-router-dom": "^6.30.6",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -1,0 +1,2 @@
+import { NextResponse } from "next/server"; import { isAdmin } from "@/lib/admin-auth"; import { db } from "@/lib/db";
+export async function GET(_:Request,{params}:{params:Promise<{id:string}>}){if(!await isAdmin())return NextResponse.json({error:"UNAUTHORIZED"},{status:401});const {id}=await params,[row]=await db()`SELECT mime_type,contents FROM place_image_blobs WHERE photo_id=${id}`;if(!row)return NextResponse.json({error:"NOT_FOUND"},{status:404});return new NextResponse(row.contents,{headers:{"Content-Type":row.mime_type,"Cache-Control":"private, max-age=300"}});}
