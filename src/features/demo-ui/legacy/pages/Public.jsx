@@ -35,7 +35,7 @@ function locationErrorMessage(error) {
 }
 
 /* ===================== Trang chủ ===================== */
-export function Home() {
+export function LegacyHome() {
   const { filters, setFilters, geo, setGeo, setGeoPosition, toast, hiddenIds, categories } = useApp();
   const nav = useNavigate();
   const visible = places.filter((p) => !hiddenIds.includes(p.id));

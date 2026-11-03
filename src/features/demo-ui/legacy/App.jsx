@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import { Routes, Route, useLocation, Navigate, Link } from 'react-router-dom';
 import { DemoRibbon, PublicShell, PreviewTools, Toasts } from './components/layout.jsx';
 import { StateBlock, Button } from './components/ui.jsx';
-import { Home, Search, MapPage } from './pages/Public.jsx';
+import { Search, MapPage } from './pages/Public.jsx';
+import { DiscoveryHome as Home } from './pages/DiscoveryHome.jsx';
 import { PlaceDetail } from './pages/Detail.jsx';
 import { RealPlaceDetail } from './pages/RealPlaceDetail.jsx';
 import { Contribute, ReportError, Track } from './pages/Contribute.jsx';
@@ -17,7 +18,7 @@ export default function App() {
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
   return (
     <>
-      <DemoRibbon />
+      {pathname !== '/' && <DemoRibbon />}
       <Routes>
         <Route path="/" element={pub(<Home />)} />
         <Route path="/tim-kiem" element={pub(<Search />)} />
@@ -39,7 +40,7 @@ export default function App() {
         <Route path="/admin/xac-minh" element={<AdminClaims />} />
         <Route path="*" element={pub(<div className="container page"><StateBlock kind="empty" title="Không tìm thấy trang" actions={<Link className="btn btn-primary" to="/">Về trang chủ</Link>}>Đường dẫn không tồn tại.</StateBlock></div>)} />
       </Routes>
-      <PreviewTools />
+      {pathname !== '/' && <PreviewTools />}
       <Toasts />
     </>
   );

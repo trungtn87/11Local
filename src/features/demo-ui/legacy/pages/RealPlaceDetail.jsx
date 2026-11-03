@@ -14,7 +14,11 @@ export function RealPlaceDetail() {
     setState({ loading: true, error: false, place: null });
     fetch(`/api/places?slug=${encodeURIComponent(slug || '')}`, { signal: ctrl.signal })
       .then((res) => { if (!res.ok) throw new Error('API failed'); return res.json(); })
-      .then((body) => setState({ loading: false, error: false, place: body.places?.[0] || null }))
+      .then((body) => {
+        const place = body.places?.[0] || null;
+        setState({ loading: false, error: false, place });
+        if (place?.id) fetch(`/api/places/${encodeURIComponent(place.id)}/view`, { method: 'POST', keepalive: true }).catch(() => {});
+      })
       .catch((err) => { if (err.name !== 'AbortError') setState({ loading: false, error: true, place: null }); });
     return () => ctrl.abort();
   }, [slug]);

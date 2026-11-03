@@ -11,11 +11,12 @@ export function DemoRibbon() {
 export function Header() {
   const { filters, setFilters, role } = useApp();
   const nav = useNavigate();
+  const { pathname } = useLocation();
   return (
     <header className="app-header">
       <div className="container">
         <Logo />
-        <div className="header-search">
+        <div className={`header-search ${pathname === '/' ? 'home-search-hidden' : ''}`}>
           <SearchBar compact value={filters.q} onChange={(q) => setFilters((f) => ({ ...f, q }))} onSubmit={() => nav('/tim-kiem')} placeholder="Tìm quán, cafe, điểm đến…" />
         </div>
         <nav className="header-nav" aria-label="Điều hướng chính">
@@ -53,12 +54,23 @@ export function BottomNav() {
   );
 }
 
-export function Footer() {
+export function LegacyFooter() {
   return (
     <footer className="footer hide-mobile">
       <div className="container row between" style={{ flexWrap: 'wrap' }}>
         <div><b>11Local</b> — Cẩm nang địa điểm Cao Bằng. Độc lập với 11Ship và 11Food.</div>
         <div className="muted">UI preview V1 · dữ liệu demo hư cấu</div>
+      </div>
+    </footer>
+  );
+}
+
+export function Footer() {
+  return (
+    <footer className="footer hide-mobile">
+      <div className="container row between" style={{ flexWrap: 'wrap' }}>
+        <div><b>11Local</b> — Cẩm nang địa điểm Cao Bằng.</div>
+        <div className="muted">Dữ liệu địa điểm công khai từ Neon</div>
       </div>
     </footer>
   );
