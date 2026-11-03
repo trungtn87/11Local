@@ -11,9 +11,11 @@ const noStore = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosnif
  */
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ slug: string }> },
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const { slug } = await params;
+  // Next.js requires the same segment name ([id]) for all /api/places/:value routes.
+  // For this GET detail action, the value is the public slug (not a UUID).
+  const { id: slug } = await params;
   if (!/^[a-z0-9][a-z0-9-]{0,127}$/.test(slug)) {
     return NextResponse.json({ error: "NOT_FOUND" }, { status: 404, headers: noStore });
   }
