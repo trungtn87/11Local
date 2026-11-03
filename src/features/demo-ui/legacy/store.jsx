@@ -1,5 +1,5 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
-import { adminQueue as seedQueue, claims as seedClaims, myContributions as seedContribs } from './data/demo.js';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { adminQueue as seedQueue, claims as seedClaims, myContributions as seedContribs, categories as fallbackCategories } from './data/demo.js';
 
 // Trạng thái GIAO DIỆN thuần (in-memory). Không có xác thực, API hay database.
 // "role" chỉ là công tắc xem trước giao diện — KHÔNG phải quyền thật (xem PreviewTools).
@@ -22,7 +22,30 @@ export function AppProvider({ children }) {
   const [favs, setFavs] = useState([]);
   const [geo, setGeo] = useState('off'); // off | granted | denied
   const [geoPosition, setGeoPosition] = useState(null); // { latitude, longitude, accuracy }
+  const [categories, setCategories] = useState(fallbackCategories);
+  const [categoriesState, setCategoriesState] = useState('loading'); // loading | ready | fallback
   const tid = useRef(0);
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+    fetch('/api/categories', { signal: ctrl.signal })
+      .then((res) => { if (!res.ok) throw new Error('categories API failed'); return res.json(); })
+      .then((body) => {
+        if (!Array.isArray(body.categories) || body.categories.length === 0) throw new Error('empty categories');
+        setCategories(body.categories.map((row) => ({
+          id: row.id,
+          label: row.name,
+          icon: row.icon,
+          sortOrder: row.sort_order,
+          enabled: true,
+        })));
+        setCategoriesState('ready');
+      })
+      .catch((error) => {
+        if (error.name !== 'AbortError') setCategoriesState('fallback');
+      });
+    return () => ctrl.abort();
+  }, []);
 
   const toast = useCallback((msg, type = 'success') => {
     const id = ++tid.current;
@@ -36,8 +59,8 @@ export function AppProvider({ children }) {
     contribs, addContrib: (c) => setContribs((l) => [c, ...l]),
     hiddenIds, setHiddenIds, myReviews, setMyReviews, favs,
     toggleFav: (id) => setFavs((f) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id])),
-    geo, setGeo, geoPosition, setGeoPosition,
-  }), [role, filters, forced, toasts, toast, queue, claims, contribs, hiddenIds, myReviews, favs, geo, geoPosition]);
+    geo, setGeo, geoPosition, setGeoPosition, categories, categoriesState,
+  }), [role, filters, forced, toasts, toast, queue, claims, contribs, hiddenIds, myReviews, favs, geo, geoPosition, categories, categoriesState]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
