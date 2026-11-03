@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Utensils, Coffee, BedDouble, Mountain, ShoppingBag, Wrench, SlidersHorizontal, Map as MapIcon, List, Plus, LocateFixed, Lock, RefreshCw, ChevronRight, Sparkles, MapPinOff } from 'lucide-react';
 import { useApp } from '../store.jsx';
-import { categories, areas, places, byId } from '../data/demo.js';
+import { areas, places, byId } from '../data/demo.js';
 import { PlaceCard, SearchBar, Button, StateBlock, CardSkeletons, Sheet, PlaceArt, Banner, DemoBadge, Field } from '../components/ui.jsx';
 import { MapView } from '../components/MapView.jsx';
 import { useResults, distKm } from '../components/hooks.jsx';
@@ -36,7 +36,7 @@ function locationErrorMessage(error) {
 
 /* ===================== Trang chủ ===================== */
 export function Home() {
-  const { filters, setFilters, geo, setGeo, setGeoPosition, toast, hiddenIds } = useApp();
+  const { filters, setFilters, geo, setGeo, setGeoPosition, toast, hiddenIds, categories } = useApp();
   const nav = useNavigate();
   const visible = places.filter((p) => !hiddenIds.includes(p.id));
   const newest = [...visible].sort((a, b) => b.updated.localeCompare(a.updated)).slice(0, 6);
@@ -104,7 +104,7 @@ export function Home() {
 
 /* ===================== Bộ lọc ===================== */
 function Filters({ onDone }) {
-  const { filters, setFilters, resetFilters, geo, setGeo } = useApp();
+  const { filters, setFilters, resetFilters, geo, setGeo, categories } = useApp();
   const set = (k, v) => setFilters((f) => ({ ...f, [k]: v }));
   return (
     <div className="stack">
@@ -151,7 +151,7 @@ function ResultState({ status, onRetry, resetFilters, q }) {
 
 /* ===================== Tìm kiếm + danh sách + bản đồ ===================== */
 export function Search() {
-  const { filters, setFilters, resetFilters, setForced, geo } = useApp();
+  const { filters, setFilters, resetFilters, setForced, geo, categories } = useApp();
   const { status, list } = useResults();
   const [view, setView] = useState('list');
   const [sheet, setSheet] = useState(false);
@@ -202,7 +202,7 @@ export function Search() {
 
 /* ===================== Bản đồ khám phá (mobile full) ===================== */
 export function MapPage() {
-  const { filters, setFilters, resetFilters, setForced, geo, setGeo, geoPosition, setGeoPosition, toast } = useApp();
+  const { filters, setFilters, resetFilters, setForced, geo, setGeo, geoPosition, setGeoPosition, toast, categories } = useApp();
   const { status, list } = useResults();
   const [sel, setSel] = useState(null);
   const [sheet, setSheet] = useState(false);

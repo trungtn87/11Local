@@ -2,13 +2,13 @@ import { useState, useMemo } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Copy, Camera, Search as SearchIcon, ArrowLeft, Upload, X, TriangleAlert } from 'lucide-react';
 import { useApp, demoCode } from '../store.jsx';
-import { categories, areas, places, byId, fold, catLabel } from '../data/demo.js';
+import { areas, places, byId, fold, catLabel } from '../data/demo.js';
 import { Button, Field, Banner, StatusBadge, Steps, PlaceArt, StateBlock, PlaceCard } from '../components/ui.jsx';
 import { PinPicker } from '../components/MapView.jsx';
 
 /* ===================== Đóng góp địa điểm mới (4 bước) ===================== */
 export function Contribute() {
-  const { addContrib, toast, role } = useApp();
+  const { addContrib, toast, role, categories } = useApp();
   const nav = useNavigate();
   const [step, setStep] = useState(1);
   const [q, setQ] = useState('');
