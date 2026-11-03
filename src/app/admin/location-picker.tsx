@@ -1,13 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, Search } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { parseCoordinateInput } from "@/lib/coordinate-input";
 import { PinMap } from "./pin-map";
 import styles from "./location-picker.module.css";
-
-type SearchResult = { id: string; name: string; latitude: number; longitude: number };
-type SearchResponse = { results?: SearchResult[]; error?: string };
 
 type Props = {
   latitude: number;
@@ -16,8 +13,8 @@ type Props = {
 };
 
 export function LocationPicker({ latitude, longitude, onChange }: Props) {
-  // Derive displayed values from fresh props when the marker changes, without
-  // synchronously setting state in an effect (React 19 lint requirement).
+  // Keep unsaved edits in the fields, but refresh them when a different place
+  // is selected or the pin is moved on the map.
   const [draft, setDraft] = useState(() => ({
     baseLatitude: latitude,
     baseLongitude: longitude,
@@ -27,9 +24,6 @@ export function LocationPicker({ latitude, longitude, onChange }: Props) {
   const synchronized = draft.baseLatitude === latitude && draft.baseLongitude === longitude;
   const latText = synchronized ? draft.lat : latitude.toFixed(6);
   const lngText = synchronized ? draft.lng : longitude.toFixed(6);
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [searching, setSearching] = useState(false);
   const [feedback, setFeedback] = useState("");
 
   const applyCoordinates = () => {
@@ -40,7 +34,6 @@ export function LocationPicker({ latitude, longitude, onChange }: Props) {
       return;
     }
     setFeedback("");
-    setResults([]);
     setDraft({
       baseLatitude: lat,
       baseLongitude: lng,
@@ -50,85 +43,12 @@ export function LocationPicker({ latitude, longitude, onChange }: Props) {
     onChange(lng, lat);
   };
 
-  const search = async () => {
-    const text = query.trim();
-    if (text.length < 2) {
-      setFeedback("Nhập tối thiểu 2 ký tự để tìm địa điểm.");
-      return;
-    }
-    setSearching(true);
-    setFeedback("");
-    setResults([]);
-    try {
-      const response = await fetch(`/api/admin/geocode?q=${encodeURIComponent(text)}`, {
-        cache: "no-store",
-      });
-      const body = await response.json() as SearchResponse;
-      if (!response.ok) {
-        throw new Error(body.error === "RATE_LIMITED"
-          ? "Tìm kiếm quá nhanh. Hãy thử lại sau vài giây."
-          : body.error === "UNAUTHORIZED"
-            ? "Phiên quản trị đã hết hạn. Hãy đăng nhập lại."
-            : "Không thể tìm kiếm lúc này. Bạn vẫn có thể nhập tọa độ hoặc chọn trên bản đồ.");
-      }
-      const items = body.results ?? [];
-      setResults(items);
-      if (!items.length) setFeedback("Không có kết quả. Thử thêm “Cao Bằng” vào từ khóa hoặc nhập tọa độ.");
-    } catch (error) {
-      setFeedback(error instanceof Error ? error.message : "Không thể tìm kiếm địa điểm.");
-    } finally {
-      setSearching(false);
-    }
-  };
-
-  const choose = (result: SearchResult) => {
-    onChange(result.longitude, result.latitude);
-    setQuery(result.name);
-    setResults([]);
-    setFeedback("Đã đặt ghim theo kết quả tìm kiếm. Hãy kiểm tra vị trí trên bản đồ.");
-  };
-
   return (
     <section className={styles.root} aria-label="Chọn vị trí địa điểm">
       <div className={styles.heading}>
         <b><MapPin size={17} /> Vị trí địa điểm</b>
         <span>{latitude.toFixed(6)}, {longitude.toFixed(6)}</span>
       </div>
-
-      <div className={styles.searchRow}>
-        <input
-          type="search"
-          aria-label="Tìm tên hoặc địa chỉ địa điểm"
-          placeholder="Tìm Pác Bó, suối Lê Nin, tên đường, địa chỉ…"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              if (!searching) void search();
-            }
-          }}
-        />
-        <button type="button" onClick={() => void search()} disabled={searching}>
-          <Search size={16} /> {searching ? "Đang tìm…" : "Tìm kiếm"}
-        </button>
-      </div>
-
-      {results.length > 0 && (
-        <div className={styles.results} role="list" aria-label="Kết quả tìm kiếm">
-          {results.map((result) => (
-            <button
-              key={result.id}
-              type="button"
-              role="listitem"
-              onClick={() => choose(result)}
-            >
-              <MapPin size={15} />
-              <span>{result.name}<small>{result.latitude.toFixed(6)}, {result.longitude.toFixed(6)}</small></span>
-            </button>
-          ))}
-        </div>
-      )}
 
       <div className={styles.coordinates}>
         <label>
@@ -174,13 +94,13 @@ export function LocationPicker({ latitude, longitude, onChange }: Props) {
 
       {feedback && <p className={styles.feedback} role="status">{feedback}</p>}
       <p className={styles.hint}>
-        Tìm kiếm và chọn kết quả, nhập tọa độ rồi nhấn Áp dụng, hoặc bấm/kéo ghim trực tiếp trên bản đồ.
+        Nhập vĩ độ và kinh độ rồi nhấn Áp dụng, hoặc bấm/kéo ghim trên bản đồ.
       </p>
       <PinMap latitude={latitude} longitude={longitude} onChange={onChange} />
       <p className={styles.attribution}>
-        Dữ liệu tìm kiếm: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">
+        Nền bản đồ: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">
           © OpenStreetMap contributors
-        </a>. Kết quả có thể chưa chính xác; kiểm tra ghim trước khi lưu.
+        </a>. Chỉ địa điểm được duyệt trên 11Local mới hiện trên bản đồ công khai.
       </p>
     </section>
   );
