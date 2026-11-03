@@ -115,7 +115,7 @@ function PlacesState({ data, places }) {
   return <div className="place-grid">{places.map((place) => <RealPlaceCard key={place.id} place={place} />)}</div>;
 }
 
-export function RealPlaceCard({ place, distance }) {
+export function RealPlaceCard({ place, distance, onDetails }) {
   const ratingCount = Number(place.rating_count) || 0;
   return (
     <article className="place-card real-place-card">
@@ -130,9 +130,12 @@ export function RealPlaceCard({ place, distance }) {
           </div>
         </div>
       </Link>
-      <a className="real-place-direction" href={getGoogleMapsDirectionsUrl(place)} target="_blank" rel="noreferrer" aria-label={`Chỉ đường đến ${place.name}`}>
-        <Navigation size={15} /> Chỉ đường
-      </a>
+      <div className={onDetails ? "real-place-actions" : ""}>
+        {onDetails && <button className="real-place-detail-action" type="button" onClick={() => onDetails(place)}>Chi tiết</button>}
+        <a className="real-place-direction" href={getGoogleMapsDirectionsUrl(place)} target="_blank" rel="noreferrer" aria-label={`Chỉ đường đến ${place.name}`}>
+          <Navigation size={15} /> Chỉ đường
+        </a>
+      </div>
     </article>
   );
 }

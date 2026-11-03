@@ -7,6 +7,7 @@ import { MapCanvas } from '../../../map/map-canvas';
 import { CAO_BANG_CAMERA } from '../../../map/map-config';
 import { getGoogleMapsDirectionsUrl } from '../../../places/google-maps';
 import { useApp } from '../store.jsx';
+import { PlaceDetailPanel } from '../components/PlaceDetailPanel.jsx';
 import '../styles/map-explorer.css';
 
 const hasCoordinates = (p) => Number.isFinite(Number(p.latitude)) &&
@@ -38,7 +39,7 @@ function score(place) {
   return count > 0 && Number.isFinite(avg) ? avg.toFixed(1) + ' (' + count + ')' : 'Chưa có đánh giá';
 }
 
-function PlaceRow({ place, selected, onSelect }) {
+function PlaceRow({ place, selected, onSelect, onOpenDetails }) {
   return (
     <article className={'local-map-entry' + (selected ? ' selected' : '')}>
       <button className="local-map-entry-main" type="button" onClick={() => onSelect(place.slug)}
@@ -51,7 +52,7 @@ function PlaceRow({ place, selected, onSelect }) {
         </span>
       </button>
       <div className="local-map-entry-actions">
-        <Link to={'/dia-diem/real/' + encodeURIComponent(place.slug)}>Chi tiết</Link>
+        <button type="button" onClick={() => onOpenDetails(place.slug)}>Chi tiết</button>
         <a href={getGoogleMapsDirectionsUrl(place)} target="_blank" rel="noopener noreferrer">
           <Navigation size={14} /> Chỉ đường
         </a>
@@ -60,7 +61,7 @@ function PlaceRow({ place, selected, onSelect }) {
   );
 }
 
-function createPlacePopup(place) {
+function createPlacePopup(place, onOpenDetails) {
   // DOM textContent avoids HTML injection from user-contributed place fields.
   const wrapper = document.createElement('div');
   wrapper.className = 'local-map-popup';
@@ -94,10 +95,11 @@ function createPlacePopup(place) {
   const actions = document.createElement('div');
   actions.className = 'local-map-popup-actions';
 
-  const detail = document.createElement('a');
-  detail.href = '/dia-diem/real/' + encodeURIComponent(place.slug);
+  const detail = document.createElement('button');
+  detail.type = 'button';
   detail.textContent = 'Chi tiết';
   detail.className = 'local-map-popup-detail';
+  detail.addEventListener('click', () => onOpenDetails(place.slug));
   actions.appendChild(detail);
 
   const directions = document.createElement('a');
@@ -112,7 +114,7 @@ function createPlacePopup(place) {
   return wrapper;
 }
 
-function PlaceMap({ places, selectedPlace, onSelect }) {
+function PlaceMap({ places, selectedPlace, onSelect, onOpenDetails }) {
   const [map, setMap] = useState(null);
   const markerRefs = useRef(new Map());
 
@@ -153,7 +155,7 @@ function PlaceMap({ places, selectedPlace, onSelect }) {
       closeOnClick: false,
     })
       .setLngLat([Number(selectedPlace.longitude), Number(selectedPlace.latitude)])
-      .setDOMContent(createPlacePopup(selectedPlace))
+      .setDOMContent(createPlacePopup(selectedPlace, onOpenDetails))
       .addTo(map);
 
     popup.on('close', () => {
@@ -172,7 +174,7 @@ function PlaceMap({ places, selectedPlace, onSelect }) {
       popup.remove();
       marker?.getElement().classList.remove('selected');
     };
-  }, [map, selectedPlace, onSelect]);
+  }, [map, selectedPlace, onSelect, onOpenDetails]);
 
   return (
     <div className="local-map-viewport">
@@ -198,6 +200,7 @@ export function RealMapExplorer() {
   const [query, setQuery] = useState('');
   const [showMobileList, setShowMobileList] = useState(false);
   const selectedSlug = params.get('place');
+  const detailOpen = params.get('detail') === '1';
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -217,9 +220,28 @@ export function RealMapExplorer() {
       const next = new URLSearchParams(previous);
       if (slug) next.set('place', slug);
       else next.delete('place');
+      next.delete('detail');
       return next;
     }, { replace: true });
     setShowMobileList(false);
+  }, [setParams]);
+
+  const onOpenDetails = useCallback((slug) => {
+    setParams((previous) => {
+      const next = new URLSearchParams(previous);
+      next.set('place', slug);
+      next.set('detail', '1');
+      return next;
+    }, { replace: true });
+    setShowMobileList(false);
+  }, [setParams]);
+
+  const onCloseDetails = useCallback(() => {
+    setParams((previous) => {
+      const next = new URLSearchParams(previous);
+      next.delete('detail');
+      return next;
+    }, { replace: true });
   }, [setParams]);
 
   const matched = data.places.filter((place) =>
@@ -264,18 +286,21 @@ export function RealMapExplorer() {
             {data.status === 'ready' && matched.length === 0 &&
               <p>Không có địa điểm đã công khai phù hợp. Hãy thử danh mục khác.</p>}
             {matched.map((place) => (
-              <PlaceRow key={place.id} place={place} selected={selectedSlug === place.slug} onSelect={onSelect} />
+              <PlaceRow key={place.id} place={place} selected={selectedSlug === place.slug} onSelect={onSelect} onOpenDetails={onOpenDetails} />
             ))}
           </div>
         </aside>
         <div className="local-map-area">
-          <PlaceMap places={matched} selectedPlace={selectedPlace} onSelect={onSelect} />
+          <PlaceMap places={matched} selectedPlace={selectedPlace} onSelect={onSelect} onOpenDetails={onOpenDetails} />
           {data.status === 'error' && <div className="local-map-alert" role="alert">Chưa kết nối được dữ liệu địa điểm.</div>}
           {data.status === 'ready' && selectedSlug && !selectedPlace &&
             <div className="local-map-alert" role="status">
               Địa điểm này chưa công khai hoặc không thuộc bộ lọc hiện tại.
               <button type="button" onClick={() => { setCategory('all'); setQuery(''); }}>Bỏ bộ lọc</button>
             </div>}
+          {selectedPlace && detailOpen && (
+            <PlaceDetailPanel key={selectedPlace.slug} place={selectedPlace} onClose={onCloseDetails} mode="map" />
+          )}
         </div>
       </div>
     </div>
