@@ -23,11 +23,12 @@ function requestBrowserLocation() {
 }
 
 export function DiscoveryHome() {
-  const { setFilters, geo, setGeo, geoPosition, setGeoPosition, toast, categories, categoriesState } = useApp();
+  const { setFilters, geo, setGeo, geoPosition, setGeoPosition, toast, categories, categoriesState, initialPlaces, initialPlacesState } = useApp();
   const navigate = useNavigate();
-  const [data, setData] = useState({ status: 'loading', places: [] });
+  const [data, setData] = useState({ status: initialPlacesState, places: initialPlaces });
 
   useEffect(() => {
+    if (initialPlacesState !== 'loading') return;
     const controller = new AbortController();
     fetch('/api/places', { signal: controller.signal })
       .then((response) => { if (!response.ok) throw new Error('places API failed'); return response.json(); })
