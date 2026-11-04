@@ -315,7 +315,7 @@ export default function AdminApp() {
             </div>
           </>}
           <h3 className={styles.sectionTitle}><MapPin size={18}/> Vị trí trên bản đồ</h3>
-          {!pinSelected && <p className={styles.pinNotice}>Hãy nhấp lên bản đồ hoặc kéo ghim đến vị trí thật trước khi lưu.</p>}
+          {!pinSelected && <p className={styles.pinNotice}>Hãy kéo bản đồ để đặt ghim ở vị trí thật trước khi lưu.</p>}
           <LocationPicker key={selected?.id ?? "new"} latitude={form.latitude} longitude={form.longitude}
             onChange={(longitude, latitude) => { setPinSelected(true); setForm(current => ({ ...current, latitude, longitude })); }}/>
           {selected && <div className={styles.photosSection}>
