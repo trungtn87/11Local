@@ -162,7 +162,7 @@ export default function AdminApp() {
   const save = async (event: FormEvent) => {
     event.preventDefault();
     if (!categories.length || catalogError) { setMessage("Chưa tải được danh mục từ Neon."); return; }
-    if (!pinSelected) { setMessage("Hãy nhấp lên bản đồ hoặc kéo ghim để xác nhận vị trí."); return; }
+    if (!pinSelected) { setMessage("Hãy kéo bản đồ để chọn vị trí thực tế trước khi lưu."); return; }
     setBusy(true); setMessage("");
     try {
       const payload = { ...form,
