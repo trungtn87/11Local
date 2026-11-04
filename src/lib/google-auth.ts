@@ -1,5 +1,21 @@
 export const OAUTH_STATE_COOKIE = "11local_oauth_state";
 
+// Use the public origin rather than the internal Docker request origin for OAuth.
+export function googleOAuthOrigin(requestOrigin: string) {
+  if (process.env.NODE_ENV !== "production") return requestOrigin;
+  const url = new URL(process.env.SITE_URL || "https://11local.vn");
+  if (url.protocol !== "https:" || url.username || url.password || url.search ||
+      url.hash || url.pathname !== "/" || url.hostname === "0.0.0.0" || url.port) {
+    throw new Error("SITE_URL must be a public HTTPS origin");
+  }
+  return url.origin;
+}
+
+export function googleOAuthCallbackUrl(requestOrigin: string) {
+  return new URL("/api/auth/google/callback", googleOAuthOrigin(requestOrigin)).toString();
+}
+
+
 export function safeReturnTo(value: string | null | undefined) {
   if (!value || !value.startsWith("/") || /[\\\x00-\x20]/.test(value)) return "/tai-khoan";
   try {
