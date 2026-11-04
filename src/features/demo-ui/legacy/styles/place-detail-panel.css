@@ -97,3 +97,7 @@
 .real-v2-thumbnails img{flex:none;width:120px;height:88px;object-fit:cover;border-radius:10px;background:#e8f0eb}
 .real-place-detail-cover{overflow:hidden;border-radius:16px}
 @media(max-width:700px){.local-place-facts>div{grid-template-columns:minmax(92px,40%) minmax(0,1fr)}}
+
+.local-detail-community-actions{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+.local-detail-community-actions a{display:inline-flex;align-items:center;gap:5px;border:1px solid #cbded6;border-radius:10px;padding:10px 12px;color:#17684b;text-decoration:none;font-size:13px;font-weight:600}
+.local-detail-community-actions a:hover{background:#e8f9f1}

@@ -1,0 +1,24 @@
+
+.existing-feedback{max-width:1180px}
+.existing-feedback-header{background:linear-gradient(110deg,#e1f5ef,#edfaff);border:1px solid #b9e6d9;border-radius:24px;padding:26px}
+.existing-feedback-header h1{font-size:clamp(24px,3vw,36px);margin:0 0 8px}
+.existing-feedback-header>p{color:#47695e;margin:0 0 20px}
+.existing-feedback-place{display:flex;flex-direction:column;gap:5px;background:#fff;border-radius:14px;padding:15px;max-width:600px}
+.existing-feedback-place span{font-size:14px;color:#63756f}
+.existing-feedback-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;align-items:start;gap:20px}
+.existing-feedback-form{min-width:0;padding:24px}
+.existing-feedback-form h2{font-size:19px;margin:0}
+.existing-feedback-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.existing-feedback-tabs button{display:flex;justify-content:center;align-items:center;gap:8px;min-height:52px;background:#fff;border:1px solid #cddbd6;border-radius:14px;color:#274439;cursor:pointer;padding:10px}
+.existing-feedback-tabs button[data-active="true"]{background:#def7ed;border:2px solid #0e9871;color:#07664a;font-weight:700}
+.existing-feedback-current{background:#f4f7f6;border-radius:12px;padding:12px 15px;overflow-wrap:anywhere}
+.existing-feedback-current small{color:#6b7e76}
+.existing-feedback-current p{margin:5px 0 0;white-space:pre-wrap}
+.existing-feedback-previews{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.existing-feedback-previews>div{position:relative;aspect-ratio:1}
+.existing-feedback-previews img{width:100%;height:100%;object-fit:cover;border-radius:10px}
+.existing-feedback-previews button{position:absolute;right:4px;top:4px;border:0;border-radius:50%;background:#fff;padding:5px;cursor:pointer}
+.existing-feedback-aside{padding:23px;font-size:14px}
+.existing-feedback-aside h3{font-size:17px}
+.existing-feedback-important{display:flex;align-items:flex-start;gap:9px;background:#f0faf5;padding:12px;border-radius:12px;color:#285a47}
+@media(max-width:790px){.existing-feedback-layout{grid-template-columns:1fr}.existing-feedback-form{padding:18px}.existing-feedback-header{padding:20px}.existing-feedback-tabs{grid-template-columns:1fr}.existing-feedback-tabs button{justify-content:flex-start}.existing-feedback-previews{grid-template-columns:repeat(3,1fr)}}

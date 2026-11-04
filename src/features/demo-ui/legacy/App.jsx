@@ -8,6 +8,7 @@ import { DiscoveryHome } from './pages/DiscoveryHome.jsx';
 import { RealPlaceDetail } from './pages/RealPlaceDetail.jsx';
 import { Login, Account } from './pages/Auth.jsx';
 import { Contribute, ContributionTracking } from './pages/Contribute.jsx';
+import { ExistingPlaceFeedback } from './pages/ExistingPlaceFeedback.jsx';
 
 const publicPage = (page, options) => <PublicShell {...options}>{page}</PublicShell>;
 
@@ -33,7 +34,7 @@ export default function App() {
       <Route path="/tai-khoan" element={publicPage(<Account />)}/>
       <Route path="/dong-gop" element={publicPage(<Contribute />)}/>
       <Route path="/theo-doi" element={publicPage(<ContributionTracking />)}/>
-      <Route path="/bao-sai/:id" element={publicPage(<NotAvailable title="Báo sai đang hoàn thiện" />)}/>
+      <Route path="/bao-sai/:id" element={publicPage(<ExistingPlaceFeedback />)}/>
       <Route path="/nhan-quyen/:id" element={publicPage(<NotAvailable title="Nhận quyền quản lý đang hoàn thiện" />)}/>
       <Route path="/quan-ly/*" element={publicPage(<NotAvailable title="Quản lý địa điểm đang hoàn thiện" />)}/>
       <Route path="*" element={publicPage(<NotAvailable title="Không tìm thấy trang" />)}/>
