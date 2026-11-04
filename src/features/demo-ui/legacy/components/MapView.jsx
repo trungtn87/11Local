@@ -58,9 +58,9 @@ export function MapView({ places = [], selectedId, onSelect, full = false, onLoc
     {selected && <div className="map-sheet"><div className="card row" style={{ padding: 8, gap: 10, boxShadow: 'var(--sh-3)' }}>
       <div style={{ width: 96, height: 96, flex: 'none', overflow: 'hidden', borderRadius: 12 }}><RealPlaceCover place={selected}/></div>
       <div className="grow stack-sm">
-        <div className="row between"><Link to={'/dia-diem/' + selected.slug} style={{ fontWeight: 700, color: 'var(--c-text)' }}>{selected.name}</Link><button className="btn btn-ghost btn-icon btn-sm" aria-label="Đóng" onClick={() => onSelect?.(null)}><X size={16}/></button></div>
+        <div className="row between"><Link to={'/ban-do?place=' + encodeURIComponent(selected.slug) + '&detail=1'} style={{ fontWeight: 700, color: 'var(--c-text)' }}>{selected.name}</Link><button className="btn btn-ghost btn-icon btn-sm" aria-label="Đóng" onClick={() => onSelect?.(null)}><X size={16}/></button></div>
         <span className="small muted">{selected.category_name} · {selected.area}</span>
-        <div className="row-wrap"><Link to={'/dia-diem/' + selected.slug} className="btn btn-primary btn-sm">Chi tiết</Link><a className="btn btn-outline btn-sm" href={getGoogleMapsDirectionsUrl(selected)} target="_blank" rel="noreferrer"><Navigation size={14}/> Chỉ đường</a></div>
+        <div className="row-wrap"><Link to={'/ban-do?place=' + encodeURIComponent(selected.slug) + '&detail=1'} className="btn btn-primary btn-sm">Chi tiết</Link><a className="btn btn-outline btn-sm" href={getGoogleMapsDirectionsUrl(selected)} target="_blank" rel="noreferrer"><Navigation size={14}/> Chỉ đường</a></div>
       </div>
     </div></div>}
     <span className="map-badge">{places.length} địa điểm từ Neon</span>

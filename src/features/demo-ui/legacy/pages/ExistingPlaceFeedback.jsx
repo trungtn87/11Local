@@ -98,7 +98,7 @@ export function ExistingPlaceFeedback(){
   if(loading)return <div className="container page"><p role="status">Đang tải địa điểm…</p></div>;
   if(loadError||!place)return <div className="container page stack"><p role="alert">{loadError||'Không tìm thấy địa điểm.'}</p><Link to="/tim-kiem" className="btn btn-outline">Tìm địa điểm</Link></div>;
   return <div className="container page stack-lg existing-feedback">
-    <Link to={'/dia-diem/'+place.slug} className="small muted"><ArrowLeft size={16}/> Về trang địa điểm</Link>
+    <Link to={'/ban-do?place='+encodeURIComponent(place.slug)+'&detail=1'} className="small muted"><ArrowLeft size={16}/> Về trang địa điểm</Link>
     <header className="existing-feedback-header">
       <h1>Cùng cập nhật 11Local</h1>
       <p>Đóng góp của bạn giúp thông tin Cao Bằng chính xác, hữu ích hơn.</p>

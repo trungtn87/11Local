@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  BadgeCheck, Camera, ChevronLeft, ChevronRight, Edit3, Flag, ImageOff, Images,
+  BadgeCheck, Camera, ChevronLeft, Edit3, Flag, ImageOff, Images,
   Info, MapPin, Navigation, Phone, Star, X,
 } from "lucide-react";
 import { getGoogleMapsDirectionsUrl } from "../../../places/google-maps";
@@ -127,9 +127,6 @@ export function PlaceDetailPanel({ place, onClose, mode = "map" }) {
             <Link to={'/bao-sai/'+encodeURIComponent(detail.slug)+'?loai=photo'} onClick={onClose}><Camera size={15}/> Gửi ảnh</Link>
           </div>
 
-          <Link to={"/dia-diem/real/" + encodeURIComponent(detail.slug)} className="local-detail-full-link" onClick={onClose}>
-            Xem trang thông tin đầy đủ <ChevronRight size={16} />
-          </Link>
           <p className="local-detail-note">Thông tin và hình ảnh công khai đã qua kiểm duyệt 11Local.</p>
         </div>
       </aside>

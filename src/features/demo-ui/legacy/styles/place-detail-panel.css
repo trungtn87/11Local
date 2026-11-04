@@ -32,7 +32,6 @@
 .local-detail-section p{margin:0;font-size:14px;line-height:1.6;color:#243f38;overflow-wrap:anywhere}
 .local-detail-section p.local-detail-description{white-space:pre-wrap}
 .local-detail-section small,.local-detail-muted{font-size:12px!important;color:#71867d!important}
-.local-detail-full-link{display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid #cee4da;border-radius:10px;padding:12px;text-decoration:none;background:#f5fbf8;color:#087365;font-size:13px;font-weight:800}
 .local-detail-note{font-size:11px;color:#859990;text-align:center}
 .local-detail-loading,.local-detail-error{margin:12px 15px 0;padding:10px 12px;border-radius:9px;background:#f0f8f4;color:#4c7467;font-size:12px}
 .local-detail-error{background:#fff3e7;color:#945a26}
