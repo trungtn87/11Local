@@ -247,7 +247,9 @@ export default function AdminApp() {
   </main>;
 
   return <main className={styles.shell}>
-    <header><div><h1>11Local Admin</h1><span>Quản lý địa điểm thật · Neon V2</span></div>
+    <header><div><h1>11Local Admin</h1><span>Quản lý địa điểm thật · Neon V2</span>
+        <a href="/admin/danh-muc" className={styles.secondary} style={{ display: "inline-flex", marginTop: 10, textDecoration: "none" }}>Quản lý danh mục</a>
+      </div>
       <button type="button" className={styles.secondary} onClick={async () => {
         await fetch("/api/admin/session", { method: "DELETE" }); setAuth(false);
       }}><LogOut size={16}/>Đăng xuất</button>
