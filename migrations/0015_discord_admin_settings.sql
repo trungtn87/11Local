@@ -25,6 +25,23 @@ CREATE TABLE IF NOT EXISTS public.discord_notification_settings (
 );
 INSERT INTO public.discord_notification_settings (id)
 VALUES (1) ON CONFLICT (id) DO NOTHING;
+-- Safe when an earlier draft of 0015 was applied: discard the canceled
+-- digest preference without resetting other Admin choices.
+ALTER TABLE public.discord_notification_settings
+  DROP CONSTRAINT IF EXISTS discord_settings_groups_valid;
+ALTER TABLE public.discord_notification_settings
+  ADD CONSTRAINT discord_settings_groups_valid CHECK (
+    jsonb_typeof(groups) = 'object'
+    AND jsonb_typeof(groups->'contribution') = 'boolean'
+    AND jsonb_typeof(groups->'review') = 'boolean'
+    AND jsonb_typeof(groups->'ownership') = 'boolean'
+    AND jsonb_typeof(groups->'moderation') = 'boolean'
+    AND jsonb_typeof(groups->'system') = 'boolean'
+  );
+UPDATE public.discord_notification_settings
+SET groups = groups - 'digest', updated_at = now(), version = version + 1
+WHERE groups ? 'digest';
+
 
 -- Older outbox rows have NULL group and fall back to event_type.
 -- Legacy digest rows remain schema-compatible but can never be dispatched.
