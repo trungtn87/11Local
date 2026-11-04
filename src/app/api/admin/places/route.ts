@@ -31,6 +31,8 @@ export async function POST(request: Request) {
     const input = parsePlaceInput(await request.json());
     const sql = db();
     const result = await sql.begin(async (tx) => {
+      // Serialize place writes with changes to their category field schema.
+      await tx`SELECT pg_advisory_xact_lock(110, hashtext(${input.categoryId}))`;
       const [category] = await tx`SELECT id FROM public.categories WHERE id=${input.categoryId}`;
       if (!category) throw new Error("INVALID_CATEGORY");
       const defs = await tx`SELECT field_key, field_type, label, options, is_required
