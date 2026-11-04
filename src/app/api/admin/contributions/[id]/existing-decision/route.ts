@@ -1,4 +1,3 @@
-import { isAllowedRequestOrigin } from "@/lib/request-origin";
 
 import {NextResponse} from "next/server";
 import {isAdmin} from "@/lib/admin-auth";
@@ -26,7 +25,6 @@ function parseDecision(raw:unknown):Decision {
 }
 export async function POST(request:Request,{params}:Context) {
   if(!await isAdmin()) return fail("UNAUTHORIZED",401);
-  if(!isAllowedRequestOrigin(request)) return fail("INVALID_ORIGIN",403);
   const {id}=await params;
   if(!isUuid(id)) return fail("NOT_FOUND",404);
   let decision:Decision;
