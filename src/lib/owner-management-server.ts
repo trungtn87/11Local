@@ -1,3 +1,4 @@
+import type postgres from "postgres";
 import {getCurrentUser} from "@/lib/user-auth";
 import {db} from "@/lib/db";
 import {isPlaceId} from "@/lib/owner-management-input";
@@ -8,7 +9,7 @@ export async function ownerSession(){
   const user=await getCurrentUser();
   return user&&isPlaceId(user.id)?user:null;
 }
-export async function ownershipRole(tx:ReturnType<typeof db>,placeId:string,userId:string){
+export async function ownershipRole(tx:postgres.TransactionSql,placeId:string,userId:string){
   // Called after the place row is FOR UPDATE: permission revocation and edits
   // serialize on the same row. Google account must remain linked.
   const [row]=await tx`SELECT m.role FROM public.place_managers m
@@ -17,7 +18,7 @@ export async function ownershipRole(tx:ReturnType<typeof db>,placeId:string,user
       AND m.status='active' AND m.role IN ('owner','manager') LIMIT 1`;
   return row?.role==="owner"||row?.role==="manager"?row.role as "owner"|"manager":null;
 }
-export async function requireOwnerPlace(tx:ReturnType<typeof db>,placeId:string,userId:string){
+export async function requireOwnerPlace(tx:postgres.TransactionSql,placeId:string,userId:string){
   const [place]=await tx`SELECT id,version,place_kind,moderation_status,visibility
     FROM public.places WHERE id=${placeId} FOR UPDATE`;
   if(!place)throw new Error("NOT_FOUND");
