@@ -36,7 +36,10 @@ export function BottomNav() {
 export function Footer() {
   return <footer className="footer hide-mobile"><div className="container row between" style={{ flexWrap: 'wrap' }}>
     <div><b>11Local</b> — Cẩm nang địa điểm Cao Bằng.</div>
-    <div className="muted">Chỉ hiển thị dữ liệu địa điểm đã được Admin duyệt.</div>
+    <div className="muted" style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+      <a href="/chinh-sach-bao-mat">Chính sách bảo mật</a>
+      <a href="/dieu-khoan-su-dung">Điều khoản sử dụng</a>
+    </div>
   </div></footer>;
 }
 
