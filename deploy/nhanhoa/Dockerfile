@@ -16,7 +16,12 @@ ENV DEPLOY_STANDALONE=1
 ENV SITE_URL=${SITE_URL}
 ENV NEXT_PUBLIC_MAP_STYLE_URL=${NEXT_PUBLIC_MAP_STYLE_URL}
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run check \
+# Unit tests must not inherit the deployment's trusted public SITE_URL:
+# origin-guard fixtures test their own same-origin and proxy inputs.
+# Keep lint and all tests mandatory; build with SITE_URL configured as usual.
+RUN npm run lint \
+ && env -u SITE_URL npm test \
+ && npm run build \
  && mkdir -p .next/standalone/.next \
  && cp -a .next/static .next/standalone/.next/static \
  && if [ -d public ]; then cp -a public .next/standalone/public; fi

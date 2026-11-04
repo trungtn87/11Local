@@ -1,0 +1,54 @@
+name: Vibe Hosting Docker deployment
+
+on:
+  pull_request:
+    paths:
+      - Dockerfile
+      - deploy/nhanhoa/Dockerfile
+      - .github/workflows/vibe-docker.yml
+  push:
+    branches:
+      - main
+    paths:
+      - Dockerfile
+      - deploy/nhanhoa/Dockerfile
+      - .github/workflows/vibe-docker.yml
+
+permissions:
+  contents: read
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure both Dockerfile entrypoints remain identical
+        run: cmp Dockerfile deploy/nhanhoa/Dockerfile
+
+      - name: Build exact Nhân Hòa Dockerfile (lint + unit tests + Next build)
+        run: |
+          docker build --build-arg SITE_URL=https://11local.vn -f deploy/nhanhoa/Dockerfile -t 11local-vibe-ci .
+
+      - name: Check 11Local resource endpoint inside built image
+        run: |
+          docker run --detach --name 11local-vibe-ci --publish 127.0.0.1:43929:3000 11local-vibe-ci
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent --show-error --max-time 3 http://127.0.0.1:43929/api/monitor/resources > /tmp/11local-resources.json; then
+              break
+            fi
+            sleep 1
+          done
+          node --input-type=module -e '
+            import assert from "node:assert/strict";
+            import { readFileSync } from "node:fs";
+            const data=JSON.parse(readFileSync("/tmp/11local-resources.json","utf8"));
+            assert.equal(data.schema,1);
+            assert.equal(data.service,"11local");
+            assert.ok(typeof data.ramUsedMb==="number" && data.ramUsedMb>=0);
+            console.log("Docker endpoint smoke passed");
+          '
+
+      - name: Stop test container
+        if: always()
+        run: docker rm -f 11local-vibe-ci || true
