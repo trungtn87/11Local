@@ -17,3 +17,9 @@ services:
         sync: false
       - key: ADMIN_SESSION_SECRET
         sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: USER_SESSION_SECRET
+        generateValue: true

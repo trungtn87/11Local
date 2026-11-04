@@ -1,3 +1,4 @@
+import { safeReturnTo } from '@/lib/google-auth';
 import { Link, useNavigate } from 'react-router-dom';
 import { BadgeCheck, FileCheck2, LogIn, LogOut, ShieldCheck } from 'lucide-react';
 import { useApp } from '../store.jsx';
@@ -6,7 +7,9 @@ import { Button, Banner, StateBlock } from '../components/ui.jsx';
 export function Login() {
   const { currentUser, authState } = useApp();
   const navigate = useNavigate();
-  const error = new URLSearchParams(window.location.search).get('error');
+  const params = new URLSearchParams(window.location.search);
+  const error = params.get('error');
+  const returnTo = safeReturnTo(params.get('returnTo'));
   const messages = {
     cancelled: 'Bạn đã hủy đăng nhập Google.',
     not_configured: 'Đăng nhập Google chưa được cấu hình trên máy chủ.',
@@ -18,12 +21,12 @@ export function Login() {
     account_failed: 'Không thể tạo tài khoản 11Local.',
     auth_failed: 'Đăng nhập tạm thời không khả dụng.',
   };
-  if (currentUser) return <div className="container page form-narrow"><StateBlock title="Bạn đã đăng nhập" actions={<Button onClick={() => navigate('/tai-khoan')}>Mở tài khoản</Button>}>Đang dùng tài khoản Google {currentUser.email}.</StateBlock></div>;
+  if (currentUser) return <div className="container page form-narrow"><StateBlock title="Bạn đã đăng nhập" actions={<Button onClick={() => navigate(returnTo)}>Mở tài khoản</Button>}>Đang dùng tài khoản Google {currentUser.email}.</StateBlock></div>;
   return <div className="container page form-narrow stack-lg">
     <div className="center stack-sm"><h1>Đăng nhập / Đăng ký</h1><p className="text-2">11Local chỉ dùng tài khoản Google. Không OTP, không mật khẩu riêng.</p></div>
     {messages[error] && <Banner type="warning">{messages[error]}</Banner>}
     {authState === 'error' && <Banner type="warning">Không đọc được trạng thái đăng nhập hiện tại.</Banner>}
-    <Button size="lg" block icon={LogIn} onClick={() => window.location.assign('/api/auth/google/start?returnTo=%2Ftai-khoan')}>Tiếp tục với Google</Button>
+    <Button size="lg" block icon={LogIn} onClick={() => window.location.assign('/api/auth/google/start?returnTo=' + encodeURIComponent(returnTo))}>Tiếp tục với Google</Button>
     <p className="xs muted center">Quyền quản lý địa điểm cần Admin xét duyệt riêng.</p>
   </div>;
 }

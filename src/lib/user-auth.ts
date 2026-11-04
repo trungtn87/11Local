@@ -31,7 +31,9 @@ export function createUserSession(user: SessionUser) {
 
 export function verifyUserSession(token?: string): SessionUser | null {
   if (!token) return null;
-  const [payload, supplied] = token.split(".");
+  const parts = token.split(".");
+  if (parts.length !== 2) return null;
+  const [payload, supplied] = parts;
   if (!payload || !supplied) return null;
 
   const expected = signature(payload);
@@ -65,9 +67,6 @@ export async function getCurrentUser() {
   return verifyUserSession((await cookies()).get(COOKIE_NAME)?.value);
 }
 
-export function safeReturnTo(value: string | null | undefined) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/tai-khoan";
-  return value;
-}
+export { safeReturnTo } from "./google-auth";
 
 export const userCookie = { name: COOKIE_NAME, maxAge: MAX_AGE_SECONDS };

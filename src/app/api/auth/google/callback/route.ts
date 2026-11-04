@@ -3,19 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
 import { createUserSession, safeReturnTo, userCookie } from "@/lib/user-auth";
-import { OAUTH_STATE_COOKIE } from "../start/route";
+import { OAUTH_STATE_COOKIE, isValidGoogleIdentity, type GoogleTokenInfo } from "@/lib/google-auth";
 
 export const dynamic = "force-dynamic";
-
-type GoogleTokenInfo = {
-  aud?: string;
-  sub?: string;
-  email?: string;
-  email_verified?: string;
-  name?: string;
-  picture?: string;
-  exp?: string;
-};
 
 function equalState(a?: string, b?: string) {
   if (!a || !b) return false;
@@ -83,15 +73,7 @@ export async function GET(request: NextRequest) {
     if (!tokenInfoResponse.ok) return loginRedirect(request, "invalid_identity");
 
     const profile = await tokenInfoResponse.json() as GoogleTokenInfo;
-    const expiresAt = Number(profile.exp || 0);
-    if (
-      profile.aud !== clientId ||
-      profile.email_verified !== "true" ||
-      !profile.sub ||
-      !profile.email ||
-      !Number.isFinite(expiresAt) ||
-      expiresAt <= Math.floor(Date.now() / 1000)
-    ) return loginRedirect(request, "invalid_identity");
+    if (!isValidGoogleIdentity(profile, clientId)) return loginRedirect(request, "invalid_identity");
 
     const sql = db();
     const rows = await sql`
@@ -133,7 +115,7 @@ export async function GET(request: NextRequest) {
     response.cookies.set(OAUTH_STATE_COOKIE, "", { path: "/", maxAge: 0 });
     return response;
   } catch (error) {
-    console.error("Google OAuth callback failed", error);
+    console.error("Google OAuth callback failed", error instanceof Error ? error.name : "UnknownError");
     return loginRedirect(request, "auth_failed");
   }
 }
