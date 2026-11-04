@@ -30,7 +30,7 @@ test("canonical and OG use same URL with approved photo", () => {
     const meta = placeMetadata(place);
     assert.equal(meta.alternates?.canonical, "https://11local.vn/dia-diem/pac-bo");
     assert.equal(meta.openGraph?.url, "https://11local.vn/dia-diem/pac-bo");
-    assert.match(JSON.stringify(meta.openGraph), /api\\/place-photos\\//);
+    assert.ok(JSON.stringify(meta.openGraph).includes("/api/place-photos/"));
     assert.equal(publicSiteOrigin(), "https://11local.vn");
   } finally {
     if (prev === undefined) delete process.env.SITE_URL;
@@ -57,6 +57,6 @@ test("JSON-LD escapes contributor-controlled HTML and canonical rejects unsafe o
     else process.env.SITE_URL = previous;
   }
   const serialized = safeJsonLd({ description: "</script><script>alert(1)</script>" });
-  assert.doesNotMatch(serialized, /<\\/script>/i);
-  assert.match(serialized, /\\\\u003c/);
+  assert.equal(serialized.includes("</script>"), false);
+  assert.ok(serialized.includes(String.raw`\u003c`));
 });
