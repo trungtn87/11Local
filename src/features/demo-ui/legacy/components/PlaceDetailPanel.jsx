@@ -135,6 +135,11 @@ export function PlaceDetailPanel({ place, onClose, mode = "map" }) {
 
           <PlaceFactSections place={detail} />
           <PlaceReviews placeId={place.id} placeSlug={place.slug} onRatingChange={setReviewRating} />
+          <p className="local-detail-share-page">
+            <a href={'/dia-diem/' + encodeURIComponent(place.slug)}>
+              Mở trang thông tin để chia sẻ địa điểm
+            </a>
+          </p>
           <div className="local-detail-community-actions">
             <Link to={'/bao-sai/'+encodeURIComponent(detail.slug)+'?loai=report'} onClick={onClose}><Flag size={15}/> Báo sai</Link>
             <Link to={'/bao-sai/'+encodeURIComponent(detail.slug)+'?loai=edit_place'} onClick={onClose}><Edit3 size={15}/> Đề xuất sửa</Link>
