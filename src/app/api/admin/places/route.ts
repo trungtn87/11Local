@@ -35,7 +35,10 @@ export async function POST(request: Request) {
       if (!category) throw new Error("INVALID_CATEGORY");
       const defs = await tx`SELECT field_key, field_type, label, options, is_required
         FROM public.category_fields WHERE category_id=${input.categoryId} AND is_visible=true`;
-      const details = validatePlaceDetails(input.details, defs);
+      const details = validatePlaceDetails(input.details, defs.map(f => ({
+        field_key: String(f.field_key), field_type: String(f.field_type),
+        label: String(f.label), options: f.options, is_required: Boolean(f.is_required),
+      })));
       const existing = await tx`SELECT id,name,address,latitude,longitude FROM public.places
         WHERE lower(name)=lower(${input.name})
           OR (latitude BETWEEN ${input.latitude - .005} AND ${input.latitude + .005}
