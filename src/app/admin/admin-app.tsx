@@ -252,6 +252,7 @@ export default function AdminApp() {
         <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
           <Link href="/admin/danh-muc" className={styles.secondary}>Quản lý danh mục</Link>
           <Link href="/admin/dong-gop" className={styles.secondary}>Kiểm duyệt đóng góp</Link>
+          <Link href="/admin/danh-gia" className={styles.secondary}>Kiểm duyệt đánh giá</Link>
         </div>
       </div>
       <button type="button" className={styles.secondary} onClick={async () => {
