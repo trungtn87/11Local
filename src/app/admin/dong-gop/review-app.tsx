@@ -6,16 +6,17 @@ import { ArrowLeft, Camera, Check, CheckCircle2, ChevronRight, Clock3,
 import { LocationPicker } from "@/app/admin/location-picker";
 import type { ReviewPlace } from "@/lib/contribution-review";
 import styles from "./review.module.css";
+import ExistingReview from "./existing-review";
 
 type Status = "pending" | "needs_info" | "approved" | "rejected";
 type Filter = Status | "all";
 type ListItem = {
-  id: string; tracking_code: string; moderation_status: Status;
+  id: string; tracking_code: string; moderation_status: Status; kind: string;
   name: string; area: string; category_id: string; created_at: string;
   updated_at: string; photo_count: number; version: number; place_id: string | null;
 };
 type Contribution = {
-  id: string; tracking_code: string; moderation_status: Status;
+  id: string; tracking_code: string; moderation_status: Status; kind: string;
   payload: Record<string, unknown>; contact_phone: string | null;
   created_at: string; updated_at: string; decision_note: string | null;
   reviewed_at: string | null; version: number; place_id: string | null;
@@ -28,8 +29,11 @@ type CategoryField = {
 };
 type Nearby = { id: string; slug: string; name: string; distanceMeters: number };
 type Detail = { contribution: Contribution; photos: Photo[]; categories: Category[];
-  fields: CategoryField[]; nearby: Nearby[]; publishedPlace: { slug: string; name: string } | null };
+  fields: CategoryField[]; nearby: Nearby[]; publishedPlace: { slug: string; name: string } | null;
+   existingPlace: Record<string,unknown> | null;
+   messages: {sender:string;body:string;created_at:string}[] };
 
+const kindLabels:Record<string,string>={new_place:"Địa điểm mới",report:"Báo sai",edit_place:"Đề xuất sửa",photo:"Gửi ảnh"};
 const statuses: { value: Filter; label: string }[] = [
   { value: "pending", label: "Chờ duyệt" },
   { value: "needs_info", label: "Cần bổ sung" },
@@ -284,7 +288,7 @@ export default function ReviewApp() {
         {rows.map(row => <button key={row.id} className={styles.listItem}
           data-active={selectedId === row.id} onClick={() => select(row.id)}>
           <div className={styles.listTitle}><strong>{row.name || "(Chưa có tên)"}</strong><ChevronRight size={16}/></div>
-          <span>{row.tracking_code} · {row.area || "Chưa rõ khu vực"}</span>
+          <span>{kindLabels[row.kind] || row.kind} · {row.tracking_code} · {row.area || "Địa điểm cũ"}</span>
           <small><Clock3 size={13}/>{stamp(row.created_at)} · {row.photo_count} ảnh</small>
           <em data-status={row.moderation_status}>{statuses.find(s => s.value === row.moderation_status)?.label}</em>
         </button>)}
@@ -294,7 +298,12 @@ export default function ReviewApp() {
           <h2>Chọn một đóng góp để kiểm tra</h2>
           <p>Xem ảnh thật, vị trí, thông tin, điều chỉnh trước khi đưa lên 11Local.</p></div>}
         {selectedId && detailBusy && <div className={styles.blank}>Đang tải dữ liệu và ảnh đóng góp…</div>}
-        {selectedId && !detailBusy && detail && draft && <div className={styles.editor} key={detail.contribution.id}>
+        {selectedId && !detailBusy && detail && detail.contribution.kind !== "new_place" &&
+           <ExistingReview detail={detail} onComplete={message=>{
+             setSelectedId(null);setDetail(null);setDraft(null);setNotice(message);void loadList(filter);
+           }}/>}
+         {selectedId && !detailBusy && detail && draft && detail.contribution.kind === "new_place" &&
+           <div className={styles.editor} key={detail.contribution.id}>
           <div className={styles.editorHeading}>
             <div><span className={styles.code}>{detail.contribution.tracking_code}</span>
               <h2>{draft.name || "Địa điểm chưa đặt tên"}</h2>
@@ -405,7 +414,15 @@ export default function ReviewApp() {
             {reviewable && <button type="submit" className={styles.save} disabled={busy || !dirty}>
               <Save size={17}/>{busy ? "Đang lưu…" : "Lưu chỉnh sửa (chưa duyệt)"}</button>}
           </form>
-          {reviewable && <section className={styles.decisions}>
+          {detail.messages?.length > 0 && <section className={styles.contact}>
+             <h3>Lịch sử yêu cầu bổ sung</h3>
+             {detail.messages.map((m,i)=><div key={i} style={{padding:"9px 0",borderBottom:"1px solid #dae8df"}}>
+               <strong>{m.sender === "admin" ? "Admin" : "Người gửi"}</strong>
+               <small> · {stamp(m.created_at)}</small>
+               <p style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}>{m.body}</p>
+             </div>)}
+           </section>}
+           {reviewable && <section className={styles.decisions}>
             <h3>Quyết định kiểm duyệt</h3>
             <label className={styles.field}>Ghi chú / lý do
               <textarea rows={3} maxLength={1200} placeholder="Bắt buộc khi từ chối hoặc yêu cầu bổ sung; ghi lý do khi duyệt địa điểm trùng."
