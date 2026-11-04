@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import sharp from "sharp";
 import { db } from "@/lib/db";
 import { photoPreset } from "@/lib/photo-variants";
+import { isPublicPhotoId } from "@/lib/public-photo-id";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+  if (!isPublicPhotoId(id)) {
     return NextResponse.json({ error: "NOT_FOUND" }, { status: 404, headers: { "Cache-Control": "no-store" } });
   }
   const preset = photoPreset(new URL(request.url).searchParams.get("size"));
