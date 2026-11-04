@@ -1,9 +1,8 @@
 /**
- * CSRF origin guard for write endpoints behind an HTTPS reverse proxy.
- *
- * A proxied Next.js request URL can use the internal service hostname.
- * SITE_URL is the public, trusted HTTPS origin configured at deployment.
- * Never infer an allowed origin from client-controlled X-Forwarded-* headers.
+ * CSRF protection for cookie-authenticated writes behind an HTTPS proxy.
+ * Prefer the canonical public SITE_URL; a matching public Host is also a
+ * same-origin browser request even when a reverse proxy rewrites Request.url.
+ * Never use client-provided X-Forwarded-Host as an authorization source.
  */
 function canonicalOrigin(value: string): string | null {
   try {
@@ -17,19 +16,42 @@ function canonicalOrigin(value: string): string | null {
   }
 }
 
+function requestHostMatchesOrigin(request: Request, browserOrigin: URL): boolean {
+  const host = request.headers.get("host");
+  if (!host) return false;
+  try {
+    // Reject Host header lists, malformed hosts and URL-like values.
+    const normalized = new URL("https://" + host);
+    if (normalized.host !== host || normalized.pathname !== "/" ||
+        normalized.username || normalized.password || normalized.search || normalized.hash)
+      return false;
+    if (normalized.host !== browserOrigin.host) return false;
+    // Production writes must originate over HTTPS. HTTP local dev remains usable.
+    return browserOrigin.protocol === "https:" ||
+      (process.env.NODE_ENV !== "production" && browserOrigin.protocol === "http:");
+  } catch {
+    return false;
+  }
+}
+
 export function isAllowedRequestOrigin(request: Request, requireOrigin = false): boolean {
   const supplied = request.headers.get("origin");
   if (!supplied) return !requireOrigin;
   const origin = canonicalOrigin(supplied);
-  // Origin is serialized without a path or trailing slash by browsers.
   if (!origin || supplied !== origin) return false;
 
   const configured = process.env.SITE_URL?.trim();
   if (configured) {
     const expected = canonicalOrigin(configured);
-    return expected !== null && origin === expected;
+    if (!expected) return false;
+    if (origin === expected) return true;
   }
 
-  // Keep development / unconfigured deployments' existing same-origin rule.
-  return origin === new URL(request.url).origin;
+  // Host is the actual HTTP request authority. Unlike X-Forwarded-Host,
+  // browsers cannot set it independently of the requested destination.
+  if (requestHostMatchesOrigin(request, new URL(origin))) return true;
+
+  // Compatibility with local/dev or providers that omit Host on Request.
+  // A configured public SITE_URL must not fall back to an internal URL.
+  return !configured && origin === new URL(request.url).origin;
 }
