@@ -11,7 +11,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ARG SITE_URL=https://one1local-web.onrender.com
-ARG NEXT_PUBLIC_MAP_STYLE_URL
+ARG NEXT_PUBLIC_MAP_STYLE_URL=https://tiles.openfreemap.org/styles/bright
 ENV DEPLOY_STANDALONE=1
 ENV SITE_URL=${SITE_URL}
 ENV NEXT_PUBLIC_MAP_STYLE_URL=${NEXT_PUBLIC_MAP_STYLE_URL}
