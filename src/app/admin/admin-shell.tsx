@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import {
-  ArrowUpRight, BookOpen, ChartNoAxesCombined, ChevronRight, ClipboardCheck,
+  ArrowUpRight, BookOpen, ChevronRight, ClipboardCheck,
   FolderTree, LayoutDashboard, LogOut, MapPinned, Menu, MessageSquareText,
   Settings2, ShieldCheck, Store, X,
 } from "lucide-react";
