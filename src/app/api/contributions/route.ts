@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/user-auth";
 import { parseNewPlaceContribution } from "@/lib/contribution-input";
 import { findContributionDuplicates } from "@/lib/contribution-duplicates";
+import { enqueueBusinessDiscordInTx } from "@/lib/discord-business-events";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -93,6 +94,7 @@ export async function POST(request: Request) {
           (id, contribution_id, sort_order, is_cover, mime_type, contents)
           VALUES (${image.id}, ${record.id}, ${i}, ${i === 0}, 'image/webp', ${image.contents})`;
       }
+      await enqueueBusinessDiscordInTx(tx, "contribution.new_place", String(record.id));
     });
     return NextResponse.json({
       trackingCode, trackingUrl: "/theo-doi?token=" + encodeURIComponent(token),

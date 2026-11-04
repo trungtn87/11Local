@@ -4,6 +4,7 @@ import {isAdmin} from "@/lib/admin-auth";
 import {db} from "@/lib/db";
 import {isUuid} from "@/lib/contribution-review";
 import {changeFields,type ChangeField} from "@/lib/contribution-existing";
+import {enqueueBusinessDiscordInTx} from "@/lib/discord-business-events";
 export const dynamic="force-dynamic";
 type Context={params:Promise<{id:string}>};
 const headers={"Cache-Control":"no-store"};
@@ -53,6 +54,9 @@ export async function POST(request:Request,{params}:Context) {
           VALUES ('contribution',${id},${status},${decision.note},
             ${tx.json({status:item.moderation_status,version:item.version})},
             ${tx.json({status,version:updated.version})})`;
+        await enqueueBusinessDiscordInTx(tx,
+          status==="rejected"?"moderation.contribution.rejected":"moderation.contribution.needs_info",
+          id,Number(updated.version));
         return {status,version:Number(updated.version),place:null};
       }
       const [place]=await tx`SELECT * FROM public.places WHERE id=${item.place_id}
@@ -123,6 +127,7 @@ export async function POST(request:Request,{params}:Context) {
       if(decision.note) await tx`INSERT INTO public.contribution_messages(contribution_id,sender,body)
         VALUES (${id},'admin',${decision.note})`;
       await tx`DELETE FROM public.contribution_photos WHERE contribution_id=${id}`;
+      await enqueueBusinessDiscordInTx(tx,"moderation.contribution.approved",id,Number(updated.version));
       return {status:"approved",version:Number(updated.version),
         place:{slug:place.slug,name:updatedPlace.name},publishedPhotoCount};
     });

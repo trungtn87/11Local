@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {db} from "@/lib/db";
 import {isAdmin} from "@/lib/admin-auth";
 import {isUuid,parseManagerDecision,sameOrigin} from "@/lib/ownership-input";
+import {enqueueBusinessDiscordInTx} from "@/lib/discord-business-events";
 export const runtime="nodejs";export const dynamic="force-dynamic";
 type Context={params:Promise<{placeId:string}>};
 const headers={"Cache-Control":"no-store"};
@@ -71,6 +72,10 @@ export async function POST(request:Request,{params}:Context){
         VALUES ('place_manager',${placeId},${decision.action},${decision.note},
           ${tx.json({userId:decision.userId,role:before?.role||null,status:before?.status||null})},
           ${tx.json({userId:decision.userId,role,status,version})})`;
+      const eventType=decision.action==="grant_manager"?"moderation.manager.grant_manager":
+        decision.action==="suspend"?"moderation.manager.suspend":
+        decision.action==="resume"?"moderation.manager.resume":"moderation.manager.revoke";
+      await enqueueBusinessDiscordInTx(tx,eventType,placeId,`${decision.userId}:${version}`);
       return {placeId,userId:decision.userId,role,status,version};
     });
     return NextResponse.json(result,{headers});

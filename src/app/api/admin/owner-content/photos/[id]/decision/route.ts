@@ -3,6 +3,7 @@ import {db} from "@/lib/db";
 import {isAdmin} from "@/lib/admin-auth";
 import {isPlaceId,parseOwnerContentDecision,checkOrigin} from "@/lib/owner-management-input";
 import {ownershipRole,noStore,errorStatus} from "@/lib/owner-management-server";
+import {enqueueBusinessDiscordInTx} from "@/lib/discord-business-events";
 export const runtime="nodejs";export const dynamic="force-dynamic";
 type Context={params:Promise<{id:string}>};
 const fail=(error:string,status:number)=>NextResponse.json({error},{status,headers:noStore});
@@ -38,6 +39,8 @@ export async function POST(request:Request,{params}:Context){
         ${decision.action==="approve"?"owner_photo_approved":"owner_photo_rejected"},
         ${decision.note||"Admin reviewed owner photo"},
         ${tx.json({placeId:place.id,status:next})})`;
+      await enqueueBusinessDiscordInTx(tx,
+        next==="approved"?"moderation.owner_photo.approved":"moderation.owner_photo.rejected",id);
       return {id,status:next,placeId:place.id};
     });
     return NextResponse.json(result,{headers:noStore});
