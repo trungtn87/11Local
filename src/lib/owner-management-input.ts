@@ -1,5 +1,5 @@
 /** OWN-03: owner-edit allowlist. No admin-only fields (slug, location, category, visibility). */
-import {isUuid} from "./ownership-input";
+import {isUuid} from "./ownership-input.ts";
 
 export type OwnerField =
   "summary"|"description"|"address"|"phone"|"website_url"|"opening_hours"|"price_note";
