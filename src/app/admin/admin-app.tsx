@@ -1,36 +1,344 @@
 "use client";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useCallback,useEffect,useState } from "react";
-import { LogOut,Plus,Save,Send,Upload } from "lucide-react";
-import { LocationPicker } from "./location-picker"; import styles from "./admin.module.css";
-type Place={id:string;slug:string;name:string;category_id:string;description:string;address:string;area:string;latitude:number;longitude:number;phone:string|null;opening_hours:string|null;price_note:string|null;moderation_status:string;visibility:string;photo_count:number};
-type Photo={id:string;photo_type:string;moderation_status:string;created_at:string};
-const blank={name:"",slug:"",categoryId:"food",description:"",address:"",area:"TP. Cao Bằng",latitude:22.6666,longitude:106.258,phone:"",openingHours:"",priceNote:"",visibility:"visible"};
-const labels:Record<string,string>={food:"Ăn uống",cafe:"Cafe",stay:"Lưu trú",sight:"Tham quan",shop:"Mua sắm",service:"Dịch vụ"};
-export default function AdminApp(){
- const [auth,setAuth]=useState<boolean|null>(null),[password,setPassword]=useState(""),[places,setPlaces]=useState<Place[]>([]),[selected,setSelected]=useState<Place|null>(null),[form,setForm]=useState({...blank}),[message,setMessage]=useState(""),[busy,setBusy]=useState(false),[photos,setPhotos]=useState<Photo[]>([]);
- const load=useCallback(async()=>{const r=await fetch("/api/admin/places",{cache:"no-store"});if(r.status===401){setAuth(false);return;}const b=await r.json();setPlaces(b.places||[]);setAuth(true);},[]);
- const loadPhotos=useCallback(async(placeId:string)=>{const r=await fetch("/api/admin/places/"+placeId+"/photos",{cache:"no-store"});if(!r.ok){setPhotos([]);return;}const body=await r.json();setPhotos(body.photos||[]);},[]);
+import { useCallback, useEffect, useState, type FormEvent, type ChangeEvent } from "react";
+import { LogOut, Plus, Save, Send, Upload, MapPin } from "lucide-react";
+import { LocationPicker } from "./location-picker";
+import styles from "./admin.module.css";
 
- useEffect(()=>{fetch("/api/admin/session").then(r=>r.json()).then(b=>{setAuth(b.authenticated);if(b.authenticated)void load();}).catch(()=>setAuth(false));},[load]);
- const login=async(e:React.FormEvent)=>{e.preventDefault();setBusy(true);const r=await fetch("/api/admin/session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password})});setBusy(false);if(r.ok){setAuth(true);setPassword("");void load();}else setMessage("Mật khẩu không đúng.");};
- const pick=(p:Place|null)=>{setSelected(p);setPhotos([]);if(p?.id)void loadPhotos(p.id);setMessage("");setForm(p?{name:p.name,slug:p.slug,categoryId:p.category_id,description:p.description,address:p.address,area:p.area,latitude:Number(p.latitude),longitude:Number(p.longitude),phone:p.phone||"",openingHours:p.opening_hours||"",priceNote:p.price_note||"",visibility:p.visibility}:{...blank});};
- const save=async(e:React.FormEvent)=>{e.preventDefault();setBusy(true);setMessage("");const r=await fetch(selected?`/api/admin/places/${selected.id}`:"/api/admin/places",{method:selected?"PUT":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)});const b=await r.json();setBusy(false);if(r.ok){setMessage(selected?"Đã lưu thay đổi.":"Đã lưu bản nháp pending.");await load();pick(b.place);}else if(b.error==="POSSIBLE_DUPLICATE")setMessage("Có thể bị trùng địa điểm. Hãy kiểm tra tên và ghim gần đó.");else setMessage(`Không thể lưu: ${b.error}`);};
- const publish=async()=>{if(!selected||!confirm("Công khai địa điểm này trên website?"))return;setBusy(true);const r=await fetch(`/api/admin/places/${selected.id}/publish`,{method:"POST"});setBusy(false);if(r.ok){setMessage("Đã công khai địa điểm.");await load();}else setMessage("Không thể công khai.");};
- const upload=async(e:React.ChangeEvent<HTMLInputElement>)=>{const file=e.target.files?.[0];if(!selected||!file)return;setBusy(true);const data=new FormData();data.set("file",file);const r=await fetch(`/api/admin/places/${selected.id}/photos`,{method:"POST",body:data});const b=await r.json();setBusy(false);setMessage(r.ok?`Đã tối ưu và lưu ảnh (${Math.round(b.photo.bytes/1024)} KiB).`:`Không thể tải ảnh: ${b.error}`);if(r.ok){void load();void loadPhotos(selected.id);e.target.value="";}};
- const setCover=async(photoId:string)=>{if(!selected)return;setBusy(true);setMessage("");try{const r=await fetch("/api/admin/photos/"+photoId,{method:"PATCH"});if(!r.ok)throw new Error("SELECT_COVER_FAILED");await Promise.all([loadPhotos(selected.id),load()]);setMessage("Đã chọn ảnh đại diện cho địa điểm.");}catch{setMessage("Không thể chọn ảnh đại diện.");}finally{setBusy(false);}};
+type Category = { id: string; name: string; icon: string | null; visibility: "visible" | "hidden"; sort_order: number };
+type Field = { category_id: string; field_key: string; label: string; field_type: string;
+  help_text: string | null; options: string[]; is_required: boolean; sort_order: number };
+type PlaceKind = "business" | "attraction" | "public_place";
+type Place = { id: string; slug: string; name: string; category_id: string; place_kind: PlaceKind;
+  summary: string; description: string; address: string; area: string;
+  latitude: number; longitude: number; phone: string | null; website_url: string | null;
+  opening_hours: string | null; price_note: string | null; featured_rank: number | null;
+  moderation_status: string; visibility: "visible" | "hidden"; photo_count: number;
+  version: number; details: Record<string, unknown> };
+type Photo = { id: string; photo_type: string; moderation_status: string; created_at: string };
+type FormState = { name: string; slug: string; categoryId: string; placeKind: PlaceKind;
+  summary: string; description: string; address: string; area: string;
+  latitude: number; longitude: number; phone: string; websiteUrl: string;
+  openingHours: string; priceNote: string; featuredRank: number | null;
+  visibility: "visible" | "hidden"; details: Record<string, unknown> };
+const blank = (): FormState => ({ name: "", slug: "", categoryId: "", placeKind: "business",
+  summary: "", description: "", address: "", area: "Cao Bằng",
+  latitude: 22.6666, longitude: 106.258, phone: "", websiteUrl: "",
+  openingHours: "", priceNote: "", featuredRank: null, visibility: "visible", details: {} });
 
- if(auth===null)return <main className={styles.center}>Đang kiểm tra phiên quản trị…</main>;
- if(!auth)return <main className={styles.center}><form className={styles.login} onSubmit={login}><h1>11Local Admin</h1><p>Đăng nhập quản trị phía server</p><input type="password" autoFocus required value={password} onChange={e=>setPassword(e.target.value)} placeholder="Mật khẩu Admin"/><button disabled={busy}>Đăng nhập</button>{message&&<p className={styles.error}>{message}</p>}</form></main>;
- return <main className={styles.shell}><header><div><h1>11Local Admin</h1><span>Quản lý địa điểm thật · Neon</span></div><button className={styles.secondary} onClick={async()=>{await fetch("/api/admin/session",{method:"DELETE"});setAuth(false);}}><LogOut size={16}/>Đăng xuất</button></header><div className={styles.stats}><b>{places.length}<small>Địa điểm</small></b><b>{places.filter(p=>p.moderation_status==='pending').length}<small>Chờ công khai</small></b><b>{places.filter(p=>p.moderation_status==='approved').length}<small>Đã công khai</small></b></div><div className={styles.grid}><aside><button className={styles.new} onClick={()=>pick(null)}><Plus size={17}/>Thêm địa điểm</button><div className={styles.list}>{places.map(p=><button key={p.id} className={selected?.id===p.id?styles.active:""} onClick={()=>pick(p)}><strong>{p.name}</strong><span>{labels[p.category_id]} · {p.area}</span><em data-status={p.moderation_status}>{p.moderation_status==='approved'?'Đã công khai':'Bản nháp'}</em></button>)}</div></aside><section><form onSubmit={save}><div className={styles.title}><div><h2>{selected?'Sửa địa điểm':'Thêm địa điểm thật'}</h2><p>Mặc định lưu nháp; chỉ hiện công khai sau khi duyệt.</p></div>{selected&&<button type="button" className={styles.publish} disabled={busy||selected.moderation_status==='approved'} onClick={publish}><Send size={16}/>Công khai</button>}</div>{message&&<div className={styles.notice}>{message}</div>}<div className={styles.fields}><label>Tên địa điểm<input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></label><label>Slug<input value={form.slug} onChange={e=>setForm({...form,slug:e.target.value})} placeholder="Tự tạo từ tên"/></label><label>Danh mục<select value={form.categoryId} onChange={e=>setForm({...form,categoryId:e.target.value})}>{Object.entries(labels).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label><label>Khu vực<input required value={form.area} onChange={e=>setForm({...form,area:e.target.value})}/></label><label className={styles.wide}>Địa chỉ<input required value={form.address} onChange={e=>setForm({...form,address:e.target.value})}/></label><label className={styles.wide}>Mô tả<textarea rows={3} value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/></label><label>Điện thoại<input value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})}/></label><label>Giờ mở cửa<input value={form.openingHours} onChange={e=>setForm({...form,openingHours:e.target.value})}/></label><label>Khoảng giá<input value={form.priceNote} onChange={e=>setForm({...form,priceNote:e.target.value})}/></label><label>Hiển thị<select value={form.visibility} onChange={e=>setForm({...form,visibility:e.target.value})}><option value="visible">Hiển thị khi approved</option><option value="hidden">Ẩn</option></select></label></div><LocationPicker latitude={form.latitude} longitude={form.longitude} onChange={(longitude,latitude)=>setForm(current=>({...current,latitude,longitude}))}/>{selected&&<div className={styles.photosSection}>
-  <h3>Ảnh địa điểm</h3>
-  <p>Chọn một ảnh đại diện để hiển thị ở Khám phá, Gần bạn, Địa điểm hot và trang chi tiết. Ảnh còn lại nằm trong thư viện.</p>
-  <label className={styles.upload}><Upload size={17}/>Tải ảnh (tối đa 10 MB; tự tối ưu WebP)<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={upload} disabled={busy}/><span>{photos.length} ảnh</span></label>
-  {photos.length>0?<div className={styles.photoGrid}>{photos.map(photo=><div className={styles.photoTile} key={photo.id} data-cover={photo.photo_type==='cover'}>
-    {/* Admin-only image preview; public photo serving separately checks moderation. */}
-    {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={'/api/admin/photos/'+photo.id} alt={'Ảnh của '+selected.name} loading="lazy"/>
-    <button type="button" disabled={busy||photo.photo_type==='cover'} onClick={()=>void setCover(photo.id)}>{photo.photo_type==='cover'?'Ảnh đại diện':'Chọn ảnh này'}</button>
-  </div>)}</div>:<p>Chưa có ảnh. Ảnh đầu tiên tải lên sẽ được chọn làm đại diện tự động.</p>}
-</div>}<button className={styles.save} disabled={busy}><Save size={17}/>{busy?'Đang xử lý…':selected?'Lưu thay đổi':'Lưu bản nháp'}</button></form></section></div></main>;
+const kindLabels: Record<PlaceKind, string> = {
+  business: "Cơ sở kinh doanh", attraction: "Điểm tham quan", public_place: "Địa điểm công cộng",
+};
+const describeError = (code: string) => {
+  if (code === "POSSIBLE_DUPLICATE") return "Địa điểm có thể bị trùng tên hoặc ghim gần địa điểm đã có.";
+  if (code === "STALE_VERSION") return "Dữ liệu đã thay đổi ở một phiên khác. Hãy tải lại địa điểm trước khi sửa.";
+  if (code === "SLUG_EXISTS") return "Đường dẫn này đã được dùng. Hãy đổi slug.";
+  if (code === "INVALID_CATEGORY") return "Danh mục không còn hợp lệ. Hãy tải lại danh mục.";
+  if (code.startsWith("REQUIRED_DETAIL_FIELD:")) return "Thiếu trường bắt buộc: " + code.split(":")[1];
+  if (code.startsWith("INVALID_DETAIL_FIELD:")) return "Thông tin không hợp lệ: " + code.split(":")[1];
+  return "Không lưu được dữ liệu: " + (code || "Vui lòng thử lại.");
+};
+
+function DetailField({ field, value, onChange }: {
+  field: Field; value: unknown; onChange: (v: unknown) => void;
+}) {
+  const label = field.label + (field.is_required ? " *" : "");
+  const options = Array.isArray(field.options) ? field.options : [];
+  const help = field.help_text ? <small className={styles.fieldHint}>{field.help_text}</small> : null;
+
+  if (field.field_type === "boolean") {
+    return <label>{label}<select value={typeof value === "boolean" ? String(value) : ""}
+      required={field.is_required}
+      onChange={e => onChange(e.target.value === "" ? undefined : e.target.value === "true")}>
+      <option value="">Chưa xác định</option><option value="true">Có</option><option value="false">Không</option>
+    </select>{help}</label>;
+  }
+  if (field.field_type === "multi_select") {
+    const checked = Array.isArray(value) ? value as string[] : [];
+    return <div className={styles.fieldGroup}><strong>{label}</strong>
+      <div className={styles.optionGrid}>
+        {options.map(option => <label key={option} className={styles.checkOption}>
+          <input type="checkbox" checked={checked.includes(option)}
+            onChange={e => onChange(e.target.checked
+              ? [...checked, option] : checked.filter(item => item !== option))} />
+          <span>{option}</span>
+        </label>)}
+      </div>{help}
+    </div>;
+  }
+  if (field.field_type === "select") {
+    return <label>{label}<select required={field.is_required} value={typeof value === "string" ? value : ""}
+      onChange={e => onChange(e.target.value || undefined)}>
+      <option value="">Chưa chọn</option>{options.map(option => <option key={option} value={option}>{option}</option>)}
+    </select>{help}</label>;
+  }
+  if (field.field_type === "long_text") {
+    return <label className={styles.wide}>{label}
+      <textarea rows={3} maxLength={5000} required={field.is_required}
+        value={typeof value === "string" ? value : ""} onChange={e => onChange(e.target.value || undefined)} />
+      {help}</label>;
+  }
+  if (field.field_type === "number") {
+    return <label>{label}<input type="number" step="any" required={field.is_required}
+      value={typeof value === "number" ? value : ""}
+      onChange={e => onChange(e.target.value === "" ? undefined : Number(e.target.value))} />
+      {help}</label>;
+  }
+  return <label>{label}<input
+    type={field.field_type === "url" ? "url" : "text"}
+    maxLength={500} required={field.is_required}
+    value={typeof value === "string" ? value : ""}
+    onChange={e => onChange(e.target.value || undefined)} />{help}</label>;
+}
+
+export default function AdminApp() {
+  const [auth, setAuth] = useState<boolean | null>(null);
+  const [password, setPassword] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [fields, setFields] = useState<Field[]>([]);
+  const [places, setPlaces] = useState<Place[]>([]);
+  const [selected, setSelected] = useState<Place | null>(null);
+  const [form, setForm] = useState<FormState>(blank);
+  const [pinSelected, setPinSelected] = useState(false);
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [catalogError, setCatalogError] = useState(false);
+
+  const loadPlaces = useCallback(async () => {
+    const res = await fetch("/api/admin/places", { cache: "no-store" });
+    if (res.status === 401) { setAuth(false); return; }
+    if (!res.ok) throw new Error("Không tải được địa điểm");
+    const body = await res.json();
+    setPlaces(body.places || []);
+    setAuth(true);
+  }, []);
+  const loadCatalog = useCallback(async () => {
+    const res = await fetch("/api/admin/place-schema", { cache: "no-store" });
+    if (!res.ok) { setCatalogError(true); throw new Error("Không tải được danh mục"); }
+    const body = await res.json();
+    const data: Category[] = body.categories || [];
+    setCategories(data);
+    setFields(body.fields || []);
+    setCatalogError(false);
+    setForm(current => current.categoryId ? current : { ...current,
+      categoryId: data[0]?.id || "", placeKind: data[0]?.id === "sight" ? "attraction" : "business" });
+  }, []);
+  const loadPhotos = useCallback(async (id: string) => {
+    const res = await fetch("/api/admin/places/" + id + "/photos", { cache: "no-store" });
+    if (res.ok) { const body = await res.json(); setPhotos(body.photos || []); }
+    else setPhotos([]);
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/admin/session").then(r => r.json()).then(async body => {
+      setAuth(Boolean(body.authenticated));
+      if (body.authenticated) await Promise.all([loadPlaces(), loadCatalog()]);
+    }).catch(() => { setMessage("Không thể tải trang Admin."); setAuth(false); });
+  }, [loadPlaces, loadCatalog]);
+
+  const pick = (p: Place | null) => {
+    setSelected(p); setPhotos([]); setMessage(""); setPinSelected(Boolean(p));
+    if (p) {
+      setForm({ name: p.name, slug: p.slug, categoryId: p.category_id,
+        placeKind: p.place_kind, summary: p.summary || "", description: p.description || "",
+        address: p.address, area: p.area, latitude: Number(p.latitude), longitude: Number(p.longitude),
+        phone: p.phone || "", websiteUrl: p.website_url || "",
+        openingHours: p.opening_hours || "", priceNote: p.price_note || "",
+        featuredRank: p.featured_rank == null ? null : Number(p.featured_rank),
+        visibility: p.visibility, details: p.details || {} });
+      void loadPhotos(p.id);
+    } else {
+      setForm({ ...blank(), categoryId: categories[0]?.id || "",
+        placeKind: categories[0]?.id === "sight" ? "attraction" : "business" });
+    }
+  };
+  const updateDetail = (key: string, value: unknown) => {
+    setForm(current => ({ ...current,
+      details: { ...current.details, [key]: value },
+    }));
+  };
+  const selectedFields = fields.filter(field => field.category_id === form.categoryId);
+  const save = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!categories.length || catalogError) { setMessage("Chưa tải được danh mục từ Neon."); return; }
+    if (!pinSelected) { setMessage("Hãy nhấp lên bản đồ hoặc kéo ghim để xác nhận vị trí."); return; }
+    setBusy(true); setMessage("");
+    try {
+      const payload = { ...form,
+        // Do not submit old hidden/removed/category-specific values from another schema.
+        details: Object.fromEntries(selectedFields
+          .filter(field => form.details[field.field_key] !== undefined)
+          .map(field => [field.field_key, form.details[field.field_key]])),
+        expectedVersion: selected?.version ?? undefined,
+      };
+      const res = await fetch(selected ? "/api/admin/places/" + selected.id : "/api/admin/places", {
+        method: selected ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+      });
+      const body = await res.json();
+      if (!res.ok) { setMessage(describeError(body.error)); return; }
+      await loadPlaces();
+      pick(body.place);
+      setMessage(selected ? "Đã lưu thay đổi địa điểm." : "Đã tạo địa điểm ở trạng thái chờ duyệt.");
+    } catch {
+      setMessage("Không thể kết nối để lưu địa điểm.");
+    } finally { setBusy(false); }
+  };
+  const publish = async () => {
+    if (!selected || !confirm("Công khai địa điểm này trên website?")) return;
+    setBusy(true); setMessage("");
+    try {
+      const res = await fetch("/api/admin/places/" + selected.id + "/publish", { method: "POST" });
+      if (!res.ok) throw new Error("PUBLISH_FAILED");
+      const body = await res.json();
+      await loadPlaces();
+      pick({ ...selected, ...body.place, details: form.details });
+      setMessage("Địa điểm đã được công khai.");
+    } catch { setMessage("Không thể công khai địa điểm."); }
+    finally { setBusy(false); }
+  };
+  const upload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!selected || !file) return;
+    setBusy(true);
+    try {
+      const data = new FormData(); data.set("file", file);
+      const res = await fetch("/api/admin/places/" + selected.id + "/photos", { method: "POST", body: data });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "UPLOAD_FAILED");
+      await Promise.all([loadPhotos(selected.id), loadPlaces()]);
+      event.target.value = "";
+      setMessage("Đã tải và tối ưu ảnh (" + Math.round(body.photo.bytes / 1024) + " KiB).");
+    } catch { setMessage("Tải ảnh thất bại. Vui lòng thử lại."); }
+    finally { setBusy(false); }
+  };
+  const chooseCover = async (id: string) => {
+    if (!selected) return;
+    setBusy(true);
+    try {
+      const res = await fetch("/api/admin/photos/" + id, { method: "PATCH" });
+      if (!res.ok) throw new Error("SELECT_COVER_FAILED");
+      await Promise.all([loadPhotos(selected.id), loadPlaces()]);
+      setMessage("Đã chọn ảnh đại diện.");
+    } catch { setMessage("Không thể chọn ảnh đại diện."); }
+    finally { setBusy(false); }
+  };
+  const login = async (event: FormEvent) => {
+    event.preventDefault(); setBusy(true);
+    try {
+      const res = await fetch("/api/admin/session", { method: "POST",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password }) });
+      if (!res.ok) { setMessage("Mật khẩu không đúng."); return; }
+      setPassword(""); setAuth(true); setMessage("");
+      await Promise.all([loadCatalog(), loadPlaces()]);
+    } catch { setMessage("Không kết nối được Admin."); }
+    finally { setBusy(false); }
+  };
+  const categoryName = (id: string) => categories.find(item => item.id === id)?.name || id;
+
+  if (auth === null) return <main className={styles.center}>Đang kiểm tra phiên Admin…</main>;
+  if (!auth) return <main className={styles.center}>
+    <form className={styles.login} onSubmit={login}>
+      <h1>11Local Admin</h1><p>Đăng nhập quản trị</p>
+      <input type="password" autoFocus required value={password} onChange={e => setPassword(e.target.value)} placeholder="Mật khẩu Admin" />
+      <button disabled={busy}>Đăng nhập</button>{message && <p className={styles.error}>{message}</p>}
+    </form>
+  </main>;
+
+  return <main className={styles.shell}>
+    <header><div><h1>11Local Admin</h1><span>Quản lý địa điểm thật · Neon V2</span></div>
+      <button type="button" className={styles.secondary} onClick={async () => {
+        await fetch("/api/admin/session", { method: "DELETE" }); setAuth(false);
+      }}><LogOut size={16}/>Đăng xuất</button>
+    </header>
+    <div className={styles.stats}>
+      <b>{places.length}<small>Địa điểm</small></b>
+      <b>{places.filter(p => p.moderation_status === "pending").length}<small>Chờ duyệt</small></b>
+      <b>{places.filter(p => p.moderation_status === "approved").length}<small>Đã duyệt</small></b>
+    </div>
+    <div className={styles.grid}>
+      <aside>
+        <button type="button" className={styles.new} onClick={() => pick(null)}><Plus size={17}/>Thêm địa điểm</button>
+        <div className={styles.list}>{places.map(p => <button key={p.id} type="button"
+          className={selected?.id === p.id ? styles.active : ""} onClick={() => pick(p)}>
+          <strong>{p.name}</strong><span>{categoryName(p.category_id)} · {p.area}</span>
+          <em data-status={p.moderation_status}>
+            {p.moderation_status === "approved" ? "Đã công khai" : "Chờ duyệt"}
+          </em>
+        </button>)}</div>
+      </aside>
+      <section>
+        <form onSubmit={save}>
+          <div className={styles.title}><div><h2>{selected ? "Chỉnh sửa địa điểm" : "Thêm địa điểm thật"}</h2>
+            <p>Thông tin lấy từ Neon. Địa điểm mới chỉ công khai sau khi Admin duyệt.</p>
+          </div>{selected && <button className={styles.publish} type="button" disabled={busy || selected.moderation_status === "approved"} onClick={publish}>
+            <Send size={16}/>Công khai</button>}</div>
+          {message && <div className={styles.notice} role="status">{message}</div>}
+          {catalogError && <div className={styles.notice}>Không tải được danh mục. <button type="button" onClick={() => void loadCatalog()}>Thử lại</button></div>}
+          <h3 className={styles.sectionTitle}>Thông tin chung</h3>
+          <div className={styles.fields}>
+            <label>Tên địa điểm *<input required maxLength={160} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}/></label>
+            <label>Đường dẫn (slug)<input maxLength={128} value={form.slug} placeholder="Tự tạo theo tên" onChange={e => setForm({ ...form, slug: e.target.value })}/></label>
+            <label>Danh mục *<select required value={form.categoryId} onChange={e => {
+              const categoryId = e.target.value;
+              setForm(current => ({ ...current, categoryId,
+                placeKind: categoryId === "sight" ? "attraction" : "business", details: {} }));
+            }} disabled={!categories.length}>
+              {categories.map(c => <option key={c.id} value={c.id}>{c.name}{c.visibility === "hidden" ? " (đang ẩn)" : ""}</option>)}
+            </select></label>
+            <label>Loại địa điểm<select value={form.placeKind} onChange={e => setForm({ ...form, placeKind: e.target.value as PlaceKind })}>
+              {Object.entries(kindLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+            </select></label>
+            <label className={styles.wide}>Giới thiệu ngắn (trên thẻ)<textarea rows={2} maxLength={350} value={form.summary} onChange={e => setForm({ ...form, summary: e.target.value })}/></label>
+            <label className={styles.wide}>Giới thiệu chi tiết<textarea rows={5} maxLength={5000} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}/></label>
+            <label>Khu vực *<input required maxLength={120} value={form.area} onChange={e => setForm({ ...form, area: e.target.value })}/></label>
+            <label>Điện thoại<input maxLength={40} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}/></label>
+            <label className={styles.wide}>Địa chỉ *<input required maxLength={500} value={form.address} onChange={e => setForm({ ...form, address: e.target.value })}/></label>
+            <label className={styles.wide}>Website (nếu có)<input type="url" maxLength={500} value={form.websiteUrl} placeholder="https://" onChange={e => setForm({ ...form, websiteUrl: e.target.value })}/></label>
+            <label>Giờ hoạt động (mô tả)<input maxLength={500} value={form.openingHours} placeholder="VD: 07:00–17:00" onChange={e => setForm({ ...form, openingHours: e.target.value })}/></label>
+            <label>Giá tham khảo<input maxLength={300} value={form.priceNote} placeholder="VD: 20.000đ/vé" onChange={e => setForm({ ...form, priceNote: e.target.value })}/></label>
+            <label>Trạng thái hiển thị<select value={form.visibility} onChange={e => setForm({ ...form, visibility: e.target.value as FormState["visibility"] })}>
+              <option value="visible">Hiện sau khi duyệt</option><option value="hidden">Ẩn khỏi website</option>
+            </select></label>
+            <label>Ưu tiên nổi bật (tùy chọn)<input type="number" min={1} max={10000} value={form.featuredRank ?? ""}
+              placeholder="Chưa xếp hạng" onChange={e => setForm({ ...form, featuredRank: e.target.value ? Number(e.target.value) : null })}/>
+              <small className={styles.fieldHint}>Lưu thứ tự nổi bật để dùng ở trang Khám phá sau này.</small>
+            </label>
+          </div>
+          {selectedFields.length > 0 && <>
+            <h3 className={styles.sectionTitle}>Thông tin riêng · {categoryName(form.categoryId)}</h3>
+            <p className={styles.sectionHelp}>Các trường được quản lý trong database theo từng danh mục.</p>
+            <div className={styles.fields}>
+              {selectedFields.map(field => <DetailField key={field.field_key} field={field}
+                value={form.details[field.field_key]} onChange={value => updateDetail(field.field_key, value)}/>)}
+            </div>
+          </>}
+          <h3 className={styles.sectionTitle}><MapPin size={18}/> Vị trí trên bản đồ</h3>
+          {!pinSelected && <p className={styles.pinNotice}>Hãy nhấp lên bản đồ hoặc kéo ghim đến vị trí thật trước khi lưu.</p>}
+          <LocationPicker key={selected?.id ?? "new"} latitude={form.latitude} longitude={form.longitude}
+            onChange={(longitude, latitude) => { setPinSelected(true); setForm(current => ({ ...current, latitude, longitude })); }}/>
+          {selected && <div className={styles.photosSection}>
+            <h3>Ảnh địa điểm</h3>
+            <p>Chọn ảnh đại diện dùng cho thẻ địa điểm, bản đồ và trang chi tiết. Ảnh khác nằm trong thư viện.</p>
+            <label className={styles.upload}><Upload size={17}/>Thêm ảnh (tối đa 10 MB; tự tối ưu WebP)
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={upload} disabled={busy}/>
+              <span>{photos.length} ảnh</span></label>
+            {photos.length ? <div className={styles.photoGrid}>
+              {photos.map(photo => <div key={photo.id} className={styles.photoTile} data-cover={photo.photo_type === "cover"}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={"/api/admin/photos/" + photo.id} alt={"Ảnh " + selected.name} loading="lazy"/>
+                <button type="button" disabled={busy || photo.photo_type === "cover"} onClick={() => void chooseCover(photo.id)}>
+                  {photo.photo_type === "cover" ? "Ảnh đại diện ✓" : "Chọn làm ảnh đại diện"}
+                </button>
+              </div>)}
+            </div> : <p>Chưa có ảnh. Ảnh đầu tiên tải lên sẽ được chọn làm đại diện.</p>}
+          </div>}
+          <button className={styles.save} disabled={busy || !categories.length || catalogError}>
+            <Save size={17}/>{busy ? "Đang lưu…" : selected ? "Lưu thay đổi" : "Lưu địa điểm mới"}
+          </button>
+        </form>
+      </section>
+    </div>
+  </main>;
 }
