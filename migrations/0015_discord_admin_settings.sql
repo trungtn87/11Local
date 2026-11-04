@@ -10,8 +10,7 @@ CREATE TABLE IF NOT EXISTS public.discord_notification_settings (
     "review": true,
     "ownership": true,
     "moderation": true,
-    "system": true,
-    "digest": false
+    "system": true
   }'::jsonb,
   version integer NOT NULL DEFAULT 1 CHECK (version >= 1),
   updated_at timestamptz NOT NULL DEFAULT now(),
@@ -22,13 +21,13 @@ CREATE TABLE IF NOT EXISTS public.discord_notification_settings (
     AND jsonb_typeof(groups->'ownership') = 'boolean'
     AND jsonb_typeof(groups->'moderation') = 'boolean'
     AND jsonb_typeof(groups->'system') = 'boolean'
-    AND jsonb_typeof(groups->'digest') = 'boolean'
   )
 );
 INSERT INTO public.discord_notification_settings (id)
 VALUES (1) ON CONFLICT (id) DO NOTHING;
 
 -- Older outbox rows have NULL group and fall back to event_type.
+-- Legacy digest rows remain schema-compatible but can never be dispatched.
 ALTER TABLE public.discord_notification_outbox
   ADD COLUMN IF NOT EXISTS event_group text;
 

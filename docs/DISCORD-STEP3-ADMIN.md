@@ -1,7 +1,6 @@
 # 11Local Discord — bước 3: cài đặt trong Admin
 
-**Đây là PR nối tiếp bước 2 (#42).** Không merge độc lập lên main trước
-khi PR #42 được xác minh và tích hợp.
+PR #42 đã merge vào main. PR #44 triển khai bước 3 và chỉ merge sau khi CI xanh.
 
 ## Điều kiện trước khi triển khai
 
@@ -24,8 +23,8 @@ Vào `/admin` → **Cài đặt Discord** → `/admin/cai-dat/discord`.
   trong `public.discord_notification_settings` với version chống ghi đè.
   Mặc định toàn bộ tính năng tắt an toàn. Chỉ Admin đã đăng nhập đổi được.
 - **Nhóm thông báo:** đóng góp, đánh giá, xác minh/quyền quản lý, kết quả
-  kiểm duyệt, cảnh báo hệ thống và báo cáo. Nhóm cảnh báo/báo cáo đã có
-  tùy chọn trước; nguồn sự kiện sẽ thêm ở bước 4–5.
+  kiểm duyệt và cảnh báo hệ thống. Cảnh báo hệ thống được hoàn thiện ở bước 4.
+  **Không có báo cáo tổng hợp tự động theo ngày và không có lịch 20:00.**
 - **Kết nối:** chỉ hiển thị tình trạng Webhook URL **hợp lệ về định dạng**
   và cổng vận hành, không hiển thị URL/token. Trạng thái “đã cấu hình”
   không có nghĩa Discord chắc chắn hoạt động. **Gửi thử** để xác minh.
@@ -58,7 +57,12 @@ PR chỉ thêm cấu hình và UI. Không tự áp dụng migration, không gử
 thật, không cấu hình secrets hoặc deploy. Khi không có env gate true, các thao
 tác nghiệp vụ không chạm vào settings/outbox nên không bị ảnh hưởng.
 
-Thử nghiệm cần: khóa Admin, CSRF, version conflict 409, lưu 6 toggle,
+Thử nghiệm cần: khóa Admin, CSRF, version conflict 409, lưu 5 toggle,
 Webhooks bị thiếu/không hợp lệ, test 200/502, retry 200/202/409,
 enqueue trong transaction, dispatcher chỉ lấy nhóm đang bật và không gửi
 message pending khi master tắt. CI phải xanh trước khi merge.
+
+Quyết định Owner ngày 04/11/2026: hủy hẳn báo cáo Discord tự động hằng ngày.
+Không triển khai cron/digest, không cung cấp toggle báo cáo trong Admin.
+Hàng outbox digest đời cũ (nếu có) được giữ nguyên dữ liệu để tương thích,
+nhưng dispatcher và thao tác gửi lại từ chối gửi các hàng này.

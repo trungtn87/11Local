@@ -7,8 +7,7 @@ export const DISCORD_GROUPS = [
   { key: "review", label: "Đánh giá", description: "Đánh giá mới và các đề xuất chỉnh sửa đánh giá." },
   { key: "ownership", label: "Xác minh & phân quyền", description: "Yêu cầu nhận quyền, tranh chấp, cấp hoặc thu hồi quyền." },
   { key: "moderation", label: "Kết quả kiểm duyệt", description: "Phê duyệt, từ chối và yêu cầu bổ sung nội dung." },
-  { key: "system", label: "Cảnh báo hệ thống", description: "Sử dụng từ bước 5 khi tích hợp giám sát lỗi." },
-  { key: "digest", label: "Báo cáo hằng ngày", description: "Sử dụng từ bước 4 với lịch 20:00 giờ Việt Nam." },
+  { key: "system", label: "Cảnh báo hệ thống", description: "Sử dụng từ bước 4 khi tích hợp giám sát lỗi." },
 ] as const;
 
 export type DiscordGroup = (typeof DISCORD_GROUPS)[number]["key"];
@@ -19,7 +18,6 @@ export const DEFAULT_DISCORD_GROUP_SETTINGS: DiscordGroupSettings = {
   ownership: true,
   moderation: true,
   system: true,
-  digest: false,
 };
 
 export type DiscordSettings = {
@@ -52,12 +50,13 @@ export function parseDiscordSettingsUpdate(value: unknown): Pick<DiscordSettings
  * Older outbox items have event_group=NULL. Their legacy event_type remains
  * readable; moderation reviews are therefore in the moderation group.
  */
-export function fallbackDiscordGroup(type: string, group: string | null): DiscordGroup | "test" {
+export function fallbackDiscordGroup(type: string, group: string | null): DiscordGroup | "test" | "legacy" {
   if (group && DISCORD_GROUPS.some(item => item.key === group)) return group as DiscordGroup;
   if (type === "ownership") return "ownership";
   if (type === "moderation") return "moderation";
   if (type === "system") return "system";
-  if (type === "digest") return "digest";
+  // Older digest records are archival only; daily reports are discontinued.
+  if (type === "digest") return "legacy";
   if (type === "test") return "test";
   return "contribution";
 }

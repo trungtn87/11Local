@@ -61,6 +61,7 @@ export async function dispatchDiscordOutbox(limit = 10, onlyId: string | null = 
       WHERE ((q.status='pending' AND q.available_at <= now())
              OR (q.status='processing' AND q.locked_at < now() - interval '2 minutes'))
         AND (${onlyId}::uuid IS NULL OR q.id=${onlyId}::uuid)
+        AND q.event_type <> 'digest' -- Reporting has been discontinued.
         AND (q.event_type='test' OR (
           s.master_enabled AND
           COALESCE((s.groups ->> COALESCE(q.event_group,q.event_type))::boolean,false)
@@ -122,6 +123,7 @@ export async function requeueFailedDiscordNotification(id: string) {
         lock_token=NULL, last_error=NULL, last_http_status=NULL, updated_at=now()
     FROM public.discord_notification_settings s
     WHERE s.id=1 AND q.id=${id} AND q.status='failed'
+      AND q.event_type <> 'digest'
       AND (q.event_type='test' OR (
         s.master_enabled AND
         COALESCE((s.groups ->> COALESCE(q.event_group,q.event_type))::boolean,false)

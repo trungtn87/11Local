@@ -32,10 +32,10 @@ type ResponseData = {
 };
 
 type Draft = Pick<DiscordSettings, "enabled" | "groups" | "version">;
-const groupLabels: Record<DiscordGroup | "test", string> = {
+const groupLabels: Record<DiscordGroup | "test" | "legacy", string> = {
   contribution: "Đóng góp & ảnh", review: "Đánh giá",
   ownership: "Xác minh & phân quyền", moderation: "Kết quả kiểm duyệt",
-  system: "Cảnh báo hệ thống", digest: "Báo cáo hằng ngày", test: "Kiểm tra",
+  system: "Cảnh báo hệ thống", test: "Kiểm tra", legacy: "Thông báo cũ",
 };
 const statuses: Record<HistoryRow["status"], string> = {
   sent: "Đã gửi", pending: "Đang chờ", processing: "Đang gửi", failed: "Thất bại",
@@ -221,8 +221,7 @@ export default function DiscordSettingsApp() {
               <label className={styles.group} key={group.key}>
                 <span className={styles.groupText}><strong>{group.label}</strong>
                   <small>{group.description}</small>
-                  {(group.key === "system" || group.key === "digest") &&
-                    <em>Hoàn thiện ở bước {group.key === "digest" ? "4" : "5"}</em>}
+                  {group.key === "system" && <em>Hoàn thiện ở bước 4</em>}
                 </span>
                 <input type="checkbox" checked={draft.groups[group.key]}
                   onChange={event => setDraft(current => ({
@@ -266,7 +265,8 @@ export default function DiscordSettingsApp() {
               <th>Trạng thái</th><th>Số lần thử</th><th>Thao tác</th></tr></thead>
               <tbody>{data.history.map(item => {
                 const group = fallbackDiscordGroup(item.event_type, item.event_group);
-                const groupEnabled = group === "test" || (data.settings.enabled && data.settings.groups[group]);
+                const groupEnabled = group === "test" ||
+                  (group !== "legacy" && data.settings.enabled && data.settings.groups[group]);
                 return <tr key={item.id}>
                   <td><strong>{item.title}</strong><small>{groupLabels[group]}</small>
                     {item.last_error && <code>{item.last_error}</code>}</td>
