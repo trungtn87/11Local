@@ -85,8 +85,25 @@ export default function CategoryFieldsManager({ categoryId, categoryName }: {
     } finally { setLoading(false); }
   }, [endpoint]);
   useEffect(() => {
-    load().catch(error => setMessage(error instanceof Error ? error.message : "Lỗi kết nối."));
-  }, [load]);
+    // Schedule the fetch without synchronously updating React state in an effect.
+    const controller = new AbortController();
+    fetch(endpoint, { cache: "no-store", signal: controller.signal })
+      .then(async response => {
+        if (response.status === 401) throw new Error("Phiên Admin đã hết hạn. Hãy đăng nhập lại.");
+        if (!response.ok) throw new Error("Không tải được cấu hình trường từ Neon.");
+        return response.json();
+      })
+      .then(body => {
+        if (!controller.signal.aborted) { setFields(body.fields || []); setLoading(false); }
+      })
+      .catch(error => {
+        if (!controller.signal.aborted) {
+          setMessage(error instanceof Error ? error.message : "Lỗi kết nối.");
+          setLoading(false);
+        }
+      });
+    return () => controller.abort();
+  }, [endpoint]);
 
   const pick = (field: Field) => {
     setSelectedId(field.id);
