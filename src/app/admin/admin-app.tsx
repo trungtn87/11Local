@@ -1,8 +1,7 @@
 "use client";
 import "maplibre-gl/dist/maplibre-gl.css";
-import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent, type ChangeEvent } from "react";
-import { LogOut, Plus, Save, Send, Upload, MapPin } from "lucide-react";
+import { CheckCircle2, Clock3, MapPin, MapPinned, Plus, Save, Search, Send, Upload } from "lucide-react";
 import { LocationPicker } from "./location-picker";
 import styles from "./admin.module.css";
 
@@ -105,6 +104,8 @@ export default function AdminApp() {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [catalogError, setCatalogError] = useState(false);
+  const [placeQuery, setPlaceQuery] = useState("");
+  const [placeFilter, setPlaceFilter] = useState<"all" | "pending" | "approved">("all");
 
   const loadPlaces = useCallback(async () => {
     const res = await fetch("/api/admin/places", { cache: "no-store" });
@@ -232,11 +233,20 @@ export default function AdminApp() {
         headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password }) });
       if (!res.ok) { setMessage("Mật khẩu không đúng."); return; }
       setPassword(""); setAuth(true); setMessage("");
+      window.dispatchEvent(new Event("11local-admin-auth-changed"));
       await Promise.all([loadCatalog(), loadPlaces()]);
     } catch { setMessage("Không kết nối được Admin."); }
     finally { setBusy(false); }
   };
   const categoryName = (id: string) => categories.find(item => item.id === id)?.name || id;
+  const pendingCount = places.filter(p => p.moderation_status === "pending").length;
+  const approvedCount = places.filter(p => p.moderation_status === "approved").length;
+  const filteredPlaces = places.filter(p => {
+    if (placeFilter !== "all" && p.moderation_status !== placeFilter) return false;
+    const query = placeQuery.trim().toLocaleLowerCase("vi-VN");
+    return !query || [p.name, p.area, p.address, categoryName(p.category_id)]
+      .some(value => value.toLocaleLowerCase("vi-VN").includes(query));
+  });
 
   if (auth === null) return <main className={styles.center}>Đang kiểm tra phiên Admin…</main>;
   if (!auth) return <main className={styles.center}>
@@ -248,42 +258,63 @@ export default function AdminApp() {
   </main>;
 
   return <main className={styles.shell}>
-    <header><div><h1>11Local Admin</h1><span>Quản lý địa điểm thật · Neon V2</span>
-        <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-          <Link href="/admin/menu" className={styles.secondary}>Menu và bảng giá</Link>
-          <Link href="/admin/dashboard" className={styles.secondary}>Dashboard</Link>
-          <Link href="/admin/danh-muc" className={styles.secondary}>Quản lý danh mục</Link>
-          <Link href="/admin/dong-gop" className={styles.secondary}>Kiểm duyệt đóng góp</Link>
-          <Link href="/admin/danh-gia" className={styles.secondary}>Kiểm duyệt đánh giá</Link>
-          <Link href="/admin/xac-minh" className={styles.secondary}>Xác minh chủ địa điểm</Link>
-          <Link href="/admin/noi-dung-chu" className={styles.secondary}>Duyệt nội dung chủ quán</Link>
-          <Link href="/admin/cai-dat/discord" className={styles.secondary}>Cài đặt Discord</Link>
-        </div>
+    <header className={styles.pageHeader}>
+      <div>
+        <span className={styles.eyebrow}>QUẢN LÝ NỘI DUNG</span>
+        <h1>Địa điểm</h1>
+        <p>Quản lý thông tin, vị trí và hình ảnh của các địa điểm trên 11Local.</p>
       </div>
-      <button type="button" className={styles.secondary} onClick={async () => {
-        await fetch("/api/admin/session", { method: "DELETE" }); setAuth(false);
-      }}><LogOut size={16}/>Đăng xuất</button>
+      <span className={styles.sourceBadge}><span/> Dữ liệu Neon</span>
     </header>
-    <div className={styles.stats}>
-      <b>{places.length}<small>Địa điểm</small></b>
-      <b>{places.filter(p => p.moderation_status === "pending").length}<small>Chờ duyệt</small></b>
-      <b>{places.filter(p => p.moderation_status === "approved").length}<small>Đã duyệt</small></b>
+    <div className={styles.stats} aria-label="Thống kê địa điểm">
+      <div className={styles.statCard}>
+        <span className={styles.statIcon}><MapPinned size={20} aria-hidden="true"/></span>
+        <div><small>Tổng địa điểm</small><strong>{places.length}</strong><span>Trong hệ thống</span></div>
+      </div>
+      <div className={styles.statCard}>
+        <span className={styles.statIcon}><Clock3 size={20} aria-hidden="true"/></span>
+        <div><small>Chờ duyệt</small><strong>{pendingCount}</strong><span>Cần xử lý</span></div>
+      </div>
+      <div className={styles.statCard}>
+        <span className={styles.statIcon}><CheckCircle2 size={20} aria-hidden="true"/></span>
+        <div><small>Đã duyệt</small><strong>{approvedCount}</strong><span>Đã kiểm duyệt</span></div>
+      </div>
     </div>
     <div className={styles.grid}>
-      <aside>
-        <button type="button" className={styles.new} onClick={() => pick(null)}><Plus size={17}/>Thêm địa điểm</button>
-        <div className={styles.list}>{places.map(p => <button key={p.id} type="button"
-          className={selected?.id === p.id ? styles.active : ""} onClick={() => pick(p)}>
-          <strong>{p.name}</strong><span>{categoryName(p.category_id)} · {p.area}</span>
-          <em data-status={p.moderation_status}>
-            {p.moderation_status === "approved" ? "Đã công khai" : "Chờ duyệt"}
-          </em>
-        </button>)}</div>
+      <aside className={styles.placeSidebar}>
+        <div className={styles.placeSidebarHeader}>
+          <div><h2>Danh sách địa điểm</h2><span>{filteredPlaces.length} / {places.length} địa điểm</span></div>
+          <button type="button" className={styles.addSmall} aria-label="Thêm địa điểm" title="Thêm địa điểm" onClick={() => pick(null)}><Plus size={19}/></button>
+        </div>
+        <label className={styles.searchBox}>
+          <Search size={17} aria-hidden="true"/>
+          <input type="search" value={placeQuery} onChange={e => setPlaceQuery(e.target.value)}
+            placeholder="Tìm tên, địa chỉ…" aria-label="Tìm địa điểm"/>
+        </label>
+        <div className={styles.filterTabs} role="group" aria-label="Lọc địa điểm theo trạng thái">
+          {([["all", "Tất cả"], ["pending", "Chờ duyệt"], ["approved", "Đã duyệt"]] as const)
+            .map(([value, label]) => <button key={value} type="button"
+              aria-pressed={placeFilter === value} onClick={() => setPlaceFilter(value)}>{label}</button>)}
+        </div>
+        <div className={styles.list}>
+          {filteredPlaces.length ? filteredPlaces.map(p => <button key={p.id} type="button"
+            aria-pressed={selected?.id === p.id} className={selected?.id === p.id ? styles.active : ""}
+            onClick={() => pick(p)}>
+            <span className={styles.placeName}>{p.name}</span>
+            <span className={styles.placeMeta}><MapPin size={12} aria-hidden="true"/>{categoryName(p.category_id)} · {p.area}</span>
+            <em data-status={p.moderation_status}>
+              {p.moderation_status === "approved" ? "Đã duyệt" : "Chờ duyệt"}
+            </em>
+          </button>) : <p className={styles.emptyList}>Không tìm thấy địa điểm phù hợp.</p>}
+        </div>
+        <button type="button" className={styles.new} onClick={() => pick(null)}><Plus size={17}/>Thêm địa điểm mới</button>
       </aside>
-      <section>
+      <section className={styles.editorPanel}>
         <form onSubmit={save}>
-          <div className={styles.title}><div><h2>{selected ? "Chỉnh sửa địa điểm" : "Thêm địa điểm thật"}</h2>
-            <p>Thông tin lấy từ Neon. Địa điểm mới chỉ công khai sau khi Admin duyệt.</p>
+          <div className={styles.title}><div>
+            <span className={styles.editorEyebrow}>{selected ? "CHỈNH SỬA" : "TẠO MỚI"}</span>
+            <h2>{selected ? selected.name : "Thêm địa điểm"}</h2>
+            <p>{selected ? "Cập nhật thông tin và quản lý hình ảnh địa điểm." : "Địa điểm mới được lưu ở trạng thái chờ duyệt."}</p>
           </div>{selected && <button className={styles.publish} type="button" disabled={busy || selected.moderation_status === "approved"} onClick={publish}>
             <Send size={16}/>Công khai</button>}</div>
           {message && <div className={styles.notice} role="status">{message}</div>}
@@ -346,9 +377,12 @@ export default function AdminApp() {
               </div>)}
             </div> : <p>Chưa có ảnh. Ảnh đầu tiên tải lên sẽ được chọn làm đại diện.</p>}
           </div>}
-          <button className={styles.save} disabled={busy || !categories.length || catalogError}>
-            <Save size={17}/>{busy ? "Đang lưu…" : selected ? "Lưu thay đổi" : "Lưu địa điểm mới"}
-          </button>
+          <div className={styles.saveBar}>
+            <span>Kiểm tra thông tin và vị trí ghim trước khi lưu.</span>
+            <button className={styles.save} disabled={busy || !categories.length || catalogError}>
+              <Save size={17}/>{busy ? "Đang lưu…" : selected ? "Lưu thay đổi" : "Lưu địa điểm mới"}
+            </button>
+          </div>
         </form>
       </section>
     </div>
