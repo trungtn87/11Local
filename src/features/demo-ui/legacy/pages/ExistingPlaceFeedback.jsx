@@ -46,6 +46,7 @@ export function ExistingPlaceFeedback(){
   const [fieldKey,setFieldKey]=useState('name');
   const [value,setValue]=useState('');
   const [photos,setPhotos]=useState([]);
+  const [previews,setPreviews]=useState([]);
   const [error,setError]=useState('');
   const [busy,setBusy]=useState(false);
   useEffect(()=>{
@@ -58,6 +59,11 @@ export function ExistingPlaceFeedback(){
       .finally(()=>{if(!controller.signal.aborted)setLoading(false);});
     return()=>controller.abort();
   },[slug]);
+  useEffect(()=>{
+    const urls=photos.map(photo=>URL.createObjectURL(photo));
+    setPreviews(urls);
+    return()=>urls.forEach(url=>URL.revokeObjectURL(url));
+  },[photos]);
   const chooseField=key=>{
     setFieldKey(key);setValue(String(place?.[fieldValues[key]]||''));
   };
@@ -139,7 +145,7 @@ export function ExistingPlaceFeedback(){
           <p className="small muted">Tối đa 4 ảnh, 10 MB mỗi ảnh. Ảnh cộng đồng được lưu riêng, chủ địa điểm không tự xóa ảnh này.</p>
           <div className="existing-feedback-previews">{photos.map((p,i)=><div key={i}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={URL.createObjectURL(p)} alt={'Ảnh được chọn '+(i+1)}/>
+            <img src={previews[i] || ''} alt={'Ảnh được chọn '+(i+1)}/>
             <button type="button" aria-label={'Bỏ ảnh '+(i+1)}
               onClick={()=>setPhotos(old=>old.filter((_,n)=>n!==i))}><X size={14}/></button>
           </div>)}</div>
