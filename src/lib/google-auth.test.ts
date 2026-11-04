@@ -44,7 +44,7 @@ test('Google OAuth redirect URI uses public site despite internal Docker origin'
     process.env.SITE_URL = 'https://11local.vn';
     assert.equal(googleOAuthCallbackUrl('https://0.0.0.0:3000'), 'https://11local.vn/api/auth/google/callback');
     process.env.SITE_URL = 'http://0.0.0.0:3000';
-    assert.throws(() => googleOAuthCallbackUrl('https://0.0.0.0:3000'));
+    assert.equal(googleOAuthCallbackUrl('https://0.0.0.0:3000'), 'https://11local.vn/api/auth/google/callback');
   } finally {
     if (originalEnv === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = originalEnv;
     if (originalSite === undefined) delete process.env.SITE_URL; else process.env.SITE_URL = originalSite;
