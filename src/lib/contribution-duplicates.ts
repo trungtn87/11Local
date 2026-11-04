@@ -22,8 +22,8 @@ export async function findContributionDuplicates(input: Pick<NewPlaceContributio
         payload->>'longitude' AS lng
       FROM public.contributions
       WHERE kind = 'new_place' AND moderation_status IN ('pending','needs_info')
-        AND (payload->>'latitude') ~ '^-?[0-9]+(\\.[0-9]+)?$'
-        AND (payload->>'longitude') ~ '^-?[0-9]+(\\.[0-9]+)?$'
+        AND (payload->>'latitude') ~ '^-?[0-9]+([.][0-9]+)?$'
+        AND (payload->>'longitude') ~ '^-?[0-9]+([.][0-9]+)?$'
         AND (payload->>'latitude')::double precision BETWEEN ${lat - 0.01} AND ${lat + 0.01}
         AND (payload->>'longitude')::double precision BETWEEN ${lng - 0.01} AND ${lng + 0.01}
       ORDER BY created_at DESC LIMIT 100`,
