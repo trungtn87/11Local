@@ -20,7 +20,7 @@ export function LocationPicker({ latitude, longitude, onChange }: Props) {
         </span>
       </div>
       <p className={styles.hint}>
-        Nhấp vào bản đồ hoặc kéo ghim tới đúng vị trí địa điểm. Tọa độ chỉ hiển thị để tham khảo, không nhập tay.
+        Kéo bản đồ để đưa ghim ở chính giữa tới đúng vị trí địa điểm. Tọa độ chỉ hiển thị để tham khảo, không nhập tay.
       </p>
       <PinMap latitude={latitude} longitude={longitude} onChange={onChange} />
       <p className={styles.attribution}>
