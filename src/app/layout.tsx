@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { publicSiteOrigin } from "@/lib/public-seo";
 import { Be_Vietnam_Pro } from "next/font/google";
 import "@fontsource/plus-jakarta-sans/latin-400.css";
 import "@fontsource/plus-jakarta-sans/latin-500.css";
@@ -25,8 +26,16 @@ const beVietnamPro = Be_Vietnam_Pro({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(publicSiteOrigin()),
   title: "11Local | Khám phá Cao Bằng",
   description: "Cẩm nang địa điểm và trải nghiệm địa phương tại Cao Bằng.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website", locale: "vi_VN", siteName: "11Local",
+    title: "11Local | Khám phá Cao Bằng",
+    description: "Cẩm nang địa điểm và trải nghiệm địa phương tại Cao Bằng.",
+    url: "/",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

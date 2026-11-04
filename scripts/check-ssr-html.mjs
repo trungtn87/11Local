@@ -41,7 +41,15 @@ try {
   assert.match(search, /Địa điểm ở Cao Bằng/, "search must contain server-rendered heading");
   assert.doesNotMatch(search, /Đang mở 11Local…/, "search must not be the old splash page");
 
-  console.log("SSR HTML smoke passed: / and /tim-kiem render without hydration.");
+  const robots = await get("/robots.txt");
+  assert.ok(robots.includes("sitemap.xml"), "robots must point to the public sitemap");
+
+  const unpublished = await fetch(origin + "/dia-diem/INVALID_SLUG", {
+    signal: AbortSignal.timeout(4500),
+  });
+  assert.equal(unpublished.status, 404, "invalid place URL must never be indexable");
+
+  console.log("SSR HTML smoke passed: home, search, robots and invalid place URL.");
 } catch (error) {
   console.error(error);
   console.error(logs.slice(-3000));
