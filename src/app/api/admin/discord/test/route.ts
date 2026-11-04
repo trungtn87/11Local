@@ -1,3 +1,4 @@
+import { isAllowedRequestOrigin } from "@/lib/request-origin";
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin-auth";
 import {
@@ -13,8 +14,7 @@ const fail = (error: string, status: number) =>
 
 export async function POST(request: Request) {
   if (!await isAdmin()) return fail("UNAUTHORIZED", 401);
-  const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) return fail("INVALID_ORIGIN", 403);
+  if (!isAllowedRequestOrigin(request)) return fail("INVALID_ORIGIN", 403);
   if (!isDiscordEnabled() || !process.env.DISCORD_WEBHOOK_URL) {
     return fail("DISCORD_NOT_CONFIGURED", 503);
   }
