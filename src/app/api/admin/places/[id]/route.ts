@@ -24,7 +24,10 @@ export async function PUT(request: Request, { params }: Context) {
       if (!category) throw new Error("INVALID_CATEGORY");
       const defs = await tx`SELECT field_key, field_type, label, options, is_required
         FROM public.category_fields WHERE category_id=${input.categoryId} AND is_visible=true`;
-      const visibleDetails = validatePlaceDetails(input.details, defs);
+      const visibleDetails = validatePlaceDetails(input.details, defs.map(f => ({
+        field_key: String(f.field_key), field_type: String(f.field_type),
+        label: String(f.label), options: f.options, is_required: Boolean(f.is_required),
+      })));
       const [previousDetails] = await tx`SELECT details FROM public.place_details WHERE place_id=${id}`;
       const prior = (previousDetails?.details ?? {}) as Record<string, unknown>;
       // When editing the same category, retain unknown/now-hidden keys only from
