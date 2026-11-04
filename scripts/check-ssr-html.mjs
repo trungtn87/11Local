@@ -49,7 +49,13 @@ try {
   });
   assert.equal(unpublished.status, 404, "invalid place URL must never be indexable");
 
-  console.log("SSR HTML smoke passed: home, search, robots and invalid place URL.");
+  const invalidSize = await fetch(
+    origin + "/api/place-photos/11111111-1111-4111-8111-111111111111?size=10000",
+    { signal: AbortSignal.timeout(4500) },
+  );
+  assert.equal(invalidSize.status, 400, "arbitrary public image resize must be blocked: " + await invalidSize.text());
+
+  console.log("SSR HTML smoke passed: home, search, robots, place URL, image guard.");
 } catch (error) {
   console.error(error);
   console.error(logs.slice(-3000));

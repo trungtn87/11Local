@@ -113,15 +113,15 @@ function PlacesState({ data, places, emptyMessage }) {
   if (data.status === 'loading') return <CardSkeletons n={3} />;
   if (data.status === 'error') return <StateBlock kind="error" title="Không tải được địa điểm">Không thể kết nối dữ liệu Neon. Vui lòng thử lại sau.</StateBlock>;
   if (!places.length) return <StateBlock title="Chưa có địa điểm công khai">{emptyMessage || "Admin chưa công khai dữ liệu phù hợp cho mục này."}</StateBlock>;
-  return <div className="place-grid">{places.map((place) => <RealPlaceCard key={place.id} place={place} />)}</div>;
+  return <div className="place-grid">{places.map((place, index) => <RealPlaceCard key={place.id} place={place} priority={index === 0} />)}</div>;
 }
 
-export function RealPlaceCard({ place, distance, onDetails }) {
+export function RealPlaceCard({ place, distance, onDetails, priority = false }) {
   const ratingCount = Number(place.rating_count) || 0;
   return (
     <article className="place-card real-place-card">
       <Link to={"/ban-do?place=" + encodeURIComponent(place.slug) + "&detail=1"} className="real-place-main" aria-label={"Xem " + place.name + " trên bản đồ"}>
-        <div className="pc-img"><RealPlaceCover place={place} /></div>
+        <div className="pc-img"><RealPlaceCover place={place} priority={priority} /></div>
         <div className="pc-body">
           <span className="pc-name">{place.name}</span>
           <span className="pc-meta">{place.category_name} · {place.area}</span>

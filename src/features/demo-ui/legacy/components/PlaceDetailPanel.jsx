@@ -24,8 +24,9 @@ function PhotoGallery({ place, photos }) {
       {canDisplay ? (
         <img
           key={active.id}
-          src={"/api/place-photos/" + encodeURIComponent(active.id)}
+          src={"/api/place-photos/" + encodeURIComponent(active.id) + "?size=detail"}
           alt={active.alt || (place.name + " — ảnh " + (index + 1))}
+          decoding="async"
           onError={() => setFailedIds((current) => current.includes(active.id) ? current : [...current, active.id])}
         />
       ) : (

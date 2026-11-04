@@ -15,9 +15,11 @@ export function PlaceGallery({ name, photos }: {
   return <div className="local-detail-gallery">
     {visible ? <Image
       key={photo.id}
-      src={`/api/place-photos/${encodeURIComponent(photo.id)}`}
+      src={`/api/place-photos/${encodeURIComponent(photo.id)}?size=detail`}
       alt={photo.alt || `${name} — ảnh ${index + 1}`}
       fill
+      loading={index === 0 ? "eager" : "lazy"}
+      fetchPriority={index === 0 ? "high" : "auto"}
       unoptimized
       sizes="(max-width: 800px) 100vw, 420px"
       style={{ objectFit: "cover" }}

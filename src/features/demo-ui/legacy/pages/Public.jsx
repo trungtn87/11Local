@@ -1,11 +1,12 @@
-import { useCallback, useState } from 'react';
+import { lazy, Suspense, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LocateFixed, List, Map as MapIcon, RefreshCw, SlidersHorizontal } from 'lucide-react';
 import { useApp } from '../store.jsx';
 import { Button, CardSkeletons, Field, Sheet, StateBlock } from '../components/ui.jsx';
 import { RealPlaceCard } from './DiscoveryHome.jsx';
 import { PlaceDetailPanel } from '../components/PlaceDetailPanel.jsx';
-import { MapView } from '../components/MapView.jsx';
+// Only load map engine if an inline map is actually requested.
+const MapView = lazy(() => import('../components/MapView.jsx').then(m => ({ default: m.MapView })));
 import { useResults } from '../components/hooks.jsx';
 import { distanceProvider } from '../../../distance/distance-service';
 
@@ -68,8 +69,8 @@ function Results({ results, position, horizontal, retry, clear, onDetails }) {
   if (results.status === 'loading') return <CardSkeletons n={4} />;
   if (results.status === 'error') return <StateBlock kind="error" title="Không tải được dữ liệu Neon" actions={<Button icon={RefreshCw} onClick={retry}>Thử lại</Button>}>Địa điểm thật tạm thời không khả dụng; hệ thống không thay bằng địa điểm mẫu.</StateBlock>;
   if (results.status === 'empty') return <StateBlock title="Không tìm thấy địa điểm phù hợp" actions={<Button variant="outline" onClick={clear}>Xóa bộ lọc</Button>}>Chỉ các địa điểm đã được Admin công khai mới xuất hiện.</StateBlock>;
-  return <div className={horizontal ? 'stack-sm' : 'place-grid'}>{results.list.map((place) => (
-    <RealPlaceCard key={place.id} place={place} onDetails={onDetails} distance={position ? distanceProvider.calculate(position, place) : undefined} />
+  return <div className={horizontal ? 'stack-sm' : 'place-grid'}>{results.list.map((place, index) => (
+    <RealPlaceCard key={place.id} place={place} priority={index === 0} onDetails={onDetails} distance={position ? distanceProvider.calculate(position, place) : undefined} />
   ))}</div>;
 }
 
@@ -101,7 +102,9 @@ export function Search() {
     <div className={'results-layout ' + (withMap ? 'with-map' : '')}>
       <aside className="filters card hide-mobile"><h3 className="card-title">Bộ lọc</h3><Filters areas={results.areas}/></aside>
       <Results results={results} position={geoPosition} horizontal={withMap} retry={results.retry} clear={resetFilters} onDetails={setDetailPlace}/>
-      {withMap && results.status !== 'error' && <MapView places={results.list} selectedId={selected} onSelect={setSelected} height={620} className="sticky" />}
+      {withMap && results.status !== 'error' && <Suspense fallback={<div className="map-wrap skeleton" style={{ height: 620 }} role="status" aria-label="Đang tải bản đồ" />}>
+        <MapView places={results.list} selectedId={selected} onSelect={setSelected} height={620} className="sticky" />
+      </Suspense>}
     </div>
     <Sheet open={sheet} title="Bộ lọc" onClose={() => setSheet(false)}><Filters areas={results.areas} close={() => setSheet(false)}/></Sheet>
     {detailPlace && <PlaceDetailPanel key={detailPlace.slug} place={detailPlace} mode="page" onClose={onCloseDetail} />}
