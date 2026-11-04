@@ -62,8 +62,6 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) return fail("INVALID_ORIGIN", 403);
   if (Number(request.headers.get("content-length") ?? 0) > 6000) return fail("REQUEST_TOO_LARGE", 413);
   const user = await getCurrentUser();
   if (!user || !isReviewUuid(user.id)) return fail("LOGIN_REQUIRED", 401);
