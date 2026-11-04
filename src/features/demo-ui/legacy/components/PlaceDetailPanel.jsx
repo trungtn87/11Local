@@ -1,4 +1,6 @@
 "use client";
+import { recordPlaceView } from "@/components/visit-tracker";
+
 
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -64,9 +66,7 @@ export function PlaceDetailPanel({ place, onClose, mode = "map" }) {
     // instead so "Địa điểm hot" continues using real detail views.
     if (!place.id || countedViewId.current === place.id) return;
     countedViewId.current = place.id;
-    fetch("/api/places/" + encodeURIComponent(place.id) + "/view", {
-      method: "POST", keepalive: true,
-    }).catch(() => {});
+    void recordPlaceView(place.id);
   }, [place.id]);
 
   useEffect(() => {
