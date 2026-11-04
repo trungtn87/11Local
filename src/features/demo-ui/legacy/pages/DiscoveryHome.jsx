@@ -76,7 +76,7 @@ export function DiscoveryHome() {
       </section>
 
       <section aria-labelledby="explore-heading">
-        <SectionHeading id="explore-heading" title="Khám phá">Gợi ý từ những địa điểm mới được cập nhật trên 11Local.</SectionHeading>
+        <SectionHeading id="explore-heading" title="Khám phá">Địa điểm nổi bật do Admin chọn và những nơi mới cập nhật.</SectionHeading>
         <PlacesState data={data} places={explore} />
       </section>
 
@@ -96,8 +96,8 @@ export function DiscoveryHome() {
       </section>
 
       <section aria-labelledby="hot-heading">
-        <SectionHeading id="hot-heading" title="Địa điểm hot">Những nơi được quan tâm và đánh giá tốt trên 11Local.</SectionHeading>
-        <PlacesState data={data} places={hot} />
+        <SectionHeading id="hot-heading" title="Địa điểm hot">Xếp theo lượt xem thực tế và đánh giá đã duyệt trên 11Local.</SectionHeading>
+        <PlacesState data={data} places={hot} emptyMessage="Chưa có lượt xem hoặc đánh giá thật để xếp hạng." />
       </section>
 
     </div>
@@ -108,10 +108,10 @@ function SectionHeading({ id, title, children }) {
   return <div className="section-head discovery-section-head"><div><h2 id={id}>{title}</h2><p className="small muted">{children}</p></div></div>;
 }
 
-function PlacesState({ data, places }) {
+function PlacesState({ data, places, emptyMessage }) {
   if (data.status === 'loading') return <CardSkeletons n={3} />;
   if (data.status === 'error') return <StateBlock kind="error" title="Không tải được địa điểm">Không thể kết nối dữ liệu Neon. Vui lòng thử lại sau.</StateBlock>;
-  if (!places.length) return <StateBlock title="Chưa có địa điểm công khai">Admin chưa công khai dữ liệu phù hợp cho mục này.</StateBlock>;
+  if (!places.length) return <StateBlock title="Chưa có địa điểm công khai">{emptyMessage || "Admin chưa công khai dữ liệu phù hợp cho mục này."}</StateBlock>;
   return <div className="place-grid">{places.map((place) => <RealPlaceCard key={place.id} place={place} />)}</div>;
 }
 
@@ -124,6 +124,7 @@ export function RealPlaceCard({ place, distance, onDetails }) {
         <div className="pc-body">
           <span className="pc-name">{place.name}</span>
           <span className="pc-meta">{place.category_name} · {place.area}</span>
+          {place.summary && <p className="real-place-summary">{place.summary}</p>}
           <div className="row between" style={{ marginTop: 4 }}>
             <span className="rating"><Star size={14} /> {ratingCount ? `${Number(place.rating_avg).toFixed(1)} (${ratingCount})` : 'Chưa có đánh giá'}</span>
             {distance && <span className="xs muted" title="Khoảng cách đường thẳng">{formatApproximateDistance(distance)}</span>}

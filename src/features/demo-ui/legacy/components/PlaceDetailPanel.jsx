@@ -3,10 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  BadgeCheck, ChevronLeft, ChevronRight, Clock3, ImageOff, Images,
-  Info, MapPin, Navigation, Phone, Star, Tag, X,
+  BadgeCheck, ChevronLeft, ChevronRight, ImageOff, Images,
+  Info, MapPin, Navigation, Phone, Star, X,
 } from "lucide-react";
 import { getGoogleMapsDirectionsUrl } from "../../../places/google-maps";
+import { ownershipMessage } from "../../../places/public-place-format";
+import { PlaceFactSections } from "./PlaceFactSections.jsx";
 import "../styles/place-detail-panel.css";
 
 function PhotoGallery({ place, photos }) {
@@ -22,7 +24,7 @@ function PhotoGallery({ place, photos }) {
         <img
           key={active.id}
           src={"/api/place-photos/" + encodeURIComponent(active.id)}
-          alt={place.name + " — ảnh " + (index + 1)}
+          alt={active.alt || (place.name + " — ảnh " + (index + 1))}
           onError={() => setFailedIds((current) => current.includes(active.id) ? current : [...current, active.id])}
         />
       ) : (
@@ -41,15 +43,6 @@ function PhotoGallery({ place, photos }) {
         <span className="local-detail-photo-count"><Images size={14} /> {index + 1}/{photos.length} ảnh</span>
       )}
     </div>
-  );
-}
-
-function DetailSection({ icon: Icon, heading, children }) {
-  return (
-    <section className="local-detail-section">
-      <h3><Icon size={16} /> {heading}</h3>
-      {children}
-    </section>
   );
 }
 
@@ -110,12 +103,13 @@ export function PlaceDetailPanel({ place, onClose, mode = "map" }) {
           <div className="local-detail-name">
             <span className="local-detail-category">{detail.category_name || "Địa điểm"}</span>
             <h2>{detail.name}</h2>
+            {detail.summary && <p className="local-detail-tagline">{detail.summary}</p>}
             <p className="local-detail-address"><MapPin size={16} /> {detail.address || detail.area || "Cao Bằng"}</p>
             <div className="local-detail-badges">
               {hasRating ? (
                 <span className="local-detail-rating"><Star size={16} fill="currentColor" /> {ratingAvg.toFixed(1)} <small>({ratingCount} đánh giá)</small></span>
               ) : <span className="local-detail-muted">Chưa có đánh giá</span>}
-              <span className="local-detail-ownership"><BadgeCheck size={15} /> {detail.ownership_status === "verified" ? "Đã xác minh quản lý" : "Chưa xác minh quản lý"}</span>
+              {ownershipMessage(detail.place_kind, detail.ownership_status) && <span className="local-detail-ownership"><BadgeCheck size={15}/>{ownershipMessage(detail.place_kind, detail.ownership_status)}</span>}
             </div>
           </div>
 
@@ -126,24 +120,7 @@ export function PlaceDetailPanel({ place, onClose, mode = "map" }) {
             {detail.phone ? <a href={"tel:" + detail.phone} className="secondary"><Phone size={17} /> Gọi điện</a> : null}
           </div>
 
-          <DetailSection icon={Clock3} heading="Giờ hoạt động">
-            {state.status === "ready" && detail.opening_hours
-              ? <p>{detail.opening_hours}</p>
-              : <p className="local-detail-muted">Chưa có thông tin giờ hoạt động.</p>}
-            <small>Không xác định trạng thái mở cửa theo thời gian thực.</small>
-          </DetailSection>
-
-          <DetailSection icon={Tag} heading="Khoảng giá">
-            {state.status === "ready" && detail.price_note
-              ? <p>{detail.price_note}</p>
-              : <p className="local-detail-muted">Chưa cập nhật khoảng giá.</p>}
-          </DetailSection>
-
-          <DetailSection icon={Info} heading="Giới thiệu">
-            {detail.description
-              ? <p className="local-detail-description">{detail.description}</p>
-              : <p className="local-detail-muted">Địa điểm chưa có mô tả.</p>}
-          </DetailSection>
+          <PlaceFactSections place={detail} />
 
           <Link to={"/dia-diem/real/" + encodeURIComponent(detail.slug)} className="local-detail-full-link" onClick={onClose}>
             Xem trang thông tin đầy đủ <ChevronRight size={16} />

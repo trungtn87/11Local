@@ -6,6 +6,7 @@ import { ChevronLeft, ImageOff, List, MapPin, Minus, Navigation, Plus, Star, X }
 import { MapCanvas } from '../../../map/map-canvas';
 import { CAO_BANG_CAMERA } from '../../../map/map-config';
 import { getGoogleMapsDirectionsUrl } from '../../../places/google-maps';
+import { ownershipMessage } from '../../../places/public-place-format';
 import { useApp } from '../store.jsx';
 import { PlaceDetailPanel } from '../components/PlaceDetailPanel.jsx';
 import '../styles/map-explorer.css';
@@ -48,6 +49,7 @@ function PlaceRow({ place, selected, onSelect, onOpenDetails }) {
         <span className="local-map-entry-text">
           <strong>{place.name}</strong>
           <small>{place.category_name || 'Địa điểm'} · {place.area}</small>
+          {place.summary && <small className="local-map-summary">{place.summary}</small>}
           <span className="local-map-entry-rating"><Star size={13} /> {score(place)}</span>
         </span>
       </button>
@@ -78,7 +80,7 @@ function createPlacePopup(place, onOpenDetails) {
 
   const address = document.createElement('p');
   address.className = 'local-map-popup-address';
-  address.textContent = place.address || place.area || 'Cao Bằng';
+  address.textContent = place.address || place.area || '';
   wrapper.appendChild(address);
 
   const rating = document.createElement('div');
@@ -86,11 +88,19 @@ function createPlacePopup(place, onOpenDetails) {
   rating.textContent = '★ ' + score(place);
   wrapper.appendChild(rating);
 
-  const verified = document.createElement('small');
-  verified.className = 'local-map-popup-verified';
-  verified.textContent = place.ownership_status === 'verified'
-    ? 'Đã xác minh quản lý' : 'Chưa xác minh quản lý';
-  wrapper.appendChild(verified);
+  const verification = ownershipMessage(place.place_kind,place.ownership_status);
+  if (verification) {
+    const verified = document.createElement('small');
+    verified.className = 'local-map-popup-verified';
+    verified.textContent = verification;
+    wrapper.appendChild(verified);
+  }
+  if (place.summary) {
+    const intro = document.createElement('p');
+    intro.className = 'local-map-summary';
+    intro.textContent = place.summary;
+    wrapper.appendChild(intro);
+  }
 
   const actions = document.createElement('div');
   actions.className = 'local-map-popup-actions';
@@ -261,7 +271,7 @@ export function RealMapExplorer() {
   const matched = useMemo(() => data.places.filter((place) =>
     hasCoordinates(place) &&
     (category === 'all' || category === place.category_id) &&
-    (!query || normalized(place.name + ' ' + place.address + ' ' + place.area).includes(normalized(query)))
+    (!query || normalized(place.name + ' ' + place.address + ' ' + place.area + ' ' + (place.summary || '')).includes(normalized(query)))
   ), [data.places, category, query]);
   const selectedPlace = matched.find((place) => place.slug === selectedSlug) || null;
 
