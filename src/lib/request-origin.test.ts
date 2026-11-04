@@ -51,3 +51,34 @@ test("invalid configuration and malformed Origin fail closed", () => {
     }
   });
 });
+
+test("public Host remains same-origin even when SITE_URL is stale or URL is internal", () => {
+  withSiteUrl("https://one1local-web.onrender.com", () => {
+    const url = "http://container:3000/api/admin/contributions/decision";
+    assert.equal(isAllowedRequestOrigin(new Request(url, { headers: {
+      origin: "https://11local.vn", host: "11local.vn",
+    } })), true);
+    assert.equal(isAllowedRequestOrigin(new Request(url, { headers: {
+      origin: "https://www.11local.vn", host: "www.11local.vn",
+    } })), true);
+    assert.equal(isAllowedRequestOrigin(new Request(url, { headers: {
+      origin: "https://attacker.example", host: "11local.vn",
+      "x-forwarded-host": "attacker.example",
+    } })), false);
+    assert.equal(isAllowedRequestOrigin(new Request(url, { headers: {
+      origin: "https://attacker.example", host: "container:3000",
+      "x-forwarded-host": "attacker.example",
+    } })), false);
+  });
+});
+
+test("malformed Host never bypasses mismatched SITE_URL", () => {
+  withSiteUrl("https://11local.vn", () => {
+    const url = "http://container:3000/api/admin/contributions/decision";
+    for (const host of ["attacker.example, 11local.vn", "http://attacker.example", "11local.vn/path", "11local.vn@attacker.example"]) {
+      assert.equal(isAllowedRequestOrigin(new Request(url, { headers: {
+        origin: "https://attacker.example", host,
+      } })), false, host);
+    }
+  });
+});
