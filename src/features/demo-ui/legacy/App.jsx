@@ -1,11 +1,10 @@
 import { useEffect } from 'react';
-import { Link, Route, Routes, useLocation } from 'react-router-dom';
+import { Link, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { PublicShell, Toasts } from './components/layout.jsx';
 import { StateBlock } from './components/ui.jsx';
 import { Search } from './pages/Public.jsx';
 import { RealMapExplorer } from './pages/RealMapExplorer.jsx';
 import { DiscoveryHome } from './pages/DiscoveryHome.jsx';
-import { RealPlaceDetail } from './pages/RealPlaceDetail.jsx';
 import { Login, Account } from './pages/Auth.jsx';
 import { Contribute, ContributionTracking } from './pages/Contribute.jsx';
 import { ExistingPlaceFeedback } from './pages/ExistingPlaceFeedback.jsx';
@@ -20,6 +19,12 @@ function NotAvailable({ title }) {
   </div>;
 }
 
+// Preserve old bookmarked place URLs while keeping one detail experience.
+function LegacyPlaceRedirect() {
+  const { slug } = useParams();
+  return <Navigate replace to={'/ban-do?place=' + encodeURIComponent(slug || '') + '&detail=1'} />;
+}
+
 export default function App() {
   const { pathname } = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
@@ -28,8 +33,8 @@ export default function App() {
       <Route path="/" element={publicPage(<DiscoveryHome />)}/>
       <Route path="/tim-kiem" element={publicPage(<Search />)}/>
       <Route path="/ban-do" element={publicPage(<RealMapExplorer />, { hideFooter: true })}/>
-      <Route path="/dia-diem/real/:slug" element={publicPage(<RealPlaceDetail />)}/>
-      <Route path="/dia-diem/:slug" element={publicPage(<RealPlaceDetail />)}/>
+      <Route path="/dia-diem/real/:slug" element={<LegacyPlaceRedirect />}/>
+      <Route path="/dia-diem/:slug" element={<LegacyPlaceRedirect />}/>
       <Route path="/dang-nhap" element={publicPage(<Login />)}/>
       <Route path="/tai-khoan" element={publicPage(<Account />)}/>
       <Route path="/dong-gop" element={publicPage(<Contribute />)}/>

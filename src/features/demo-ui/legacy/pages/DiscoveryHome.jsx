@@ -119,7 +119,7 @@ export function RealPlaceCard({ place, distance, onDetails }) {
   const ratingCount = Number(place.rating_count) || 0;
   return (
     <article className="place-card real-place-card">
-      <Link to={"/ban-do?place=" + encodeURIComponent(place.slug)} className="real-place-main" aria-label={"Xem " + place.name + " trên bản đồ"}>
+      <Link to={"/ban-do?place=" + encodeURIComponent(place.slug) + "&detail=1"} className="real-place-main" aria-label={"Xem " + place.name + " trên bản đồ"}>
         <div className="pc-img"><RealPlaceCover place={place} /></div>
         <div className="pc-body">
           <span className="pc-name">{place.name}</span>

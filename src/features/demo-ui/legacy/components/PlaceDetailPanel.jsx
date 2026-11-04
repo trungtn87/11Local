@@ -54,6 +54,17 @@ function PhotoGallery({ place, photos }) {
 export function PlaceDetailPanel({ place, onClose, mode = "map" }) {
   const [state, setState] = useState({ status: "loading", detail: null });
   const closeButton = useRef(null);
+  const countedViewId = useRef(null);
+
+  useEffect(() => {
+    // Previously the separate full page recorded views. Count the detail panel
+    // instead so "Địa điểm hot" continues using real detail views.
+    if (!place.id || countedViewId.current === place.id) return;
+    countedViewId.current = place.id;
+    fetch("/api/places/" + encodeURIComponent(place.id) + "/view", {
+      method: "POST", keepalive: true,
+    }).catch(() => {});
+  }, [place.id]);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -127,9 +138,6 @@ export function PlaceDetailPanel({ place, onClose, mode = "map" }) {
             <Link to={'/bao-sai/'+encodeURIComponent(detail.slug)+'?loai=photo'} onClick={onClose}><Camera size={15}/> Gửi ảnh</Link>
           </div>
 
-          <Link to={"/dia-diem/real/" + encodeURIComponent(detail.slug)} className="local-detail-full-link" onClick={onClose}>
-            Xem trang thông tin đầy đủ <ChevronRight size={16} />
-          </Link>
           <p className="local-detail-note">Thông tin và hình ảnh công khai đã qua kiểm duyệt 11Local.</p>
         </div>
       </aside>

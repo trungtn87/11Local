@@ -303,7 +303,7 @@ export function ContributionTracking() {
           {replyBusy ? 'Đang gửi…' : 'Gửi phản hồi cho Admin'}
         </button>
       </form>}
-      {result.placeSlug && <Link className="btn btn-primary btn-block" to={'/dia-diem/' + result.placeSlug}>Xem địa điểm đã duyệt</Link>}
+      {result.placeSlug && <Link className="btn btn-primary btn-block" to={'/ban-do?place=' + encodeURIComponent(result.placeSlug) + '&detail=1'}>Xem địa điểm đã duyệt</Link>}
       <p className="small muted">Chỉ Admin mới có thể duyệt và công khai địa điểm. Mã đóng góp không phải bằng chứng quyền sở hữu.</p>
       <button className="btn btn-primary btn-block" onClick={copy}><ClipboardCopy size={18}/> Sao chép liên kết theo dõi</button>
       {copyStatus && <p className="small" role="status">{copyStatus}</p>}
