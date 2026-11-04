@@ -69,8 +69,8 @@ function Results({ results, position, horizontal, retry, clear, onDetails }) {
   if (results.status === 'loading') return <CardSkeletons n={4} />;
   if (results.status === 'error') return <StateBlock kind="error" title="Không tải được dữ liệu Neon" actions={<Button icon={RefreshCw} onClick={retry}>Thử lại</Button>}>Địa điểm thật tạm thời không khả dụng; hệ thống không thay bằng địa điểm mẫu.</StateBlock>;
   if (results.status === 'empty') return <StateBlock title="Không tìm thấy địa điểm phù hợp" actions={<Button variant="outline" onClick={clear}>Xóa bộ lọc</Button>}>Chỉ các địa điểm đã được Admin công khai mới xuất hiện.</StateBlock>;
-  return <div className={horizontal ? 'stack-sm' : 'place-grid'}>{results.list.map((place) => (
-    <RealPlaceCard key={place.id} place={place} onDetails={onDetails} distance={position ? distanceProvider.calculate(position, place) : undefined} />
+  return <div className={horizontal ? 'stack-sm' : 'place-grid'}>{results.list.map((place, index) => (
+    <RealPlaceCard key={place.id} place={place} priority={index === 0} onDetails={onDetails} distance={position ? distanceProvider.calculate(position, place) : undefined} />
   ))}</div>;
 }
 
