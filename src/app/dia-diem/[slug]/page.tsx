@@ -1,3 +1,5 @@
+import { MenuView } from "@/components/menu/menu-view";
+import { getPublicMenu } from "@/lib/menu-server";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -66,6 +68,7 @@ export default async function PublicPlacePage({ params }: PageProps) {
   const { slug } = await params;
   const place = await getPublishedPlaceDetail(slug);
   if (!place) notFound();
+  const menu = await getPublicMenu(place.id).catch(error => { console.error("Public menu read failed", error); return undefined; });
 
   const mapUrl = "/ban-do?place=" + encodeURIComponent(place.slug) + "&detail=1";
   const directions = getGoogleMapsDirectionsUrl(place);
@@ -119,6 +122,7 @@ export default async function PublicPlacePage({ params }: PageProps) {
               {place.phone && <a href={"tel:" + place.phone} className="secondary"><Phone size={17}/> Gọi điện</a>}
             </div>
             <PlaceFactSections place={place}/>
+            {menu ? <MenuView content={menu.content} publishedAt={String(menu.publishedAt)}/> : menu === undefined ? <p>Chưa tải được menu / bảng giá.</p> : null}
             <ReviewIsland placeId={place.id} slug={place.slug}/>
             <div className="local-detail-community-actions">
               <Link href={"/bao-sai/" + encodeURIComponent(place.slug) + "?loai=report"}><Flag size={15}/> Báo sai</Link>

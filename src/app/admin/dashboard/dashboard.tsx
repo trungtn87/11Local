@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import styles from './dashboard.module.css';
 type Data = {
   range: {start:string; end:string}; queue: {contributions:number; needs_info:number; reviews:number};
+  menus: {published:number; outdated:number; pending:number};
   places: { total:number; published:number; hidden:number; pending:number; verified:number };
   contributions: { kind:string; status:string; count:number }[];
   reviews: { status:string; stars:number; count:number }[];
@@ -72,6 +73,7 @@ export default function Dashboard() {
       <div className={styles.columns}>
         <section><h2>Địa điểm được xem nhiều</h2>{data.top.length ? <ol>{data.top.map(p=><li key={p.id}><Link href={'/dia-diem/'+p.slug}>{p.name}</Link><strong>{n(p.views)}</strong></li>)}</ol> : <p>Chưa ghi nhận lượt xem trong kỳ.</p>}</section>
         <section><h2>Đóng góp trong kỳ</h2><table><thead><tr><th>Loại</th><th>Trạng thái</th><th>Số lượng</th></tr></thead><tbody>{data.contributions.map(c=><tr key={c.kind+c.status}><td>{kinds[c.kind]||c.kind}</td><td>{{pending:'Chờ duyệt',approved:'Đã duyệt',rejected:'Từ chối',needs_info:'Cần bổ sung'}[c.status]||c.status}</td><td>{n(c.count)}</td></tr>)}</tbody></table>{!data.contributions.length && <p>Chưa có đóng góp trong kỳ.</p>}</section>
+        <section><h2>Menu và bảng giá</h2><p>Đã duyệt, đang hiện: {n(data.menus.published)}</p><p>Chờ duyệt: {n(data.menus.pending)}</p><p>Quá 90 ngày chưa cập nhật: {n(data.menus.outdated)}</p><Link href="/admin/menu">Quản lý menu và bảng giá</Link></section>
         <section><h2>Phân bố đánh giá công khai</h2>{[5,4,3,2,1].map(star=><p key={star}>{star} sao <strong>{n(approved.filter(r=>r.stars===star).reduce((s,r)=>s+r.count,0))}</strong></p>)}</section>
         <section><h2>Cần xử lý · Toàn hệ thống</h2><p><Link href="/admin">Địa điểm chờ duyệt: {n(data.places.pending)}</Link></p><p><Link href="/admin/dong-gop">Đóng góp chờ duyệt: {n(data.queue.contributions)}</Link></p><p><Link href="/admin/danh-gia">Đánh giá và bản sửa chờ duyệt: {n(data.queue.reviews)}</Link></p><p><Link href="/admin/xac-minh">Xác minh chủ địa điểm</Link></p><p><Link href="/admin/noi-dung-chu">Duyệt nội dung chủ quán</Link></p></section>
       </div>
