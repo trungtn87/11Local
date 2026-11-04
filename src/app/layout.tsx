@@ -1,3 +1,4 @@
+import { VisitTracker } from "@/components/visit-tracker";
 import type { Metadata } from "next";
 import { publicSiteOrigin } from "@/lib/public-seo";
 import "@fontsource/plus-jakarta-sans/latin-400.css";
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="vi">
-      <body>{children}</body>
+      <body>{children}<VisitTracker /></body>
     </html>
   );
 }
