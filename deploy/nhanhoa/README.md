@@ -47,3 +47,20 @@ If Nhân Hòa provides only a **Docker-from-GitHub** builder, use `deploy/nhanho
 ## Prohibited actions during rollout
 
 Do not restart AutoTrade, change its variables, share its Postgres credentials, launch build jobs on the production trading VPS, disable its health checks, or automatically switch the live DNS before the independent 11Local smoke test passes.
+
+## Giám sát bằng VPS Monitor (Nhân Hòa)
+
+11Local có endpoint đọc tài nguyên **container** tại `/api/monitor/resources`,
+trả CPU đang dùng (vCPU trung bình giữa hai mẫu), RAM đang dùng và giới hạn RAM.
+Endpoint chỉ đọc cgroup, không đọc Neon, đăng nhập, địa điểm hay dữ liệu người dùng.
+
+Sau khi deploy 11Local lên Vibe, lấy **URL HTTPS thật** trong giao diện dự án.
+Trong Environment của dự án **VPS Monitor** trên Nhân Hòa đặt:
+
+```ini
+VIBE_EXTRA_APPS_JSON=[{"id":"11local","name":"11Local","resourcesUrl":"https://DOMAIN-THAT-NHANHOA-ASSIGNED.vnws.com/api/monitor/resources"}]
+```
+
+Thay hostname ví dụ bằng domain thực tế do Vibe cấp. Không ghi URL webhook
+hoặc bí mật trong repository. Nếu chưa có URL, VPS Monitor mặc định vẫn
+hiển thị 11Local nhưng ghi `Chưa kết nối số liệu` và không tính thiếu vào tổng.
