@@ -253,6 +253,8 @@ export default function AdminApp() {
           <Link href="/admin/danh-muc" className={styles.secondary}>Quản lý danh mục</Link>
           <Link href="/admin/dong-gop" className={styles.secondary}>Kiểm duyệt đóng góp</Link>
           <Link href="/admin/danh-gia" className={styles.secondary}>Kiểm duyệt đánh giá</Link>
+          <Link href="/admin/xac-minh" className={styles.secondary}>Xác minh chủ địa điểm</Link>
+          <Link href="/admin/noi-dung-chu" className={styles.secondary}>Duyệt nội dung chủ quán</Link>
         </div>
       </div>
       <button type="button" className={styles.secondary} onClick={async () => {
