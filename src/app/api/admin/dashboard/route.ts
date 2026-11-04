@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   const category = params.get('category') || '';
   try {
     const sql = db();
-    const [places, contributions, reviews, daily, top, visits, categories, metadata, queue] = await Promise.all([
+    const [places, contributions, reviews, daily, top, visits, categories, metadata, queue, menus] = await Promise.all([
       sql`SELECT count(*)::int AS total,
         count(*) FILTER (WHERE p.id IN (SELECT id FROM api.public_places))::int AS published,
         count(*) FILTER (WHERE p.visibility='hidden')::int AS hidden,
@@ -53,8 +53,15 @@ export async function GET(request: Request) {
         ((SELECT count(*) FROM public.reviews WHERE moderation_status='pending' AND deleted_at IS NULL) +
          (SELECT count(*) FROM public.review_revisions rv JOIN public.reviews r ON r.id=rv.review_id
           WHERE rv.status='pending' AND r.deleted_at IS NULL))::int AS reviews`,
+      sql`SELECT
+        count(*) FILTER (WHERE m.content IS NOT NULL AND NOT m.hidden AND m.place_id IN (SELECT id FROM api.public_places))::int AS published,
+        count(*) FILTER (WHERE m.content IS NOT NULL AND m.published_at < now()-interval '90 days')::int AS outdated,
+        (SELECT count(*) FROM public.menu_revisions r JOIN public.places rp ON rp.id=r.place_id
+         WHERE r.status='pending' AND (${category}='' OR rp.category_id=${category}))::int AS pending
+        FROM public.place_menus m JOIN public.places p ON p.id=m.place_id
+        WHERE (${category}='' OR p.category_id=${category})`,
     ]);
-    return NextResponse.json({ range, places: places[0], contributions, reviews, daily, top, visits: visits[0], categories, queue: queue[0], startedAt: metadata[0]?.started_at }, { headers: { 'Cache-Control': 'no-store' } });
+    return NextResponse.json({ range, places: places[0], contributions, reviews, daily, top, visits: visits[0], categories, queue: queue[0], menus: menus[0], startedAt: metadata[0]?.started_at }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('Dashboard query failed', error);
     return NextResponse.json({ error: 'DASHBOARD_UNAVAILABLE' }, { status: 503 });

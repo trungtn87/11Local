@@ -159,6 +159,7 @@ export function OwnerEditor(){
       Tài khoản không có quyền quản lý hoạt động hoặc địa điểm không tồn tại.</StateBlock>}
     {place&&<div className="owner-editor-grid">
       <main className="owner-editor-main">
+        <a href={"/quan-ly-menu/"+id} className="btn btn-outline">Quản lý menu và bảng giá</a>
         <nav className="owner-editor-tabs" aria-label="Phần quản lý">
           <button type="button" aria-pressed={tab==="info"} onClick={()=>setTab("info")}>
             <Save size={16}/> Thông tin quán</button>

@@ -250,6 +250,7 @@ export default function AdminApp() {
   return <main className={styles.shell}>
     <header><div><h1>11Local Admin</h1><span>Quản lý địa điểm thật · Neon V2</span>
         <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+          <Link href="/admin/menu" className={styles.secondary}>Menu và bảng giá</Link>
           <Link href="/admin/dashboard" className={styles.secondary}>Dashboard</Link>
           <Link href="/admin/danh-muc" className={styles.secondary}>Quản lý danh mục</Link>
           <Link href="/admin/dong-gop" className={styles.secondary}>Kiểm duyệt đóng góp</Link>
