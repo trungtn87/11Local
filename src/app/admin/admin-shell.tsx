@@ -58,7 +58,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void checkSession();
+    void Promise.resolve().then(() => checkSession());
     window.addEventListener("11local-admin-auth-changed", checkSession);
     return () => window.removeEventListener("11local-admin-auth-changed", checkSession);
   }, [checkSession, pathname]);
