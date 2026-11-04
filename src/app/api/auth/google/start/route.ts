@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 
-import { safeReturnTo, OAUTH_STATE_COOKIE, isGoogleAuthConfigured, googleOAuthCallbackUrl } from "@/lib/google-auth";
+import { safeReturnTo, OAUTH_STATE_COOKIE, isGoogleAuthConfigured, googleOAuthCallbackUrl, googleOAuthOrigin } from "@/lib/google-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,7 @@ const STATE_MAX_AGE_SECONDS = 10 * 60;
 export async function GET(request: NextRequest) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   if (!isGoogleAuthConfigured()) {
-    const url = new URL("/dang-nhap", request.nextUrl.origin);
+    const url = new URL("/dang-nhap", googleOAuthOrigin(request.nextUrl.origin));
     url.searchParams.set("error", "not_configured");
     return NextResponse.redirect(url);
   }
