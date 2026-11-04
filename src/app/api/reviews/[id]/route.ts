@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/user-auth";
+import { isAllowedRequestOrigin } from "@/lib/request-origin";
 import { isReviewUuid, parseReviewEdit } from "@/lib/review-input";
 import { enqueueBusinessDiscordInTx } from "@/lib/discord-business-events";
 
@@ -11,8 +12,7 @@ const headers = { "Cache-Control": "no-store" };
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status, headers });
 
 export async function PATCH(request: Request, { params }: Context) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) return fail("INVALID_ORIGIN", 403);
+  if (!isAllowedRequestOrigin(request)) return fail("INVALID_ORIGIN", 403);
   if (Number(request.headers.get("content-length") ?? 0) > 6000) return fail("REQUEST_TOO_LARGE", 413);
   const user = await getCurrentUser();
   if (!user || !isReviewUuid(user.id)) return fail("LOGIN_REQUIRED", 401);
@@ -81,8 +81,7 @@ export async function PATCH(request: Request, { params }: Context) {
 }
 
 export async function DELETE(request: Request, { params }: Context) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) return fail("INVALID_ORIGIN", 403);
+  if (!isAllowedRequestOrigin(request)) return fail("INVALID_ORIGIN", 403);
   const user = await getCurrentUser();
   if (!user || !isReviewUuid(user.id)) return fail("LOGIN_REQUIRED", 401);
   const { id } = await params;
