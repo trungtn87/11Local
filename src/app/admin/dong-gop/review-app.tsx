@@ -260,7 +260,8 @@ export default function ReviewApp() {
   return <main className={styles.root}>
     <header className={styles.header}>
       <div><Link href="/admin" className={styles.back}><ArrowLeft size={15}/> Quản lý địa điểm</Link>
-        <h1>Kiểm duyệt đóng góp</h1><p>11Local · dữ liệu đề xuất từ cộng đồng · Neon</p></div>
+        <h1>Kiểm duyệt đóng góp</h1><p>11Local · dữ liệu đề xuất từ cộng đồng · Neon</p>
+        <Link href="/admin/danh-gia" className={styles.back}>Sang kiểm duyệt đánh giá <ChevronRight size={14}/></Link></div>
       <button className={styles.refresh} onClick={() => void loadList(filter)} disabled={listBusy || busy}>
         <RefreshCw size={16}/> Làm mới</button>
     </header>

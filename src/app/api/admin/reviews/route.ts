@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       sql`SELECT * FROM (
         SELECT 'review'::text AS kind, r.id, r.id AS review_id, NULL::uuid AS revision_id,
           r.stars, r.content, r.moderation_status AS status, r.created_at AS submitted_at,
-          r.version, p.id AS place_id, p.name AS place_name,
+          r.version, p.id AS place_id, p.name AS place_name, p.slug AS place_slug,
           u.display_name AS author_name
         FROM public.reviews r
         JOIN public.places p ON p.id=r.place_id
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
         UNION ALL
         SELECT 'revision'::text AS kind, rv.id, r.id AS review_id, rv.id AS revision_id,
           rv.stars, rv.content, rv.status, rv.created_at AS submitted_at,
-          r.version, p.id AS place_id, p.name AS place_name,
+          r.version, p.id AS place_id, p.name AS place_name, p.slug AS place_slug,
           u.display_name AS author_name
         FROM public.review_revisions rv
         JOIN public.reviews r ON r.id=rv.review_id AND r.deleted_at IS NULL
