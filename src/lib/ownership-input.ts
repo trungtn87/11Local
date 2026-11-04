@@ -1,3 +1,4 @@
+import { isAllowedRequestOrigin } from "./request-origin.ts";
 /** Pure validation and state rules for OWN-01; shared by server routes and tests. */
 export type ClaimStatus = "pending" | "needs_info" | "approved" | "rejected" | "disputed";
 export type ClaimDecision = {
@@ -76,8 +77,7 @@ export function canClaim(status: ClaimStatus): boolean {
   return status === "pending" || status === "needs_info" || status === "disputed";
 }
 export function sameOrigin(request: Request): boolean {
-  const origin = request.headers.get("origin");
-  return !origin || origin === new URL(request.url).origin;
+  return isAllowedRequestOrigin(request);
 }
 export function isActiveManager(role: unknown, status: unknown): boolean {
   return (role === "owner" || role === "manager") && status === "active";

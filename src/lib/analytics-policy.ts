@@ -1,14 +1,10 @@
+import { isAllowedRequestOrigin } from "./request-origin.ts";
 export const SESSION_SECONDS = 30 * 60;
 export function isBot(userAgent: string) {
   return !userAgent || /bot|crawler|spider|slurp|headless|preview|lighthouse/i.test(userAgent);
 }
 export function sameOrigin(request: Request) {
-  const origin = request.headers.get('origin');
-  if (!origin) return false;
-  try {
-    const source = new URL(origin);
-    return ['http:', 'https:'].includes(source.protocol) && source.host === (request.headers.get('host') || new URL(request.url).host);
-  } catch { return false; }
+  return isAllowedRequestOrigin(request, true);
 }
 export function dateRange(params: URLSearchParams, now = new Date()) {
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(now);
