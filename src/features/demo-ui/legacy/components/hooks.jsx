@@ -3,11 +3,12 @@ import { useApp } from '../store.jsx';
 import { filterRealPlaces } from '../../../places/search-place';
 
 export function useResults() {
-  const { filters, geoPosition } = useApp();
-  const [data, setData] = useState({ status: 'loading', places: [] });
+  const { filters, geoPosition, initialPlaces, initialPlacesState } = useApp();
+  const [data, setData] = useState({ status: initialPlacesState, places: initialPlaces });
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
+    if (version === 0 && initialPlacesState !== 'loading') return;
     const ctrl = new AbortController();
     fetch('/api/places', { signal: ctrl.signal, cache: 'no-store' })
       .then((response) => {
