@@ -1,5 +1,6 @@
 import type { TransactionSql } from "postgres";
 import { isDiscordEnabled, type DiscordEventType } from "./discord-notifications.ts";
+import type { DiscordGroup } from "./discord-settings.ts";
 
 /**
  * Controlled event catalog: never interpolate arbitrary user-submitted text, PII,
@@ -50,10 +51,16 @@ export function buildDiscordBusinessEvent(
     : (/^[a-zA-Z0-9:-]{1,100}$/.test(revision) ? revision : "");
   if (!keyPart) throw new Error("INVALID_BUSINESS_REVISION");
   const [type, title, description, actionPath] = TEMPLATES[action];
+  const group: DiscordGroup = action.startsWith("review.") ? "review"
+    : action.startsWith("ownership.") || action.startsWith("moderation.ownership.")
+      || action.startsWith("moderation.manager.") ? "ownership"
+    : action.startsWith("moderation.") ? "moderation"
+    : "contribution";
   const eventKey = `${action}:${entityId.toLowerCase()}:${keyPart}`;
   if (eventKey.length > 180) throw new Error("INVALID_EVENT_KEY");
   return {
     eventKey,
+    group,
     event: { type, title, description: `${description}\nMã hồ sơ: ${entityId}`, actionPath },
   };
 }
@@ -64,9 +71,12 @@ export async function enqueueBusinessDiscordInTx(
   revision: number | string = 1,
 ) {
   if (!isDiscordEnabled()) return;
-  const { eventKey, event } = buildDiscordBusinessEvent(action, entityId, revision);
+  const { eventKey, group, event } = buildDiscordBusinessEvent(action, entityId, revision);
   await tx`INSERT INTO public.discord_notification_outbox
-    (event_key,event_type,title,description,action_path)
-    VALUES (${eventKey},${event.type},${event.title},${event.description},${event.actionPath})
+    (event_key,event_type,event_group,title,description,action_path)
+    SELECT ${eventKey},${event.type},${group},${event.title},${event.description},${event.actionPath}
+    FROM public.discord_notification_settings s
+    WHERE s.id=1 AND s.master_enabled
+      AND COALESCE((s.groups ->> ${group})::boolean,false)
     ON CONFLICT (event_key) DO NOTHING`;
 }

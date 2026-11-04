@@ -42,7 +42,7 @@ export async function getDiscordNotificationStatus(id: string) {
 }
 
 export async function listDiscordNotificationHistory() {
-  return db()`SELECT id,event_type,title,status,attempts,last_error,created_at,sent_at
+  return db()`SELECT id,event_type,event_group,title,status,attempts,last_error,created_at,sent_at
     FROM public.discord_notification_outbox ORDER BY created_at DESC LIMIT 30`;
 }
 
@@ -56,11 +56,16 @@ export async function dispatchDiscordOutbox(limit = 10, onlyId: string | null = 
   // Single atomic claim across concurrent workers. Expired leases are reclaimed.
   const rows = await sql`
     WITH picked AS (
-      SELECT id FROM public.discord_notification_outbox
-      WHERE ((status='pending' AND available_at <= now())
-             OR (status='processing' AND locked_at < now() - interval '2 minutes'))
-        AND (${onlyId}::uuid IS NULL OR id=${onlyId}::uuid)
-      ORDER BY created_at ASC, id ASC
+      SELECT q.id FROM public.discord_notification_outbox q
+      JOIN public.discord_notification_settings s ON s.id=1
+      WHERE ((q.status='pending' AND q.available_at <= now())
+             OR (q.status='processing' AND q.locked_at < now() - interval '2 minutes'))
+        AND (${onlyId}::uuid IS NULL OR q.id=${onlyId}::uuid)
+        AND (q.event_type='test' OR (
+          s.master_enabled AND
+          COALESCE((s.groups ->> COALESCE(q.event_group,q.event_type))::boolean,false)
+        ))
+      ORDER BY q.created_at ASC, q.id ASC
       LIMIT ${limit}
       FOR UPDATE SKIP LOCKED
     )
@@ -107,4 +112,20 @@ export async function enqueueDiscordTest() {
     description: "Kết nối Discord Webhook đang được kiểm tra bởi quản trị viên.",
     actionPath: "/admin",
   });
+}
+
+/** Admin-triggered retry. Never requeue a sent or already pending event. */
+export async function requeueFailedDiscordNotification(id: string) {
+  const sql = db();
+  const [row] = await sql`UPDATE public.discord_notification_outbox q
+    SET status='pending', attempts=0, available_at=now(), locked_at=NULL,
+        lock_token=NULL, last_error=NULL, last_http_status=NULL, updated_at=now()
+    FROM public.discord_notification_settings s
+    WHERE s.id=1 AND q.id=${id} AND q.status='failed'
+      AND (q.event_type='test' OR (
+        s.master_enabled AND
+        COALESCE((s.groups ->> COALESCE(q.event_group,q.event_type))::boolean,false)
+      ))
+    RETURNING q.id`;
+  return row ? String(row.id) : null;
 }
