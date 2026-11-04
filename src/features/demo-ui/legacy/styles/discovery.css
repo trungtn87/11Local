@@ -29,3 +29,5 @@
 .real-place-actions .real-place-direction{position:static;flex:1;min-width:0;min-height:34px}
 .real-place-detail-action{flex:1;min-height:34px;border:1px solid #cae6d6;border-radius:var(--r-sm);background:#f2faf5;color:#0d7465;font-size:13px;font-weight:800;cursor:pointer}
 .real-place-detail-action:hover{background:#dff5e8}
+
+.real-place-summary{font-size:12px;line-height:1.45;color:#5c776d;margin:4px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}

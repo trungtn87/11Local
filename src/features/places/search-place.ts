@@ -30,7 +30,7 @@ export function filterRealPlaces(
     if (filters.verifiedOnly && place.ownership_status !== "verified") return false;
     if (!q) return true;
     const text = foldSearch(
-      [place.name, place.category_name, place.address, place.area, place.description]
+      [place.name, place.category_name, place.address, place.area, place.summary, place.description]
         .filter(Boolean)
         .join(" "),
     );

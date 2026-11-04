@@ -87,3 +87,5 @@
   .local-map-body.details-open .local-map-sidebar { display:none; }
   .local-map-body.details-open .local-map-area { grid-column:1; }
 }
+
+.local-map-summary{font-size:12px;line-height:1.45;color:#637d73;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:4px 0}

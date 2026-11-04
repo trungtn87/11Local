@@ -12,8 +12,8 @@ const base: PublicPlace = {
 
 test("Khám phá ưu tiên featured khi Neon có field này", () => {
   const result = selectExplorePlaces([
-    { ...base, id: "new", slug: "new", updated_at: "2026-11-03", featured_order: null },
-    { ...base, id: "featured", slug: "featured", featured_order: 1 },
+    { ...base, id: "new", slug: "new", updated_at: "2026-11-03", featured_rank: null },
+    { ...base, id: "featured", slug: "featured", featured_rank: 1 },
   ]);
   assert.equal(result[0]?.id, "featured");
 });
