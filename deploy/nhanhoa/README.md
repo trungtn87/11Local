@@ -26,9 +26,10 @@ This is a budget, not a measurement. 11Local's heap is intentionally capped at 3
    - `USER_SESSION_SECRET` (at least 32 characters)
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_CLIENT_SECRET`
-   - `SITE_URL` (canonical HTTPS origin)
+   - `SITE_URL` (**required for Admin moderation behind the proxy**; exact public HTTPS origin, e.g. `https://your-domain.example`, with no path. Do not use the container hostname, localhost, an old Render hostname, or a placeholder)
    - `NEXT_PUBLIC_MAP_STYLE_URL` (optional build-time configuration)
 5. Configure an independent app port (example `3101` on localhost) and HTTPS reverse proxy. It must forward `Host`, `X-Forwarded-Proto`, `X-Forwarded-Host`; do not expose the Node port to the internet. Do not bind an AutoTrade port.
+   **After switching the public URL, change `SITE_URL` in the 11Local runtime environment and redeploy.** Approval, ownership, reviews and menu writes reject browser `Origin` values different from `SITE_URL` (HTTP 403 `INVALID_ORIGIN`). Keep the origin check enabled; do not use client-supplied forwarded headers as an allowlist.
 6. **Do not move the production domain yet.** First test through a dedicated HTTPS test hostname. With Google OAuth, authorize the exact test callback `https://TEST-HOST/api/auth/google/callback` in Google's OAuth console, and verify that cookies work securely behind the proxy.
 7. Verify the real Neon DB, published place detail, images, search, map, Admin, community contributions, reviews and ownership flows.
 8. Observe CPU, RAM, OOM restarts, AutoTrade latency and 11Local p95 response times before routing traffic to Nhân Hòa. Keep Render serving the live site until acceptance.
