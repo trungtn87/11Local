@@ -42,7 +42,7 @@ try {
   assert.doesNotMatch(search, /Đang mở 11Local…/, "search must not be the old splash page");
 
   const robots = await get("/robots.txt");
-  assert.match(robots, /sitemap\\.xml/i, "robots must point to the public sitemap");
+  assert.ok(robots.includes("sitemap.xml"), "robots must point to the public sitemap");
 
   const unpublished = await fetch(origin + "/dia-diem/INVALID_SLUG", {
     signal: AbortSignal.timeout(4500),
