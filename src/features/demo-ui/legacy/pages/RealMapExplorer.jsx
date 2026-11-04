@@ -26,8 +26,8 @@ function PlaceThumbnail({ place }) {
   return (
     <span className="local-map-entry-art">
       {place.cover_photo_id && !failed
-        ? <img src={'/api/place-photos/' + encodeURIComponent(place.cover_photo_id)}
-            loading="lazy" alt={'Ảnh đại diện ' + place.name}
+        ? <img src={'/api/place-photos/' + encodeURIComponent(place.cover_photo_id) + '?size=thumb'}
+            loading="lazy" decoding="async" width="88" height="86" alt={'Ảnh đại diện ' + place.name}
             onError={() => setFailed(true)} />
         : <span className="local-map-entry-placeholder"><ImageOff size={21} /> Chưa có ảnh</span>}
     </span>
