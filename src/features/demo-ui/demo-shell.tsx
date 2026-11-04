@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import DemoApp from "./demo-app";
+import { PublicPageSkeleton } from "@/components/public-page-skeleton";
 
 const subscribe = () => () => {};
 export type PublicShellProps = {
@@ -17,10 +18,7 @@ export type PublicShellProps = {
 function LegacyClientOnly() {
   const isClient = useSyncExternalStore(subscribe, () => true, () => false);
   if (!isClient) {
-    return <main className="state" role="status" aria-live="polite">
-      <span className="spinner" aria-hidden="true" />
-      <p>Đang mở 11Local…</p>
-    </main>;
+    return <PublicPageSkeleton variant="search" />;
   }
   return <DemoApp />;
 }
