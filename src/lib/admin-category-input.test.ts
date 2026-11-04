@@ -12,6 +12,8 @@ test("reject invalid IDs, icons and public visibility", () => {
   assert.throws(() => parseCategoryCreate({ id: "food", name: "Foo", icon: "unmapped" }));
   assert.throws(() => parseCategoryCreate({ id: "food", name: "Foo", icon: "bed", visibility: "deleted" }));
   assert.equal(CATEGORY_ICON_OPTIONS.length, 6);
+  assert.deepEqual(parseCategoryPatch({ icon: "custom:550e8400-e29b-41d4-a716-446655440000" }), { icon: "custom:550e8400-e29b-41d4-a716-446655440000" });
+  assert.throws(() => parseCategoryPatch({ icon: "custom:../../admin" }));
 });
 
 test("edit can hide a category but cannot change its id or sorting field", () => {
