@@ -132,8 +132,11 @@ export function RealPlaceCard({ place, distance, onDetails }) {
           </div>
         </div>
       </Link>
-      <div className={onDetails ? "real-place-actions" : ""}>
-        {onDetails && <button className="real-place-detail-action" type="button" onClick={() => onDetails(place)}>Chi tiết</button>}
+      <div className="real-place-actions">
+        {onDetails
+          ? <button className="real-place-detail-action" type="button" onClick={() => onDetails(place)}>Chi tiết</button>
+          : <a className="real-place-detail-action" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              href={'/dia-diem/' + encodeURIComponent(place.slug)}>Thông tin</a>}
         <a className="real-place-direction" href={getGoogleMapsDirectionsUrl(place)} target="_blank" rel="noreferrer" aria-label={`Chỉ đường đến ${place.name}`}>
           <Navigation size={15} /> Chỉ đường
         </a>
