@@ -25,7 +25,7 @@ export async function enqueueDiscordNotification(eventKey: string, event: Discor
     INSERT INTO public.discord_notification_outbox
       (event_key, event_type, title, description, action_path)
     VALUES (${eventKey}, ${message.type}, ${message.title},
-            ${message.description}, ${message.actionPath})
+            ${message.description}, ${message.actionPath ?? null})
     ON CONFLICT (event_key) DO NOTHING
     RETURNING id, status`;
   if (inserted) return { id: String(inserted.id), status: String(inserted.status), duplicate: false };
