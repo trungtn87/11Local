@@ -3,12 +3,14 @@ name: Vibe Hosting Docker deployment
 on:
   pull_request:
     paths:
+      - Dockerfile
       - deploy/nhanhoa/Dockerfile
       - .github/workflows/vibe-docker.yml
   push:
     branches:
       - main
     paths:
+      - Dockerfile
       - deploy/nhanhoa/Dockerfile
       - .github/workflows/vibe-docker.yml
 
@@ -20,6 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Ensure both Dockerfile entrypoints remain identical
+        run: cmp Dockerfile deploy/nhanhoa/Dockerfile
 
       - name: Build exact Nhân Hòa Dockerfile (lint + unit tests + Next build)
         run: |
