@@ -34,7 +34,7 @@ export function DiscoveryHome() {
       .then((body) => setData({ status: 'ready', places: Array.isArray(body.places) ? body.places : [] }))
       .catch((error) => { if (error.name !== 'AbortError') setData({ status: 'error', places: [] }); });
     return () => controller.abort();
-  }, []);
+  }, [initialPlacesState]);
 
   const explore = selectExplorePlaces(data.places, 6);
   const hot = selectHotPlaces(data.places, 6);
