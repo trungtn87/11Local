@@ -1,5 +1,6 @@
 "use client";
 import "maplibre-gl/dist/maplibre-gl.css";
+import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent, type ChangeEvent } from "react";
 import { LogOut, Plus, Save, Send, Upload, MapPin } from "lucide-react";
 import { LocationPicker } from "./location-picker";
@@ -248,7 +249,7 @@ export default function AdminApp() {
 
   return <main className={styles.shell}>
     <header><div><h1>11Local Admin</h1><span>Quản lý địa điểm thật · Neon V2</span>
-        <a href="/admin/danh-muc" className={styles.secondary} style={{ display: "inline-flex", marginTop: 10, textDecoration: "none" }}>Quản lý danh mục</a>
+        <Link href="/admin/danh-muc" className={styles.secondary} style={{ display: "inline-flex", marginTop: 10, textDecoration: "none" }}>Quản lý danh mục</Link>
       </div>
       <button type="button" className={styles.secondary} onClick={async () => {
         await fetch("/api/admin/session", { method: "DELETE" }); setAuth(false);
