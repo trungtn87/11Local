@@ -7,10 +7,13 @@ const defaultFilters = {
   q: '', cat: 'all', area: 'all', verifiedOnly: false, openNowOnly: false, sort: 'relevance',
 };
 
-export function AppProvider({ children }) {
+export function AppProvider({
+  children, initialCategories = [], initialCategoriesState = 'loading',
+  initialPlaces = [], initialPlacesState = 'loading',
+}) {
   const [filters, setFilters] = useState(defaultFilters);
-  const [categories, setCategories] = useState([]);
-  const [categoriesState, setCategoriesState] = useState('loading');
+  const [categories, setCategories] = useState(initialCategories);
+  const [categoriesState, setCategoriesState] = useState(initialCategoriesState);
   const [currentUser, setCurrentUser] = useState(null);
   const [authState, setAuthState] = useState('loading');
   const [geo, setGeo] = useState('off');
