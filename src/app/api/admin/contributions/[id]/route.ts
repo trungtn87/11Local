@@ -1,3 +1,4 @@
+import { isAllowedRequestOrigin } from "@/lib/request-origin";
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
@@ -9,8 +10,7 @@ export const dynamic = "force-dynamic";
 type Context = { params: Promise<{ id: string }> };
 const noCache = { "Cache-Control": "no-store" };
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status, headers: noCache });
-const originOkay = (request: Request) => !request.headers.get("origin") ||
-  request.headers.get("origin") === new URL(request.url).origin;
+
 
 export async function GET(_request: Request, { params }: Context) {
   if (!await isAdmin()) return fail("UNAUTHORIZED", 401);
@@ -73,7 +73,7 @@ export async function GET(_request: Request, { params }: Context) {
 // Save an editorial draft without publishing it. Audit original and updated content.
 export async function PATCH(request: Request, { params }: Context) {
   if (!await isAdmin()) return fail("UNAUTHORIZED", 401);
-  if (!originOkay(request)) return fail("INVALID_ORIGIN", 403);
+  if (!isAllowedRequestOrigin(request)) return fail("INVALID_ORIGIN", 403);
   const { id } = await params;
   if (!isUuid(id)) return fail("NOT_FOUND", 404);
   const body = await request.json().catch(() => null);
