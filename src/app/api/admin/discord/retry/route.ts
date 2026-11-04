@@ -1,4 +1,3 @@
-import { isAllowedRequestOrigin } from "@/lib/request-origin";
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin-auth";
 import {
@@ -14,7 +13,6 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(request: Request) {
   if (!await isAdmin()) return fail("UNAUTHORIZED", 401);
-  if (!isAllowedRequestOrigin(request)) return fail("INVALID_ORIGIN", 403);
   if (Number(request.headers.get("content-length") ?? 0) > 1000) return fail("REQUEST_TOO_LARGE", 413);
   const webhook = process.env.DISCORD_WEBHOOK_URL;
   if (!isDiscordEnabled() || !webhook) return fail("DISCORD_NOT_CONFIGURED", 503);

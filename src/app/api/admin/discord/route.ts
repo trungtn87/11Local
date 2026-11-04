@@ -1,4 +1,3 @@
-import { isAllowedRequestOrigin } from "@/lib/request-origin";
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin-auth";
 import { listDiscordNotificationHistory } from "@/lib/discord-outbox";
@@ -37,7 +36,6 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   if (!await isAdmin()) return fail("UNAUTHORIZED", 401);
-  if (!isAllowedRequestOrigin(request)) return fail("INVALID_ORIGIN", 403);
   if (Number(request.headers.get("content-length") ?? 0) > 3000) return fail("REQUEST_TOO_LARGE", 413);
   let input: ReturnType<typeof parseDiscordSettingsUpdate>;
   try { input = parseDiscordSettingsUpdate(await request.json()); }
