@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
-  ArrowDown, ArrowLeft, ArrowUp, BedDouble, Coffee, Eye, EyeOff,
+  ArrowDown, ArrowLeft, ArrowUp, BedDouble, Coffee, Eye, EyeOff, Upload,
   LogOut, Mountain, Plus, Save, ShoppingBag, Utensils, Wrench,
 } from "lucide-react";
 import styles from "./categories.module.css";
@@ -35,10 +36,12 @@ const errorMessage: Record<string, string> = {
   INVALID_ID: "Mã chỉ gồm chữ thường, số và dấu gạch dưới, bắt đầu bằng chữ.",
   INVALID_NAME: "Tên danh mục phải có từ 1 đến 80 ký tự.",
   INVALID_ICON: "Biểu tượng không được hỗ trợ.",
+  INVALID_IMAGE: "Ảnh không hợp lệ. Hãy dùng PNG, JPG hoặc WebP tối đa 2 MB.",
   INVALID_VISIBILITY: "Trạng thái không hợp lệ.",
   IMMUTABLE_CATEGORY_ID_OR_ORDER: "Không được đổi mã hoặc thứ tự qua biểu mẫu chỉnh sửa.",
 };
 function CategoryIcon({ name }: { name: string }) {
+  if (/^custom:[0-9a-f-]{36}$/i.test(name)) return <Image src={"/api/category-icons/" + name.slice(7)} width={28} height={28} alt="" unoptimized />;
   const Icon = icons[name as keyof typeof icons]?.Component ?? Mountain;
   return <Icon size={20} aria-hidden="true" />;
 }
@@ -51,6 +54,7 @@ export default function CategoryManager() {
   const [creating, setCreating] = useState(false);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -102,9 +106,27 @@ export default function CategoryManager() {
     return result;
   };
 
+  const uploadIcon = async (file?: File) => {
+    if (!file) return;
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type) || file.size > 2 * 1024 * 1024 || !file.size) {
+      setMessage("Chỉ hỗ trợ ảnh PNG, JPG hoặc WebP tối đa 2 MB."); return;
+    }
+    setUploading(true); setMessage("");
+    try {
+      const form = new FormData(); form.set("file", file);
+      const response = await fetch("/api/admin/category-icons", { method: "POST", body: form });
+      const result = await response.json().catch(() => ({}));
+      if (response.status === 401) { setAuthenticated(false); throw new Error("Phiên Admin đã hết hạn."); }
+      if (!response.ok) throw new Error(errorMessage[result.error] || "Không tải ảnh lên được.");
+      setDraft(current => ({ ...current, icon: result.icon }));
+      setMessage("Ảnh đã tải lên. Nhấn Lưu thay đổi để áp dụng.");
+    } catch (error) { showError(error); }
+    finally { setUploading(false); }
+  };
+
   const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (busy) return;
+    if (busy || uploading) return;
     setBusy(true);
     setMessage("");
     try {
@@ -248,11 +270,16 @@ export default function CategoryManager() {
                 placeholder="Ví dụ: Chợ địa phương"/>
             </label>
             <label>Biểu tượng
-              <select value={draft.icon} onChange={event => setDraft({ ...draft, icon: event.target.value })}>
-                {!iconNames.includes(draft.icon as keyof typeof icons) &&
+              <select value={draft.icon.startsWith("custom:") ? "custom" : draft.icon} onChange={event => setDraft({ ...draft, icon: event.target.value === "custom" ? draft.icon : event.target.value })}>
+                {draft.icon.startsWith("custom:") && <option value="custom">Ảnh tự thiết kế (đã tải lên)</option>}
+                {!draft.icon.startsWith("custom:") && !iconNames.includes(draft.icon as keyof typeof icons) &&
                   <option value={draft.icon}>{draft.icon} (hiện tại)</option>}
                 {iconNames.map(name => <option key={name} value={name}>{icons[name].label}</option>)}
               </select>
+            </label>
+            <label className={styles.uploadLabel}><Upload size={16}/> {uploading ? "Đang xử lý ảnh…" : "Tải icon tự thiết kế (PNG, JPG, WebP)"}
+              <input type="file" accept="image/png,image/jpeg,image/webp" disabled={uploading || busy} onChange={event => { void uploadIcon(event.target.files?.[0]); event.target.value = ""; }}/>
+              <small>Ảnh tối đa 2 MB, tự chuẩn hóa về WebP vuông. Dùng Lưu thay đổi để áp dụng.</small>
             </label>
             <div className={styles.preview}><span className={styles.icon}><CategoryIcon name={draft.icon}/></span>
               <span>{draft.name.trim() || "Tên danh mục"}</span></div>
@@ -264,7 +291,7 @@ export default function CategoryManager() {
               </select>
               <small>Ẩn danh mục không xóa dữ liệu địa điểm đã có.</small>
             </label>
-            <button type="submit" className={styles.primary} disabled={busy}>
+            <button type="submit" className={styles.primary} disabled={busy || uploading}>
               <Save size={16}/>{busy ? "Đang lưu…" : creating ? "Tạo danh mục" : "Lưu thay đổi"}
             </button>
           </form>}
