@@ -17,3 +17,5 @@
 .fields textarea{width:100%;resize:vertical;min-height:65px}
 .fields input,.fields select{width:100%;min-width:0}
 @media(max-width:800px){.sectionTitle{font-size:17px}.optionGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.fields .checkOption input{width:16px;min-width:16px;height:16px;flex:none}
