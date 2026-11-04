@@ -1,5 +1,5 @@
-import { parseNewPlaceContribution } from "./contribution-input";
-import { normalizeSlug } from "./place-input";
+import { parseNewPlaceContribution } from "./contribution-input.ts";
+import { normalizeSlug } from "./place-input.ts";
 
 export type ReviewPlace = {
   name: string; categoryId: string; address: string; area: string;
