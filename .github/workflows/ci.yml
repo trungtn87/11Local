@@ -27,3 +27,6 @@ jobs:
 
       - name: Lint, test, and build
         run: npm run check
+
+      - name: SSR HTML smoke (without database secrets)
+        run: node scripts/check-ssr-html.mjs

@@ -7,10 +7,22 @@ const defaultFilters = {
   q: '', cat: 'all', area: 'all', verifiedOnly: false, openNowOnly: false, sort: 'relevance',
 };
 
-export function AppProvider({ children }) {
+/**
+ * @param {{
+ *   children: import('react').ReactNode,
+ *   initialCategories?: Array<Record<string, unknown>>,
+ *   initialCategoriesState?: 'loading' | 'ready' | 'error',
+ *   initialPlaces?: Array<Record<string, unknown>>,
+ *   initialPlacesState?: 'loading' | 'ready' | 'error',
+ * }} props
+ */
+export function AppProvider({
+  children, initialCategories = [], initialCategoriesState = 'loading',
+  initialPlaces = [], initialPlacesState = 'loading',
+}) {
   const [filters, setFilters] = useState(defaultFilters);
-  const [categories, setCategories] = useState([]);
-  const [categoriesState, setCategoriesState] = useState('loading');
+  const [categories, setCategories] = useState(initialCategories);
+  const [categoriesState, setCategoriesState] = useState(initialCategoriesState);
   const [currentUser, setCurrentUser] = useState(null);
   const [authState, setAuthState] = useState('loading');
   const [geo, setGeo] = useState('off');
@@ -60,6 +72,7 @@ export function AppProvider({ children }) {
     filters, setFilters, resetFilters,
     categories, categoriesState, currentUser, setCurrentUser, authState,
     geo, setGeo, geoPosition, setGeoPosition, toasts, toast,
-  }), [filters, resetFilters, categories, categoriesState, currentUser, authState, geo, geoPosition, toasts, toast]);
+    initialPlaces, initialPlacesState,
+  }), [filters, resetFilters, categories, categoriesState, currentUser, authState, geo, geoPosition, toasts, toast, initialPlaces, initialPlacesState]);
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
