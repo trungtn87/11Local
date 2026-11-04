@@ -41,6 +41,23 @@ try {
   assert.match(search, /Địa điểm ở Cao Bằng/, "search must contain server-rendered heading");
   assert.doesNotMatch(search, /Đang mở 11Local…/, "search must not be the old splash page");
 
+  // New monitoring contract must remain read-only without Neon credentials.
+  const resourceResponse = await fetch(origin + "/api/monitor/resources", {
+    signal: AbortSignal.timeout(4500)
+  });
+  assert.equal(resourceResponse.status, 200, "public monitoring metrics should load");
+  assert.match(resourceResponse.headers.get("cache-control") || "", /no-store/);
+  const resource = await resourceResponse.json();
+  assert.equal(resource.schema, 1);
+  assert.equal(resource.service, "11local");
+  assert.ok(Number.isFinite(resource.ramUsedMb) && resource.ramUsedMb >= 0);
+  assert.ok(resource.cpuVcpu === null || (Number.isFinite(resource.cpuVcpu) && resource.cpuVcpu >= 0));
+  assert.equal(typeof resource.sampledAt, "string");
+  assert.deepEqual(Object.keys(resource).sort(), [
+    "schema", "service", "sampledAt", "cpuVcpu", "ramUsedMb", "ramLimitMb",
+    "sourceCpu", "sourceRam"
+  ].sort());
+
   const robots = await get("/robots.txt");
   assert.ok(robots.includes("sitemap.xml"), "robots must point to the public sitemap");
 
