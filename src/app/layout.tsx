@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { publicSiteOrigin } from "@/lib/public-seo";
-import { Be_Vietnam_Pro } from "next/font/google";
 import "@fontsource/plus-jakarta-sans/latin-400.css";
 import "@fontsource/plus-jakarta-sans/latin-500.css";
 import "@fontsource/plus-jakarta-sans/latin-600.css";
@@ -11,19 +10,11 @@ import "@fontsource/plus-jakarta-sans/vietnamese-500.css";
 import "@fontsource/plus-jakarta-sans/vietnamese-600.css";
 import "@fontsource/plus-jakarta-sans/vietnamese-700.css";
 import "@fontsource/plus-jakarta-sans/vietnamese-800.css";
-import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
 import "@/features/demo-ui/legacy/styles/tokens.css";
 import "@/features/demo-ui/legacy/styles/app.css";
 import "@/features/demo-ui/legacy/styles/discovery.css";
 import "@/features/demo-ui/legacy/styles/contribute.css";
-
-const beVietnamPro = Be_Vietnam_Pro({
-  variable: "--font-be-vietnam-pro",
-  subsets: ["latin"],
-  weight: ["400", "600", "700", "800"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(publicSiteOrigin()),
@@ -40,7 +31,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="vi" className={beVietnamPro.variable}>
+    <html lang="vi">
       <body>{children}</body>
     </html>
   );
