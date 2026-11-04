@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
 import { createUserSession, safeReturnTo, userCookie } from "@/lib/user-auth";
-import { OAUTH_STATE_COOKIE, googleOAuthCallbackUrl, isValidGoogleIdentity, type GoogleTokenInfo } from "@/lib/google-auth";
+import { OAUTH_STATE_COOKIE, googleOAuthCallbackUrl, googleOAuthOrigin, isValidGoogleIdentity, type GoogleTokenInfo } from "@/lib/google-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,7 @@ function equalState(a?: string, b?: string) {
 }
 
 function loginRedirect(request: NextRequest, error: string) {
-  const url = new URL("/dang-nhap", request.nextUrl.origin);
+  const url = new URL("/dang-nhap", googleOAuthOrigin(request.nextUrl.origin));
   url.searchParams.set("error", error);
   const response = NextResponse.redirect(url);
   response.cookies.set(OAUTH_STATE_COOKIE, "", { path: "/", maxAge: 0 });
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
     const row = rows[0];
     if (!row) return loginRedirect(request, "account_failed");
 
-    const response = NextResponse.redirect(new URL(returnTo, request.nextUrl.origin));
+    const response = NextResponse.redirect(new URL(returnTo, googleOAuthOrigin(request.nextUrl.origin)));
     response.cookies.set(
       userCookie.name,
       createUserSession({
