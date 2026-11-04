@@ -9,6 +9,7 @@ import { Login, Account } from './pages/Auth.jsx';
 import { Contribute, ContributionTracking } from './pages/Contribute.jsx';
 import { ExistingPlaceFeedback } from './pages/ExistingPlaceFeedback.jsx';
 import { ClaimRequestPage, MyOwnershipPage, ManagedPlacesPage } from './pages/Ownership.jsx';
+import { OwnerEditor } from './pages/OwnerEditor.jsx';
 
 const publicPage = (page, options) => <PublicShell {...options}>{page}</PublicShell>;
 
@@ -43,6 +44,7 @@ export default function App() {
       <Route path="/bao-sai/:id" element={publicPage(<ExistingPlaceFeedback />)}/>
       <Route path="/nhan-quyen/:id" element={publicPage(<ClaimRequestPage />)}/>
       <Route path="/yeu-cau-nhan-quyen" element={publicPage(<MyOwnershipPage />)}/>
+      <Route path="/quan-ly/:id" element={publicPage(<OwnerEditor />)}/>
       <Route path="/quan-ly/*" element={publicPage(<ManagedPlacesPage />)}/>
       <Route path="*" element={publicPage(<NotAvailable title="Không tìm thấy trang" />)}/>
     </Routes>

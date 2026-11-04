@@ -359,7 +359,8 @@ export function ManagedPlacesPage(){
         <div className="ownership-managed-card-top"><Store size={24}/><span className="badge badge-success"><BadgeCheck size={13}/> Đang có quyền</span></div>
         <h2>{place.name}</h2><p>{place.address||place.area||'Cao Bằng'}</p>
         <small>Vai trò: {place.role==='owner'?'Chủ địa điểm':'Người quản lý'}</small>
-        <Link to={placeHref(place.slug)} className="btn btn-outline btn-sm">Xem trang địa điểm <ArrowRight size={15}/></Link>
+        <Link to={"/quan-ly/"+encodeURIComponent(place.id)} className="btn btn-primary btn-sm">Quản lý địa điểm <ArrowRight size={15}/></Link>
+        <Link to={placeHref(place.slug)} className="btn btn-outline btn-sm">Xem trang địa điểm</Link>
       </article>)}</div>:<StateBlock title="Chưa có địa điểm được cấp quyền"
         actions={<Link to="/yeu-cau-nhan-quyen" className="btn btn-primary">Theo dõi hồ sơ xác minh</Link>}>
         Bạn có thể yêu cầu nhận quyền từ trang chi tiết một địa điểm đang công khai.
