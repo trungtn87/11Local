@@ -11,6 +11,7 @@ import "@fontsource/plus-jakarta-sans/vietnamese-600.css";
 import "@fontsource/plus-jakarta-sans/vietnamese-700.css";
 import "@fontsource/plus-jakarta-sans/vietnamese-800.css";
 import "./globals.css";
+import "@/components/public-page-skeleton.css";
 import "@/features/demo-ui/legacy/styles/tokens.css";
 import "@/features/demo-ui/legacy/styles/app.css";
 import "@/features/demo-ui/legacy/styles/discovery.css";
