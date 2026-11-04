@@ -1,7 +1,7 @@
 import {useCallback,useEffect,useState} from 'react';
 import {Link,useLocation,useNavigate,useParams} from 'react-router-dom';
 import {
-  ArrowLeft,ArrowRight,BadgeCheck,Camera,CheckCircle2,Clock3,FileCheck2,
+  ArrowLeft,ArrowRight,BadgeCheck,CheckCircle2,Clock3,FileCheck2,
   ImagePlus,LockKeyhole,MapPin,RefreshCw,Send,ShieldAlert,ShieldCheck,
   Store,UserRoundCheck,XCircle,
 } from 'lucide-react';
@@ -134,7 +134,8 @@ export function ClaimRequestPage(){
 }
 function ClaimRequestBody({slug}){
   const {currentUser,authState}=useApp();
-  const [state,setState]=useState({loading:true,place:null,claims:[],managed:[],error:''});
+  const identity=currentUser?.id||'';
+  const [state,setState]=useState({loading:true,userKey:null,place:null,claims:[],managed:[],error:''});
   useEffect(()=>{
     const ctl=new AbortController();
     void (async()=>{
@@ -151,14 +152,14 @@ function ClaimRequestBody({slug}){
           claims=a.claims||[];
           managed=b.places||[];
         }
-        if(!ctl.signal.aborted)setState({loading:false,place,claims,managed,error:''});
+        if(!ctl.signal.aborted)setState({loading:false,userKey:identity,place,claims,managed,error:''});
       }catch(error){
-        if(!ctl.signal.aborted)setState({loading:false,place:null,claims:[],managed:[],error:message(error)});
+        if(!ctl.signal.aborted)setState({loading:false,userKey:identity,place:null,claims:[],managed:[],error:message(error)});
       }
     })();
     return ()=>ctl.abort();
   },[slug,currentUser]);
-  if(authState==='loading'||state.loading)return <div className="container page"><p role="status">Đang tải thông tin xác minh…</p></div>;
+  if(authState==='loading'||state.loading||state.userKey!==identity)return <div className="container page"><p role="status">Đang tải thông tin xác minh…</p></div>;
   if(state.error||!state.place)return <div className="container page"><StateBlock kind="error"
     title="Không thể mở yêu cầu" actions={<Link className="btn btn-outline" to="/tim-kiem">Quay lại tìm kiếm</Link>}>{state.error}</StateBlock></div>;
   const place=state.place;
