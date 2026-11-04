@@ -214,6 +214,11 @@ export function ContributionTracking() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [copyStatus, setCopyStatus] = useState('');
+  const [refresh, setRefresh] = useState(0);
+  const [replyText, setReplyText] = useState('');
+  const [replyPhotos, setReplyPhotos] = useState([]);
+  const [replyBusy, setReplyBusy] = useState(false);
+  const [replyError, setReplyError] = useState('');
   useEffect(() => {
     if (!token) return;
     const controller = new AbortController();
@@ -222,7 +227,39 @@ export function ContributionTracking() {
       .then(setResult)
       .catch(e => { if (e.name !== 'AbortError') setError('Không tìm thấy đóng góp hoặc liên kết không hợp lệ.'); });
     return () => controller.abort();
-  }, [token]);
+  }, [token, refresh]);
+  const respond = async event => {
+    event.preventDefault();
+    if (!token || !result || replyBusy) return;
+    setReplyBusy(true); setReplyError('');
+    try {
+      const data = new FormData();
+      data.set('token', token);
+      data.set('payload', JSON.stringify({ message: replyText, expectedVersion: result.version }));
+      replyPhotos.forEach(photo => data.append('photos', photo));
+      const response = await fetch('/api/contributions/reply', { method: 'POST', body: data });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || 'REPLY_UNAVAILABLE');
+      setReplyText(''); setReplyPhotos([]); setRefresh(n => n + 1);
+    } catch (e) {
+      setReplyError({ STALE_VERSION: 'Admin đã cập nhật yêu cầu. Hãy tải lại.',
+        NOT_WAITING_FOR_REPLY: 'Hồ sơ không còn chờ phản hồi.',
+        TOO_MANY_PHOTOS: 'Tổng ảnh gửi không được vượt quá 4.',
+        RATE_LIMITED: 'Bạn đã gửi quá nhiều trong 24 giờ.' }[e.message]
+        || 'Không gửi được phản hồi. Hãy thử lại.');
+    } finally { setReplyBusy(false); }
+  };
+  const addReplyPhotos = event => {
+    const incoming = Array.from(event.target.files || []);
+    event.target.value = '';
+    if (incoming.some(file => !allowed.includes(file.type) || !file.size || file.size > 10 * 1024 * 1024)) {
+      setReplyError('Ảnh phải là JPEG, PNG, WebP hoặc AVIF dưới 10 MB.'); return;
+    }
+    if ((result?.photoCount || 0) + replyPhotos.length + incoming.length > 4) {
+      setReplyError('Mỗi đóng góp chỉ có tối đa 4 ảnh.'); return;
+    }
+    setReplyPhotos(old => [...old, ...incoming]); setReplyError('');
+  };
   const copy = async () => {
     try { await navigator.clipboard.writeText(window.location.href); setCopyStatus('Đã sao chép liên kết.'); }
     catch { setCopyStatus('Hãy sao chép địa chỉ trang trên trình duyệt.'); }
@@ -237,7 +274,35 @@ export function ContributionTracking() {
       <div><span className="small muted">Mã đóng góp</span><h2>{result.trackingCode}</h2></div>
       <div><span className="small muted">Địa điểm</span><p><strong>{result.placeName}</strong></p></div>
       <div className="contrib-track-status"><CheckCircle2 size={18}/><strong>{statusLabels[result.status] || result.status}</strong></div>
-      {result.decisionNote && <div className="card-flat small">Ghi chú của Admin: {result.decisionNote}</div>}
+      {result.decisionNote && <div className="card-flat small">Ghi chú gần nhất của Admin: {result.decisionNote}</div>}
+      {result.messages?.length > 0 && <section className="stack-sm">
+        <h3>Lịch sử trao đổi</h3>
+        {result.messages.map((item, i) => <div className="contrib-thread-message" key={i}>
+          <strong>{item.sender === 'admin' ? 'Admin 11Local' : 'Bạn'}</strong>
+          <small>{new Date(item.created_at).toLocaleString('vi-VN')}</small>
+          <p>{item.body}</p>
+        </div>)}
+      </section>}
+      {result.status === 'needs_info' && <form className="stack-sm" onSubmit={respond}>
+        <h3>Phản hồi yêu cầu bổ sung</h3>
+        <p className="small muted">Phản hồi bằng liên kết riêng này, không cần đăng nhập. Hồ sơ sẽ quay lại hàng chờ Admin.</p>
+        <label className="field" htmlFor="reply-text">Thông tin bổ sung
+          <textarea id="reply-text" className="textarea" rows={4} required minLength={3} maxLength={1200}
+            value={replyText} onChange={e => setReplyText(e.target.value)} placeholder="Trả lời câu hỏi của Admin…"/>
+        </label>
+        {(result.photoCount || 0) < 4 && <label className="contrib-upload"><UploadCloud size={20}/>
+          Thêm ảnh bổ sung (tùy chọn)
+          <input type="file" multiple accept="image/jpeg,image/png,image/webp,image/avif" onChange={addReplyPhotos}/>
+        </label>}
+        {replyPhotos.map((photo, i) => <div className="row between" key={i}>
+          <span className="small">{photo.name}</span>
+          <button className="btn btn-outline btn-sm" type="button" onClick={() => setReplyPhotos(old => old.filter((_, j) => j !== i))}>Bỏ</button>
+        </div>)}
+        {replyError && <p className="contrib-error" role="alert">{replyError}</p>}
+        <button className="btn btn-primary btn-block" disabled={replyBusy}>
+          {replyBusy ? 'Đang gửi…' : 'Gửi phản hồi cho Admin'}
+        </button>
+      </form>}
       {result.placeSlug && <Link className="btn btn-primary btn-block" to={'/dia-diem/' + result.placeSlug}>Xem địa điểm đã duyệt</Link>}
       <p className="small muted">Chỉ Admin mới có thể duyệt và công khai địa điểm. Mã đóng góp không phải bằng chứng quyền sở hữu.</p>
       <button className="btn btn-primary btn-block" onClick={copy}><ClipboardCopy size={18}/> Sao chép liên kết theo dõi</button>

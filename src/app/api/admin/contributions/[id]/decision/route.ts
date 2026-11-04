@@ -34,6 +34,8 @@ export async function POST(request: Request, { params }: Context) {
           SET moderation_status=${nextStatus}, decision_note=${decision.note},
             reviewed_at=now(), version=version+1, updated_at=now()
           WHERE id=${id} RETURNING id, moderation_status, version`;
+        await tx`INSERT INTO public.contribution_messages (contribution_id,sender,body)
+          VALUES (${id},'admin',${decision.note})`;
         await tx`INSERT INTO public.moderation_logs
           (entity_type,entity_id,action,reason,before_data,after_data)
           VALUES ('contribution',${id},${nextStatus},${decision.note},

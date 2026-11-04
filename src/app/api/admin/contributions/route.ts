@@ -14,15 +14,15 @@ export async function GET(request: Request) {
     const [rows, counts] = await Promise.all([
       sql`SELECT c.id, c.tracking_code, c.kind, c.moderation_status, c.created_at,
           c.updated_at, c.version, c.place_id,
-          c.payload->>'name' AS name, c.payload->>'area' AS area,
+          COALESCE(c.payload->>'name', c.payload->>'placeName') AS name, c.payload->>'area' AS area,
           c.payload->>'categoryId' AS category_id,
           (SELECT count(*)::int FROM public.contribution_photos ph
            WHERE ph.contribution_id=c.id) AS photo_count
         FROM public.contributions c
-        WHERE c.kind='new_place' AND (${status}='all' OR c.moderation_status=${status})
+        WHERE (${status}='all' OR c.moderation_status=${status})
         ORDER BY c.created_at DESC, c.id DESC LIMIT 100`,
       sql`SELECT moderation_status, count(*)::int AS total
-        FROM public.contributions WHERE kind='new_place' GROUP BY moderation_status`,
+        FROM public.contributions GROUP BY moderation_status`,
     ]);
     return NextResponse.json({ contributions: rows, counts }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {

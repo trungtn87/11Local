@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, MapPin, Navigation, Phone, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Camera, Edit3, Flag, MapPin, Navigation, Phone, ShieldCheck } from 'lucide-react';
 import { getGoogleMapsDirectionsUrl } from '../../../places/google-maps';
 import { ownershipMessage } from '../../../places/public-place-format';
 import { PlaceFactSections } from '../components/PlaceFactSections.jsx';
@@ -55,6 +55,11 @@ export function RealPlaceDetail() {
         <a className="btn btn-primary" href={getGoogleMapsDirectionsUrl(p)} target="_blank" rel="noreferrer"><Navigation size={16} /> Chỉ đường</a>
         {p.phone && <a className="btn btn-outline" href={`tel:${p.phone}`}><Phone size={16} /> Gọi điện</a>}
         <Link to={"/ban-do?place=" + encodeURIComponent(p.slug)}><Button variant="outline">Xem bản đồ</Button></Link>
+      </div>
+      <div className="row" style={{gap:8,flexWrap:'wrap'}}>
+        <Link className="btn btn-outline" to={'/bao-sai/'+encodeURIComponent(p.slug)+'?loai=report'}><Flag size={16}/> Báo sai</Link>
+        <Link className="btn btn-outline" to={'/bao-sai/'+encodeURIComponent(p.slug)+'?loai=edit_place'}><Edit3 size={16}/> Đề xuất sửa</Link>
+        <Link className="btn btn-outline" to={'/bao-sai/'+encodeURIComponent(p.slug)+'?loai=photo'}><Camera size={16}/> Gửi ảnh</Link>
       </div>
       <div style={{ height: 340, borderRadius: 16, overflow: 'hidden' }}>
         <MapCanvas embedded onReady={(map) => {
