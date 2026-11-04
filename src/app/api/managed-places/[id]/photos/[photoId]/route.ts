@@ -19,7 +19,8 @@ export async function PATCH(request:Request,{params}:Context){
   catch{return fail("INVALID_ACTION",400);}
   try{
     const result=await db().begin(async tx=>{
-      await requireOwnerPlace(tx,id,user.id);
+      const {role}=await requireOwnerPlace(tx,id,user.id);
+      if(role!=="owner")throw new Error("FORBIDDEN");
       const [photo]=await tx`SELECT id,photo_type,moderation_status,source
         FROM public.place_photos WHERE id=${photoId} AND place_id=${id} FOR UPDATE`;
       // Owners may only manage photos from the establishment, not community/admin.
