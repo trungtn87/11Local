@@ -1,0 +1,41 @@
+# Optional local Docker runtime when Nhân Hòa does not provide project quotas
+# directly. NEVER run "docker compose build" on the shared AutoTrade VPS.
+services:
+  local-web:
+    image: ${ELEVENLOCAL_IMAGE:?Set an image built outside the VPS}
+    container_name: 11local-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3101:3000"
+    cpus: 0.35
+    mem_limit: 640m
+    mem_reservation: 256m
+    pids_limit: 128
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 20s
+    environment:
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=384
+      SITE_URL: ${SITE_URL:?Set canonical public site URL}
+      DATABASE_URL: ${DATABASE_URL:?Configure only the 11Local Neon database}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?Set 11Local Google client ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?Set 11Local Google client secret}
+      USER_SESSION_SECRET: ${USER_SESSION_SECRET:?At least 32 random characters}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set admin password}
+      ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET:?At least 32 random characters}
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/robots.txt').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

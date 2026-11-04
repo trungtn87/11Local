@@ -30,3 +30,8 @@ jobs:
 
       - name: SSR HTML smoke (without database secrets)
         run: node scripts/check-ssr-html.mjs
+
+      - name: Verify optional Nhân Hòa standalone build
+        run: |
+          DEPLOY_STANDALONE=1 npm run build
+          test -f .next/standalone/server.js
