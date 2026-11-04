@@ -7,6 +7,15 @@ const defaultFilters = {
   q: '', cat: 'all', area: 'all', verifiedOnly: false, openNowOnly: false, sort: 'relevance',
 };
 
+/**
+ * @param {{
+ *   children: import('react').ReactNode,
+ *   initialCategories?: Array<Record<string, unknown>>,
+ *   initialCategoriesState?: 'loading' | 'ready' | 'error',
+ *   initialPlaces?: Array<Record<string, unknown>>,
+ *   initialPlacesState?: 'loading' | 'ready' | 'error',
+ * }} props
+ */
 export function AppProvider({
   children, initialCategories = [], initialCategoriesState = 'loading',
   initialPlaces = [], initialPlacesState = 'loading',
