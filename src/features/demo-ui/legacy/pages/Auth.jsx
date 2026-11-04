@@ -1,5 +1,5 @@
-import { useNavigate } from 'react-router-dom';
-import { LogIn, LogOut, ShieldCheck } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { BadgeCheck, FileCheck2, LogIn, LogOut, ShieldCheck } from 'lucide-react';
 import { useApp } from '../store.jsx';
 import { Button, Banner, StateBlock } from '../components/ui.jsx';
 
@@ -51,7 +51,13 @@ export function Account() {
         : <span className="avatar" style={{ width: 56, height: 56, fontSize: 20 }}>{letter}</span>}
       <div className="grow"><h2>{name}</h2><div className="small text-2">{currentUser.email}</div><span className="badge badge-success"><ShieldCheck size={12}/> Đã đăng nhập bằng Google</span></div>
     </section>
-    <div className="card-flat small text-2">Lịch sử đánh giá, đóng góp và yêu cầu quản lý sẽ chỉ hiển thị khi được kết nối dữ liệu thật. Không hiển thị dữ liệu mô phỏng.</div>
+    <section className="card stack-sm">
+      <h3>Địa điểm và yêu cầu xác minh</h3>
+      <p className="small text-2">Xem hồ sơ đã gửi, phản hồi Admin và địa điểm được cấp quyền. Dữ liệu lấy từ tài khoản Google hiện tại.</p>
+      <Link className="btn btn-outline btn-block" to="/yeu-cau-nhan-quyen"><FileCheck2 size={17}/> Yêu cầu nhận quyền</Link>
+      <Link className="btn btn-outline btn-block" to="/quan-ly"><BadgeCheck size={17}/> Địa điểm của tôi</Link>
+    </section>
+    <div className="card-flat small text-2">Quyền chủ địa điểm chỉ có sau khi Admin xác minh; đăng nhập Google không tự cấp quyền.</div>
     <Button variant="outline" icon={LogOut} onClick={logout}>Đăng xuất</Button>
   </div>;
 }

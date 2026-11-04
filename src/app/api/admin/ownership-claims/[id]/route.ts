@@ -20,7 +20,7 @@ export async function GET(_:Request,{params}:{params:Promise<{id:string}>}){
         WHERE claim_id=${id} ORDER BY created_at,id LIMIT 100`,
       sql`SELECT id,created_at FROM public.ownership_claim_evidence_images
         WHERE claim_id=${id} ORDER BY created_at,id LIMIT 10`,
-      sql`SELECT m.user_id,m.role,m.status,u.display_name,u.email
+      sql`SELECT m.user_id,m.role,m.status,m.version,m.granted_at,u.display_name,u.email
         FROM public.place_managers m JOIN public.users u ON u.id=m.user_id
         WHERE m.place_id=${claim.place_id} ORDER BY m.granted_at DESC`,
     ]);

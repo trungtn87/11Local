@@ -8,6 +8,7 @@ import { DiscoveryHome } from './pages/DiscoveryHome.jsx';
 import { Login, Account } from './pages/Auth.jsx';
 import { Contribute, ContributionTracking } from './pages/Contribute.jsx';
 import { ExistingPlaceFeedback } from './pages/ExistingPlaceFeedback.jsx';
+import { ClaimRequestPage, MyOwnershipPage, ManagedPlacesPage } from './pages/Ownership.jsx';
 
 const publicPage = (page, options) => <PublicShell {...options}>{page}</PublicShell>;
 
@@ -40,8 +41,9 @@ export default function App() {
       <Route path="/dong-gop" element={publicPage(<Contribute />)}/>
       <Route path="/theo-doi" element={publicPage(<ContributionTracking />)}/>
       <Route path="/bao-sai/:id" element={publicPage(<ExistingPlaceFeedback />)}/>
-      <Route path="/nhan-quyen/:id" element={publicPage(<NotAvailable title="Nhận quyền quản lý đang hoàn thiện" />)}/>
-      <Route path="/quan-ly/*" element={publicPage(<NotAvailable title="Quản lý địa điểm đang hoàn thiện" />)}/>
+      <Route path="/nhan-quyen/:id" element={publicPage(<ClaimRequestPage />)}/>
+      <Route path="/yeu-cau-nhan-quyen" element={publicPage(<MyOwnershipPage />)}/>
+      <Route path="/quan-ly/*" element={publicPage(<ManagedPlacesPage />)}/>
       <Route path="*" element={publicPage(<NotAvailable title="Không tìm thấy trang" />)}/>
     </Routes>
     <Toasts />

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   BadgeCheck, Camera, ChevronLeft, ChevronRight, Edit3, Flag, ImageOff, Images,
-  Info, MapPin, Navigation, Phone, Star, X,
+  Info, MapPin, Navigation, Phone, Star, Store, X,
 } from "lucide-react";
 import { getGoogleMapsDirectionsUrl } from "../../../places/google-maps";
 import { ownershipMessage } from "../../../places/public-place-format";
@@ -141,7 +141,13 @@ export function PlaceDetailPanel({ place, onClose, mode = "map" }) {
             <Link to={'/bao-sai/'+encodeURIComponent(detail.slug)+'?loai=photo'} onClick={onClose}><Camera size={15}/> Gửi ảnh</Link>
           </div>
 
-          <p className="local-detail-note">Thông tin và hình ảnh công khai đã qua kiểm duyệt 11Local.</p>
+          {detail.place_kind === 'business' && <div className="local-detail-owner-callout">
+              <div><Store size={20}/><span><strong>Bạn là chủ địa điểm này?</strong><small>Đăng nhập Google và gửi yêu cầu để Admin xác minh.</small></span></div>
+              <Link to={'/nhan-quyen/'+encodeURIComponent(detail.slug)} onClick={onClose}>
+                Yêu cầu nhận quyền quản lý
+              </Link>
+            </div>}
+            <p className="local-detail-note">Thông tin và hình ảnh công khai đã qua kiểm duyệt 11Local.</p>
         </div>
       </aside>
     </div>

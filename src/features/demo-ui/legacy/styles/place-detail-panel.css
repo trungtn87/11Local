@@ -100,3 +100,11 @@
 .local-detail-community-actions{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
 .local-detail-community-actions a{display:inline-flex;align-items:center;gap:5px;border:1px solid #cbded6;border-radius:10px;padding:10px 12px;color:#17684b;text-decoration:none;font-size:13px;font-weight:600}
 .local-detail-community-actions a:hover{background:#e8f9f1}
+
+/* 11Local OWN-02: claim management entry for real business places. */
+.local-detail-owner-callout{border:1px solid #cce7dc;border-radius:14px;padding:14px;background:#f4faf7;display:grid;gap:12px}
+.local-detail-owner-callout>div{display:flex;align-items:flex-start;gap:10px;color:#126e5a}
+.local-detail-owner-callout strong{display:block;font-size:13px;color:#214b3e}
+.local-detail-owner-callout small{display:block;font-size:11px;margin-top:3px;color:#667e73;line-height:1.5}
+.local-detail-owner-callout>a{display:flex;align-items:center;justify-content:center;padding:11px 13px;border-radius:9px;background:#0f766e;color:white;font-size:13px;font-weight:800;text-decoration:none}
+.local-detail-owner-callout>a:hover{background:#115e59}
