@@ -163,12 +163,21 @@ export default function ReviewApp() {
     fetch("/api/admin/session", { cache: "no-store" }).then(res => res.json())
       .then(data => setAuth(Boolean(data.authenticated))).catch(() => setAuth(false));
   }, []);
-  useEffect(() => { if (auth) void loadList(filter); }, [auth, filter, loadList]);
   useEffect(() => {
-    if (auth && selectedId) void loadDetail(selectedId);
-    else { setDetail(null); setDraft(null); }
+    if (!auth) return;
+    let cancelled = false;
+    void Promise.resolve().then(() => { if (!cancelled) return loadList(filter); });
+    return () => { cancelled = true; };
+  }, [auth, filter, loadList]);
+  useEffect(() => {
+    if (!auth || !selectedId) return;
+    let cancelled = false;
+    void Promise.resolve().then(() => { if (!cancelled) return loadDetail(selectedId); });
+    return () => { cancelled = true; };
   }, [auth, selectedId, loadDetail]);
-  const select = (id: string) => { setSelectedId(id); setOutcome(null); };
+  const select = (id: string) => {
+    setSelectedId(id); setOutcome(null); setDetail(null); setDraft(null);
+  };
   const change = (key: keyof ReviewPlace, value: ReviewPlace[keyof ReviewPlace]) => {
     setDraft(current => current ? { ...current, [key]: value } : null);
     setDirty(true); setNotice("");
@@ -259,7 +268,7 @@ export default function ReviewApp() {
     </div>
     <div className={styles.tabs} role="group" aria-label="Lọc trạng thái">
       {statuses.map(status => <button key={status.value} type="button" onClick={() => {
-        setFilter(status.value); setSelectedId(null); setOutcome(null);
+        setFilter(status.value); setSelectedId(null); setDetail(null); setDraft(null); setOutcome(null);
       }} data-active={filter === status.value}>{status.label}</button>)}
     </div>
     {error && <div className={styles.alert} role="alert">{error}</div>}
