@@ -359,13 +359,14 @@ export function ManagedPlacesPage(){
         <div className="ownership-managed-card-top"><Store size={24}/><span className="badge badge-success"><BadgeCheck size={13}/> Đang có quyền</span></div>
         <h2>{place.name}</h2><p>{place.address||place.area||'Cao Bằng'}</p>
         <small>Vai trò: {place.role==='owner'?'Chủ địa điểm':'Người quản lý'}</small>
+        <a href={"/thong-ke/"+encodeURIComponent(place.id)} className="btn btn-outline btn-sm">Thống kê địa điểm</a>
         <Link to={"/quan-ly/"+encodeURIComponent(place.id)} className="btn btn-primary btn-sm">Quản lý địa điểm <ArrowRight size={15}/></Link>
         <Link to={placeHref(place.slug)} className="btn btn-outline btn-sm">Xem trang địa điểm</Link>
       </article>)}</div>:<StateBlock title="Chưa có địa điểm được cấp quyền"
         actions={<Link to="/yeu-cau-nhan-quyen" className="btn btn-primary">Theo dõi hồ sơ xác minh</Link>}>
         Bạn có thể yêu cầu nhận quyền từ trang chi tiết một địa điểm đang công khai.
       </StateBlock>)}
-    {state.status==='ready'&&state.places.length>0&&<Banner type="info">Gửi yêu cầu và xác minh chủ quán đã có. Màn chỉnh sửa thông tin, ảnh và giờ mở cửa sẽ được kết nối trong Bước 3.</Banner>}
+    {state.status==='ready'&&state.places.length>0&&<Banner type="info">Bạn có thể xem thống kê, cập nhật thông tin, gửi ảnh và quản lý menu của địa điểm được cấp quyền.</Banner>}
     <Link className="ownership-back" to="/yeu-cau-nhan-quyen"><FileCheck2 size={16}/> Xem các yêu cầu nhận quyền</Link>
   </div>;
 }
