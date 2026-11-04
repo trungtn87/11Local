@@ -21,7 +21,7 @@ export function useResults() {
         if (error.name !== 'AbortError') setData({ status: 'error', places: [] });
       });
     return () => ctrl.abort();
-  }, [version]);
+  }, [version, initialPlacesState]);
 
   const list = useMemo(
     () => filterRealPlaces(data.places, filters, geoPosition),
