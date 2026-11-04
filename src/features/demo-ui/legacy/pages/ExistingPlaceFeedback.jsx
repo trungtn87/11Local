@@ -30,7 +30,11 @@ const errors={
   PHOTO_REQUIRED:'Hãy chọn ít nhất một ảnh.',
   RATE_LIMITED:'Đã vượt giới hạn gửi đóng góp trong 24 giờ.',
   PLACE_NOT_PUBLIC:'Địa điểm đã ẩn hoặc không còn công khai.',
-  CONTRIBUTION_UNAVAILABLE:'Không lưu được đóng góp. Vui lòng thử lại.',
+  CONTRIBUTION_UNAVAILABLE:'Không lưu được đóng góp vào cơ sở dữ liệu. Vui lòng thử lại.',
+  INVALID_ORIGIN:'Máy chủ từ chối địa chỉ gửi. Vui lòng tải lại trang.',
+  REQUEST_TOO_LARGE:'Tổng dung lượng ảnh vượt giới hạn tải lên.',
+  INVALID_PLACE:'Mã địa điểm không hợp lệ.',
+  INVALID_INPUT:'Dữ liệu đóng góp không hợp lệ.',
 };
 export function ExistingPlaceFeedback(){
   const {id:slug}=useParams();
@@ -89,10 +93,17 @@ export function ExistingPlaceFeedback(){
       }));
       if(type==='photo')photos.forEach(p=>form.append('photos',p));
       const response=await fetch('/api/contributions/existing',{method:'POST',body:form});
-      const body=await response.json();
-      if(!response.ok)throw Error(body.error||'CONTRIBUTION_UNAVAILABLE');
+      const body=await response.json().catch(()=>null);
+      if(!response.ok){
+        const code=body?.error || (response.status===413?'REQUEST_TOO_LARGE':`HTTP_${response.status}`);
+        throw Error(code);
+      }
+      if(!body?.trackingUrl)throw Error('INVALID_RESPONSE');
       navigate(body.trackingUrl,{replace:true});
-    }catch(e){setError(errors[e.message]||'Không gửi được đóng góp. Vui lòng kiểm tra thông tin.');}
+    }catch(e){
+      const code=e instanceof Error?e.message:'UNKNOWN_ERROR';
+      setError(errors[code]||`Không gửi được đóng góp (lỗi ${code}). Vui lòng thử lại.`);
+    }
     finally{setBusy(false);}
   };
   if(loading)return <div className="container page"><p role="status">Đang tải địa điểm…</p></div>;
