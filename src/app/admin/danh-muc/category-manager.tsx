@@ -7,6 +7,7 @@ import {
   LogOut, Mountain, Plus, Save, ShoppingBag, Utensils, Wrench,
 } from "lucide-react";
 import styles from "./categories.module.css";
+import CategoryFieldsManager from "./category-fields-manager";
 
 type Category = {
   id: string;
@@ -267,8 +268,10 @@ export default function CategoryManager() {
               <Save size={16}/>{busy ? "Đang lưu…" : creating ? "Tạo danh mục" : "Lưu thay đổi"}
             </button>
           </form>}
-        <p className={styles.footnote}>Trường thông tin đặc thù cho từng danh mục sẽ được quản lý ở bước 2.</p>
+        <p className={styles.footnote}>Chọn danh mục để quản lý các trường thông tin đặc thù ở phía dưới. Không xóa dữ liệu địa điểm khi ẩn danh mục hoặc trường.</p>
       </section>
     </div>
+    {selectedId && !creating && <CategoryFieldsManager key={selectedId} categoryId={selectedId}
+      categoryName={categories.find(item => item.id === selectedId)?.name || selectedId}/>}
   </main>;
 }
