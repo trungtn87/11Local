@@ -248,12 +248,15 @@ export default function AdminApp() {
   </main>;
 
   return <main className={styles.shell}>
-    <header><div><h1>11Local Admin</h1><span>Quản lý địa điểm thật · Neon V2</span></div>
-      <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
-        <Link href="/admin/dong-gop" className={styles.secondary}>Kiểm duyệt đóng góp</Link>
+    <header><div><h1>11Local Admin</h1><span>Quản lý địa điểm thật · Neon V2</span>
+        <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+          <Link href="/admin/danh-muc" className={styles.secondary}>Quản lý danh mục</Link>
+          <Link href="/admin/dong-gop" className={styles.secondary}>Kiểm duyệt đóng góp</Link>
+        </div>
+      </div>
       <button type="button" className={styles.secondary} onClick={async () => {
         await fetch("/api/admin/session", { method: "DELETE" }); setAuth(false);
-      }}><LogOut size={16}/>Đăng xuất</button></div>
+      }}><LogOut size={16}/>Đăng xuất</button>
     </header>
     <div className={styles.stats}>
       <b>{places.length}<small>Địa điểm</small></b>

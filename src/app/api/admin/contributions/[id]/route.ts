@@ -82,6 +82,8 @@ export async function PATCH(request: Request, { params }: Context) {
       if (!current) throw new Error("NOT_FOUND");
       if (!canReview(current.moderation_status)) throw new Error("ALREADY_REVIEWED");
       if (Number(current.version) !== body.expectedVersion) throw new Error("STALE_VERSION");
+      // Keep validation consistent with Admin category field changes.
+      await tx`SELECT pg_advisory_xact_lock(110, hashtext(${place.categoryId}))`;
       const [category] = await tx`SELECT id FROM public.categories WHERE id=${place.categoryId}`;
       if (!category) throw new Error("INVALID_CATEGORY");
       const defs = await tx`SELECT field_key, field_type, label, options, is_required

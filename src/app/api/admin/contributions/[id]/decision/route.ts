@@ -48,6 +48,8 @@ export async function POST(request: Request, { params }: Context) {
       // Serialize publication so two reviewers cannot accidentally create the
       // same nearby name concurrently, even for different contributions.
       await tx`SELECT pg_advisory_xact_lock(11100002)`;
+      // Match category-schema locking used by other Admin place writers.
+      await tx`SELECT pg_advisory_xact_lock(110, hashtext(${place.categoryId}))`;
       const [category] = await tx`SELECT id FROM public.categories
         WHERE id=${place.categoryId} AND visibility='visible' LIMIT 1`;
       if (!category) throw new Error("INVALID_CATEGORY");

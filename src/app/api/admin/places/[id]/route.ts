@@ -17,6 +17,8 @@ export async function PUT(request: Request, { params }: Context) {
     }
     const sql = db();
     const place = await sql.begin(async (tx) => {
+      // Serialize place writes with changes to their category field schema.
+      await tx`SELECT pg_advisory_xact_lock(110, hashtext(${input.categoryId}))`;
       const [before] = await tx`SELECT * FROM public.places WHERE id=${id} FOR UPDATE`;
       if (!before) throw new Error("NOT_FOUND");
       if (Number(before.version) !== input.expectedVersion) throw new Error("STALE_VERSION");
