@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import {
   DEFAULT_DISCORD_GROUP_SETTINGS, DISCORD_GROUPS, fallbackDiscordGroup,
-  type DiscordGroup, type DiscordGroupSettings, type DiscordSettings,
+  type DiscordGroup, type DiscordSettings,
 } from "@/lib/discord-settings";
 import styles from "./discord-settings.module.css";
 
@@ -60,7 +60,6 @@ export default function DiscordSettingsApp() {
   const [unauthorized, setUnauthorized] = useState(false);
 
   const refresh = useCallback(async (preserveNotice = false) => {
-    setLoading(true);
     try {
       const response = await fetch("/api/admin/discord", { cache: "no-store" });
       if (response.status === 401) {
@@ -152,7 +151,7 @@ export default function DiscordSettingsApp() {
           <h1>Thông báo Discord</h1>
           <p>Quản lý các sự kiện cần Admin xử lý. Không cần sửa biến môi trường để bật/tắt từng nhóm.</p>
         </div>
-        <button type="button" className={styles.outline} onClick={() => void refresh()} disabled={loading || Boolean(working)}>
+        <button type="button" className={styles.outline} onClick={() => { setLoading(true); void refresh(); }} disabled={loading || Boolean(working)}>
           <RefreshCw size={16}/> Làm mới
         </button>
       </div>
