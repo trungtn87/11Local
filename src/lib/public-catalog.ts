@@ -40,14 +40,18 @@ export async function getPublicPlaces(slug?: string) {
   })))) as Record<string, unknown>[];
 }
 
+async function getPublicCategories() {
+  return db()`SELECT id, name, icon, sort_order
+              FROM categories WHERE visibility = 'visible'
+              ORDER BY sort_order, name`;
+}
+
 export async function getPublicBootstrap() {
-  // An unavailable Neon database should render an error state, not a 500 or an
-  // endless splash screen. Public pages never fall back to fabricated data.
+  // Synchronous configuration failures must also become rejected promises.
+  // Public pages never fall back to fabricated data.
   const [placesResult, categoriesResult] = await Promise.allSettled([
     getPublicPlaces(),
-    db()`SELECT id, name, icon, sort_order
-         FROM categories WHERE visibility = 'visible'
-         ORDER BY sort_order, name`,
+    getPublicCategories(),
   ]);
   if (placesResult.status === "rejected") {
     console.error("11Local SSR places query failed", placesResult.reason);
