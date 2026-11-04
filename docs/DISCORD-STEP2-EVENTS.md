@@ -38,6 +38,10 @@ xác minh, dữ liệu ảnh hoặc lý do quyết định vào Discord.
 - Các thông báo trong giai đoạn tính năng tắt không được backfill tự động,
   tránh bắn hàng loạt thông báo cũ lúc mới bật.
 
+## Lưu ý triển khai
+
+Khi một sự kiện được ghi vào outbox, message sẽ chỉ đến Discord sau lần gọi dispatcher thành công. Việc tạo hàng đợi không tự kích hoạt tác vụ nền trên Render Free; cần cron/timer độc lập để đạt thông báo gần thời gian thực.
+
 ## Nghiệm thu
 
 1. Áp dụng migration 0014 lên database **11Local** (không phải AutoTrade).
