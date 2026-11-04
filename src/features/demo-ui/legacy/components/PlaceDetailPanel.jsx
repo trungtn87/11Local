@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  BadgeCheck, Camera, ChevronLeft, Edit3, Flag, ImageOff, Images,
+  BadgeCheck, Camera, ChevronLeft, ChevronRight, Edit3, Flag, ImageOff, Images,
   Info, MapPin, Navigation, Phone, Star, X,
 } from "lucide-react";
 import { getGoogleMapsDirectionsUrl } from "../../../places/google-maps";
