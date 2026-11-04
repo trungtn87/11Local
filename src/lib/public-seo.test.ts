@@ -1,0 +1,62 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {
+  absolutePublicUrl, placeDescription, placeMetadata,
+  placeStructuredData, publicSiteOrigin, safeJsonLd,
+} from "./public-seo.ts";
+import type { PublishedPlaceDetail } from "./public-place-detail.ts";
+
+const place = {
+  id: "cc000000-0000-4000-8000-000000000001",
+  slug: "pac-bo",
+  name: "Pác Bó",
+  summary: "Di tích lịch sử ở Cao Bằng",
+  description: "Miêu tả công khai",
+  area: "Hà Quảng",
+  address: "Trường Hà, Hà Quảng",
+  category_name: "Danh lam",
+  place_kind: "attraction",
+  latitude: 22.973,
+  longitude: 106.0,
+  rating_avg: 4.5,
+  rating_count: 2,
+  photos: [{ id: "cc000000-0000-4000-8000-000000000002", alt: null, caption: null }],
+} as PublishedPlaceDetail;
+
+test("canonical and OG use same URL with approved photo", () => {
+  const prev = process.env.SITE_URL;
+  process.env.SITE_URL = "https://11local.vn/some-extra-path";
+  try {
+    const meta = placeMetadata(place);
+    assert.equal(meta.alternates?.canonical, "https://11local.vn/dia-diem/pac-bo");
+    assert.equal(meta.openGraph?.url, "https://11local.vn/dia-diem/pac-bo");
+    assert.match(JSON.stringify(meta.openGraph), /api\\/place-photos\\//);
+    assert.equal(publicSiteOrigin(), "https://11local.vn");
+  } finally {
+    if (prev === undefined) delete process.env.SITE_URL;
+    else process.env.SITE_URL = prev;
+  }
+});
+
+test("metadata and structured rating never invent unapproved imagery or reviews", () => {
+  const unpublishedReviewCount = { ...place, rating_count: 0, photos: [] };
+  const metadata = placeMetadata(unpublishedReviewCount);
+  assert.equal(metadata.twitter?.card, "summary");
+  assert.equal(placeStructuredData(unpublishedReviewCount).aggregateRating, undefined);
+  assert.equal(placeStructuredData(unpublishedReviewCount).image, undefined);
+  assert.match(placeDescription(unpublishedReviewCount), /Di tích lịch sử/);
+});
+
+test("JSON-LD escapes contributor-controlled HTML and canonical rejects unsafe origin", () => {
+  const previous = process.env.SITE_URL;
+  process.env.SITE_URL = "javascript:evil";
+  try {
+    assert.equal(absolutePublicUrl("/dia-diem/pac-bo"), "https://one1local-web.onrender.com/dia-diem/pac-bo");
+  } finally {
+    if (previous === undefined) delete process.env.SITE_URL;
+    else process.env.SITE_URL = previous;
+  }
+  const serialized = safeJsonLd({ description: "</script><script>alert(1)</script>" });
+  assert.doesNotMatch(serialized, /<\\/script>/i);
+  assert.match(serialized, /\\\\u003c/);
+});
