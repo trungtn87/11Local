@@ -19,10 +19,11 @@ export async function GET(_request: Request, { params }: Context) {
   try {
     const sql = db();
     const [contribution] = await sql`SELECT * FROM public.contributions
-      WHERE id=${id} AND kind='new_place' LIMIT 1`;
+      WHERE id=${id} LIMIT 1`;
     if (!contribution) return fail("NOT_FOUND", 404);
-    const hasPublishedPlace = contribution.moderation_status === "approved" && Boolean(contribution.place_id);
-    const [photos, categories, fields, publishedPlace] = await Promise.all([
+    const isNewPlace = contribution.kind === "new_place";
+    const hasPublishedPlace = isNewPlace && contribution.moderation_status === "approved" && Boolean(contribution.place_id);
+    const [photos, categories, fields, publishedPlace, existingPlace, messages] = await Promise.all([
       hasPublishedPlace
         ? sql`SELECT id, (photo_type='cover') AS is_cover, sort_order,
             true AS published
@@ -33,13 +34,18 @@ export async function GET(_request: Request, { params }: Context) {
       sql`SELECT id, name, visibility FROM public.categories ORDER BY sort_order, name`,
       sql`SELECT category_id, field_key, field_type, label, options, is_required, help_text, sort_order
         FROM public.category_fields WHERE is_visible=true ORDER BY category_id, sort_order, field_key`,
-      hasPublishedPlace ? sql`SELECT slug, name FROM public.places WHERE id=${contribution.place_id} LIMIT 1`
+      contribution.place_id ? sql`SELECT slug, name FROM public.places WHERE id=${contribution.place_id} LIMIT 1`
         : Promise.resolve([]),
+      !isNewPlace && contribution.place_id ? sql`SELECT id,slug,name,version,address,area,description,summary,phone,
+          opening_hours,website_url,price_note FROM public.places WHERE id=${contribution.place_id} LIMIT 1`
+        : Promise.resolve([]),
+      sql`SELECT id,sender,body,created_at FROM public.contribution_messages
+        WHERE contribution_id=${id} ORDER BY created_at,id LIMIT 100`,
     ]);
     const payload = contribution.payload as Record<string, unknown>;
     const lat = Number(payload.latitude), lng = Number(payload.longitude);
     let nearby: { id: string; slug: string; name: string; distanceMeters: number }[] = [];
-    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    if (isNewPlace && Number.isFinite(lat) && Number.isFinite(lng)) {
       const candidates = await sql`SELECT id, slug, name, latitude, longitude FROM public.places
         WHERE moderation_status='approved'
           AND latitude BETWEEN ${lat - 0.01} AND ${lat + 0.01}
@@ -54,7 +60,8 @@ export async function GET(_request: Request, { params }: Context) {
       }));
     }
     return NextResponse.json({
-      contribution, photos, categories, fields, nearby,
+      contribution, photos, categories, fields, nearby, messages,
+      existingPlace: existingPlace[0] ?? null,
       publishedPlace: publishedPlace[0] ?? null,
     }, { headers: noCache });
   } catch (error) {
