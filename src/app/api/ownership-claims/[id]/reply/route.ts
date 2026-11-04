@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {db} from "@/lib/db";
 import {getCurrentUser} from "@/lib/user-auth";
 import {isUuid,parseClaimReply,sameOrigin} from "@/lib/ownership-input";
+import {enqueueBusinessDiscordInTx} from "@/lib/discord-business-events";
 export const runtime="nodejs";export const dynamic="force-dynamic";
 type Context={params:Promise<{id:string}>};
 const headers={"Cache-Control":"no-store"};
@@ -31,6 +32,7 @@ export async function POST(request:Request,{params}:Context){
         WHERE id=${id} RETURNING version`;
       await tx`INSERT INTO public.moderation_logs(actor_user_id,entity_type,entity_id,action,reason)
         VALUES (${user.id},'ownership_claim',${id},'claimant_replied','Applicant submitted more information')`;
+      await enqueueBusinessDiscordInTx(tx,"ownership.reply",id,Number(changed.version));
       return {id,status:"pending",version:Number(changed.version)};
     });
     return NextResponse.json(result,{headers});

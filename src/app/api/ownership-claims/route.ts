@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {db} from "@/lib/db";
 import {getCurrentUser} from "@/lib/user-auth";
 import {isUuid,parseClaimInput,sameOrigin} from "@/lib/ownership-input";
+import {enqueueBusinessDiscordInTx} from "@/lib/discord-business-events";
 export const runtime="nodejs"; export const dynamic="force-dynamic";
 const headers={"Cache-Control":"no-store"};
 const fail=(error:string,status:number)=>NextResponse.json({error},{status,headers});
@@ -50,6 +51,7 @@ export async function POST(request:Request){
         (actor_user_id,entity_type,entity_id,action,reason,after_data)
         VALUES (${user.id},'ownership_claim',${claim.id},'submitted','Google user requested place management',
           ${tx.json({placeId:input.placeId,status:claim.status,relationship:input.relationship})})`;
+      await enqueueBusinessDiscordInTx(tx,"ownership.claimed",String(claim.id),Number(claim.version));
       return {id:claim.id,status:claim.status,version:Number(claim.version),createdAt:claim.created_at};
     });
     return NextResponse.json(result,{status:201,headers});

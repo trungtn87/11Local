@@ -4,6 +4,7 @@ import sharp from "sharp";
 import {db} from "@/lib/db";
 import {isPlaceId,checkOrigin} from "@/lib/owner-management-input";
 import {ownerSession,requireOwnerPlace,errorStatus,noStore} from "@/lib/owner-management-server";
+import {enqueueBusinessDiscordInTx} from "@/lib/discord-business-events";
 
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
@@ -53,6 +54,7 @@ export async function POST(request:Request,{params}:Context){
         action,reason,after_data)
         VALUES (${user.id},'photo',${photoId},'owner_submitted',
           'Owner uploaded photo for Admin review',${tx.json({placeId:id,bytes:contents.length})})`;
+      await enqueueBusinessDiscordInTx(tx,"owner.photo",String(photo.id));
       return {photo};
     });
     return NextResponse.json(result,{status:201,headers:noStore});

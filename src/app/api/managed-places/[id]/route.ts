@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {db} from "@/lib/db";
 import {isPlaceId,parseOwnerEdit,checkOrigin} from "@/lib/owner-management-input";
 import {ownerSession,requireOwnerPlace,noStore,errorStatus,MAX_JSON_BYTES} from "@/lib/owner-management-server";
+import {enqueueBusinessDiscordInTx} from "@/lib/discord-business-events";
 
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
@@ -73,6 +74,7 @@ export async function PATCH(request:Request,{params}:Context){
         VALUES (${user.id},'place_revision',${revision.id},'owner_submitted',
           'Owner proposed a moderated place edit',
           ${tx.json({placeId:id,baseVersion:input.expectedVersion,keys:Object.keys(changes)})})`;
+      await enqueueBusinessDiscordInTx(tx,"owner.revision",String(revision.id));
       return {revision};
     });
     return NextResponse.json(result,{status:201,headers:noStore});

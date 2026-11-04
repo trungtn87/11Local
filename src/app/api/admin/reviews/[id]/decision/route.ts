@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { isReviewUuid, parseReviewDecision } from "@/lib/review-input";
+import { enqueueBusinessDiscordInTx } from "@/lib/discord-business-events";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -72,6 +73,10 @@ export async function POST(request: Request, { params }: Context) {
           ${reason},
           ${tx.json({ status: review.moderation_status, version: review.version })},
           ${tx.json({ status, revisionId: decision.revisionId, version: Number(review.version) + 1 })})`;
+      await enqueueBusinessDiscordInTx(tx,
+        decision.action === "hide" ? "moderation.review.hide" :
+        status === "approved" ? "moderation.review.approved" : "moderation.review.rejected",
+        id, Number(review.version) + 1);
       return { id, revisionId: decision.revisionId, status, version: Number(review.version) + 1 };
     });
     return NextResponse.json(result, { headers });

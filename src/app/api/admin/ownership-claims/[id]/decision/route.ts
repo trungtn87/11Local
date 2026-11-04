@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {db} from "@/lib/db";
 import {isAdmin} from "@/lib/admin-auth";
 import {isUuid,canReview,parseClaimDecision,sameOrigin,ClaimStatus} from "@/lib/ownership-input";
+import {enqueueBusinessDiscordInTx} from "@/lib/discord-business-events";
 export const runtime="nodejs";export const dynamic="force-dynamic";
 type Context={params:Promise<{id:string}>};
 const headers={"Cache-Control":"no-store"};
@@ -78,6 +79,10 @@ export async function POST(request:Request,{params}:Context){
           ${tx.json({status:claim.status,version:claim.version})},
           ${tx.json({status:next,version:Number(changed.version),placeId:claim.place_id,
             userId:claim.user_id,reviewMethod:decision.reviewMethod})})`;
+      const eventType=next==="approved"?"moderation.ownership.approved":
+        next==="rejected"?"moderation.ownership.rejected":
+        next==="disputed"?"moderation.ownership.disputed":"moderation.ownership.needs_info";
+      await enqueueBusinessDiscordInTx(tx,eventType,id,Number(changed.version));
       return {id,status:next,version:Number(changed.version),placeId:claim.place_id};
     });
     return NextResponse.json(result,{headers});

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/user-auth";
 import { isReviewUuid, parseReviewInput, parseReviewPagination } from "@/lib/review-input";
+import { enqueueBusinessDiscordInTx } from "@/lib/discord-business-events";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -112,6 +113,7 @@ export async function POST(request: Request) {
         (actor_user_id,entity_type,entity_id,action,reason,after_data)
         VALUES (${user.id},'review',${review.id},'submitted',
           'Google user submitted rating',${tx.json({ placeId, stars: input.stars, status: "pending" })})`;
+      await enqueueBusinessDiscordInTx(tx, "review.created", String(review.id), Number(review.version));
       return { id: review.id, version: Number(review.version), status: "pending" };
     });
     return NextResponse.json(result, { status: 201, headers });

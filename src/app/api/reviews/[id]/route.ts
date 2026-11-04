@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/user-auth";
 import { isReviewUuid, parseReviewEdit } from "@/lib/review-input";
+import { enqueueBusinessDiscordInTx } from "@/lib/discord-business-events";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -65,6 +66,7 @@ export async function PATCH(request: Request, { params }: Context) {
         VALUES (${user.id},'review',${id},'edited','Google user edited rating',
           ${tx.json({ status: review.moderation_status, version: review.version })},
           ${tx.json({ status, stars: input.stars, pendingRevisionId: revisionId })})`;
+      await enqueueBusinessDiscordInTx(tx, "review.edited", id, Number(review.version) + 1);
       return { id, status, pendingRevisionId: revisionId, version: Number(review.version) + 1 };
     });
     return NextResponse.json(result, { headers });

@@ -5,6 +5,7 @@ import {db} from "@/lib/db";
 import {parseContributorReply} from "@/lib/contribution-existing";
 import {processContributionPhotos,MAX_REQUEST_BYTES} from "@/lib/contribution-media";
 import {consumeContributionLimit} from "@/lib/contribution-limit";
+import {enqueueBusinessDiscordInTx} from "@/lib/discord-business-events";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 const fail=(error:string,status:number)=>NextResponse.json({error},{status,headers:{"Cache-Control":"no-store"}});
@@ -50,6 +51,7 @@ export async function POST(request:Request) {
         (entity_type,entity_id,action,reason,after_data)
         VALUES ('contribution',${item.id},'contributor_replied','Contributor replied to Admin',
           ${tx.json({version:changed.version,photoCount:photos.length})})`;
+      await enqueueBusinessDiscordInTx(tx,"contribution.reply",String(item.id),Number(changed.version));
       return {status:"pending",version:Number(changed.version)};
     });
     return NextResponse.json(result,{headers:{"Cache-Control":"no-store"}});

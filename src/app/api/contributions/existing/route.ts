@@ -6,6 +6,7 @@ import {getCurrentUser} from "@/lib/user-auth";
 import {parseExistingFeedback} from "@/lib/contribution-existing";
 import {processContributionPhotos,MAX_REQUEST_BYTES} from "@/lib/contribution-media";
 import {consumeContributionLimit} from "@/lib/contribution-limit";
+import {enqueueBusinessDiscordInTx} from "@/lib/discord-business-events";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 const fail=(error:string,status:number)=>NextResponse.json({error},{status,headers:{"Cache-Control":"no-store"}});
@@ -51,6 +52,9 @@ export async function POST(request:Request) {
           (id,contribution_id,sort_order,is_cover,mime_type,contents)
           VALUES (${photoId},${row.id},${i},false,'image/webp',${photos[i]})`;
       }
+      const eventType=input.kind==="report"?"contribution.report":
+        input.kind==="edit_place"?"contribution.edit_place":"contribution.photo";
+      await enqueueBusinessDiscordInTx(tx,eventType,String(row.id));
       return {trackingCode,trackingUrl:"/theo-doi?token="+encodeURIComponent(token),status:"pending",photoCount:photos.length};
     });
     return NextResponse.json(result,{status:201,headers:{"Cache-Control":"no-store"}});

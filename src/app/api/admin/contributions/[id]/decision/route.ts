@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { canReview, contributionSlug, isUuid, parseReviewDecision } from "@/lib/contribution-review";
 import { isPossibleDuplicate } from "@/lib/contribution-input";
 import { validatePlaceDetails } from "@/lib/place-extra-fields";
+import { enqueueBusinessDiscordInTx } from "@/lib/discord-business-events";
 
 type Context = { params: Promise<{ id: string }> };
 const noCache = { "Cache-Control": "no-store" };
@@ -41,6 +42,9 @@ export async function POST(request: Request, { params }: Context) {
           VALUES ('contribution',${id},${nextStatus},${decision.note},
             ${tx.json({status: current.moderation_status,version: current.version})},
             ${tx.json({status: nextStatus,version: updated.version})})`;
+        await enqueueBusinessDiscordInTx(tx,
+          nextStatus === "rejected" ? "moderation.contribution.rejected" : "moderation.contribution.needs_info",
+          id, Number(updated.version));
         return { status: nextStatus, version: updated.version, place: null };
       }
 
@@ -126,6 +130,7 @@ export async function POST(request: Request, { params }: Context) {
         VALUES ('place',${created.id},'created_from_contribution','Admin approved community contribution',
           ${tx.json({contributionId: id, name: created.name})})`;
       await tx`DELETE FROM public.contribution_photos WHERE contribution_id=${id}`;
+      await enqueueBusinessDiscordInTx(tx,"moderation.contribution.approved",id,Number(updated.version));
       return { status: "approved", version: updated.version, place: created };
     });
 
