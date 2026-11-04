@@ -2,7 +2,7 @@
 
 This PR provides the server-only Discord transport, Neon outbox, Admin test/history
 endpoints, and secret-authenticated dispatcher. **Business event producers, Admin
-settings screen, scheduled digest, and alert integrations are NOT part of step 1.**
+settings screen, daily digest (canceled by Owner), and alert integrations are NOT part of step 1.**
 No real Discord message is sent until an administrator provides a valid secret
 webhook URL, opts in, and explicitly sends a test or invokes the dispatcher.
 
@@ -30,8 +30,8 @@ SITE_URL=https://your-real-11local-domain.example
   e.g. generate with `openssl rand -hex 32`. Required for the worker endpoint.
 - `SITE_URL` is optional for delivery but recommended for links to Admin.
 - Configure secrets in Render/Nhân Hòa's secret manager. Never commit .env.
-- One webhook covers step 1; alert-specific webhook and daily report time
-  are scheduled for later steps.
+- One webhook covers step 1; alert-specific webhook is optional later.
+  Daily reports and digest scheduling were canceled by Owner.
 
 ## Authenticated operations
 

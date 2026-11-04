@@ -58,9 +58,18 @@ test("enabled notifications write only to supplied transaction, not Discord HTTP
     assert.match(seen, /ON CONFLICT \(event_key\) DO NOTHING/);
     assert.equal(args[0], `ownership.claimed:${ID}:2`);
     assert.equal(args[1], "ownership");
-    assert.equal(args[4], "/admin/xac-minh");
+    assert.equal(args[2], "ownership");
+    assert.equal(args[5], "/admin/xac-minh");
   } finally {
     if (previous === undefined) delete process.env.DISCORD_NOTIFICATIONS_ENABLED;
     else process.env.DISCORD_NOTIFICATIONS_ENABLED = previous;
   }
+});
+
+
+test("group mapping separates reviews, ownership, moderation and contributions", () => {
+  assert.equal(buildDiscordBusinessEvent("review.created", ID).group, "review");
+  assert.equal(buildDiscordBusinessEvent("owner.photo", ID).group, "contribution");
+  assert.equal(buildDiscordBusinessEvent("moderation.review.approved", ID).group, "moderation");
+  assert.equal(buildDiscordBusinessEvent("moderation.ownership.approved", ID).group, "ownership");
 });

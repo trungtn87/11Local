@@ -53,5 +53,5 @@ Khi một sự kiện được ghi vào outbox, message sẽ chỉ đến Discor
 6. Gọi dispatcher bằng Bearer token, kiểm tra Embed và link Admin.
 7. Kiểm tra chức năng đăng nhập, đăng địa điểm, đánh giá và xác minh vẫn hoạt động.
 
-Cài đặt bật/tắt **từng nhóm** trong giao diện Admin, báo cáo 20:00,
-cảnh báo hệ thống, gửi lại thủ công và cảnh báo giám sát sẽ triển khai các bước sau.
+Cài đặt bật/tắt **từng nhóm** trong giao diện Admin, gửi lại thủ công và
+cảnh báo giám sát triển khai các bước sau. Owner đã hủy báo cáo tự động 20:00.
