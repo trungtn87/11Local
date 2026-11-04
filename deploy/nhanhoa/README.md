@@ -26,7 +26,7 @@ This is a budget, not a measurement. 11Local's heap is intentionally capped at 3
    - `USER_SESSION_SECRET` (at least 32 characters)
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_CLIENT_SECRET`
-   - `SITE_URL` (**required for Admin moderation behind the proxy**; exact public HTTPS origin, e.g. `https://your-domain.example`, with no path. Do not use the container hostname, localhost, an old Render hostname, or a placeholder)
+   - `SITE_URL` (canonical public HTTPS origin, e.g. `https://11local.vn`; Docker also embeds this non-secret value in its runtime stage, but any Nhân Hòa runtime Environment value takes precedence. Update both the build argument and runtime Environment when changing domain)
    - `NEXT_PUBLIC_MAP_STYLE_URL` (optional build-time configuration)
 5. Configure an independent app port (example `3101` on localhost) and HTTPS reverse proxy. It must forward `Host`, `X-Forwarded-Proto`, `X-Forwarded-Host`; do not expose the Node port to the internet. Do not bind an AutoTrade port.
    **After switching the public URL, change `SITE_URL` in the 11Local runtime environment and redeploy.** Approval, ownership, reviews and menu writes reject browser `Origin` values different from `SITE_URL` (HTTP 403 `INVALID_ORIGIN`). Keep the origin check enabled; do not use client-supplied forwarded headers as an allowlist.
@@ -65,3 +65,7 @@ VIBE_EXTRA_APPS_JSON=[{"id":"11local","name":"11Local","resourcesUrl":"https://D
 Thay hostname ví dụ bằng domain thực tế do Vibe cấp. Không ghi URL webhook
 hoặc bí mật trong repository. Nếu chưa có URL, VPS Monitor mặc định vẫn
 hiển thị 11Local nhưng ghi `Chưa kết nối số liệu` và không tính thiếu vào tổng.
+
+### Origin / HTTP 403 troubleshooting
+
+If Admin returns `INVALID_ORIGIN` on moderation, check the browser's exact HTTPS hostname (`11local.vn` versus `www.11local.vn`) and the 11Local application's **runtime** `SITE_URL` setting. The Dockerfile now carries the public URL into the runner stage; the origin guard also accepts browser `Origin` matching the HTTP `Host` header (when forwarded unchanged by Nhân Hòa), without trusting user-supplied `X-Forwarded-Host`. Rebuild/redeploy the **11Local** project from latest main, not the VPS Monitor or AutoTrade projects. Do not disable CSRF checks. If the proxy forwards only internal Host and a wrong runtime SITE_URL, fix the runtime environment; app code cannot infer a trusted public hostname from untrusted forwarded headers.
