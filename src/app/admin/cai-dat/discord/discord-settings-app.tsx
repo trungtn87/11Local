@@ -82,7 +82,35 @@ export default function DiscordSettingsApp() {
     } finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  // Initial data arrives asynchronously; avoid setState in the synchronous effect body.
+  useEffect(() => {
+    let active = true;
+    void fetch("/api/admin/discord", { cache: "no-store" })
+      .then(async response => {
+        if (response.status === 401) {
+          throw new Error("Phiên Admin đã hết hạn. Vui lòng đăng nhập lại.");
+        }
+        if (!response.ok) {
+          throw new Error("Không thể tải cấu hình Discord. Kiểm tra migration 0014 và 0015 trên Neon.");
+        }
+        return await response.json() as ResponseData;
+      })
+      .then(body => {
+        if (!active) return;
+        setData(body);
+        setDraft({ enabled: body.settings.enabled, groups: { ...body.settings.groups },
+          version: body.settings.version });
+        setError("");
+      })
+      .catch(cause => {
+        if (!active) return;
+        const message = cause instanceof Error ? cause.message : "Không thể tải cấu hình.";
+        setUnauthorized(message.includes("Phiên Admin"));
+        setError(message);
+      })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
 
   const dirty = Boolean(data) && (
     draft.enabled !== data!.settings.enabled ||
