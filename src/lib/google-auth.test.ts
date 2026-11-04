@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { safeReturnTo, isValidGoogleIdentity, isGoogleAuthConfigured } from './google-auth.ts';
+import { safeReturnTo, isValidGoogleIdentity, isGoogleAuthConfigured, googleOAuthCallbackUrl } from './google-auth.ts';
 
 test('return destination stays on 11Local, including backslash and control attacks', () => {
   for (const path of ['//evil.example', '/\\evil.example', '/\n/evil.example', 'https://evil.example', null]) {
@@ -33,5 +33,20 @@ test('Google login requires all server configuration', () => {
     assert.equal(isGoogleAuthConfigured(), false);
   } finally {
     keys.forEach((key, index) => { if (saved[index] === undefined) delete process.env[key]; else process.env[key] = saved[index]; });
+  }
+});
+
+test('Google OAuth redirect URI uses public site despite internal Docker origin', () => {
+  const originalEnv = process.env.NODE_ENV;
+  const originalSite = process.env.SITE_URL;
+  try {
+    process.env.NODE_ENV = 'production';
+    process.env.SITE_URL = 'https://11local.vn';
+    assert.equal(googleOAuthCallbackUrl('https://0.0.0.0:3000'), 'https://11local.vn/api/auth/google/callback');
+    process.env.SITE_URL = 'http://0.0.0.0:3000';
+    assert.throws(() => googleOAuthCallbackUrl('https://0.0.0.0:3000'));
+  } finally {
+    if (originalEnv === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = originalEnv;
+    if (originalSite === undefined) delete process.env.SITE_URL; else process.env.SITE_URL = originalSite;
   }
 });

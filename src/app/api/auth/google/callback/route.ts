@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
 import { createUserSession, safeReturnTo, userCookie } from "@/lib/user-auth";
-import { OAUTH_STATE_COOKIE, isValidGoogleIdentity, type GoogleTokenInfo } from "@/lib/google-auth";
+import { OAUTH_STATE_COOKIE, googleOAuthCallbackUrl, isValidGoogleIdentity, type GoogleTokenInfo } from "@/lib/google-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
   }
   if (!equalState(state, savedState)) return loginRedirect(request, "invalid_state");
 
-  const redirectUri = new URL("/api/auth/google/callback", request.nextUrl.origin).toString();
+  const redirectUri = googleOAuthCallbackUrl(request.nextUrl.origin);
 
   try {
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
