@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
 import {db} from "@/lib/db";
 import {isAdmin} from "@/lib/admin-auth";
-import {isUuid,parseManagerDecision,sameOrigin} from "@/lib/ownership-input";
+import {isUuid,parseManagerDecision} from "@/lib/ownership-input";
 import {enqueueBusinessDiscordInTx} from "@/lib/discord-business-events";
 export const runtime="nodejs";export const dynamic="force-dynamic";
 type Context={params:Promise<{placeId:string}>};
@@ -9,7 +9,6 @@ const headers={"Cache-Control":"no-store"};
 const fail=(error:string,status:number)=>NextResponse.json({error},{status,headers});
 export async function POST(request:Request,{params}:Context){
   if(!await isAdmin()) return fail("UNAUTHORIZED",401);
-  if(!sameOrigin(request)) return fail("INVALID_ORIGIN",403);
   if(Number(request.headers.get("content-length")||0)>4000) return fail("REQUEST_TOO_LARGE",413);
   const {placeId}=await params;
   if(!isUuid(placeId)) return fail("NOT_FOUND",404);
