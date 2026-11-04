@@ -9,6 +9,7 @@ import {
 import { getGoogleMapsDirectionsUrl } from "../../../places/google-maps";
 import { ownershipMessage } from "../../../places/public-place-format";
 import { PlaceFactSections } from "./PlaceFactSections.jsx";
+import { PlaceReviews } from "./PlaceReviews.jsx";
 import "../styles/place-detail-panel.css";
 
 function PhotoGallery({ place, photos }) {
@@ -53,6 +54,7 @@ function PhotoGallery({ place, photos }) {
  */
 export function PlaceDetailPanel({ place, onClose, mode = "map" }) {
   const [state, setState] = useState({ status: "loading", detail: null });
+  const [reviewRating, setReviewRating] = useState(null);
   const closeButton = useRef(null);
   const countedViewId = useRef(null);
 
@@ -90,8 +92,8 @@ export function PlaceDetailPanel({ place, onClose, mode = "map" }) {
 
   const detail = state.detail || place;
   const photos = state.detail?.photos || [];
-  const ratingCount = Number(place.rating_count) || 0;
-  const ratingAvg = Number(place.rating_avg);
+  const ratingCount = Number(reviewRating?.ratingCount ?? place.rating_count) || 0;
+  const ratingAvg = Number(reviewRating?.ratingAvg ?? place.rating_avg);
   const hasRating = ratingCount > 0 && Number.isFinite(ratingAvg);
 
   return (
@@ -132,6 +134,7 @@ export function PlaceDetailPanel({ place, onClose, mode = "map" }) {
           </div>
 
           <PlaceFactSections place={detail} />
+          <PlaceReviews placeId={place.id} placeSlug={place.slug} onRatingChange={setReviewRating} />
           <div className="local-detail-community-actions">
             <Link to={'/bao-sai/'+encodeURIComponent(detail.slug)+'?loai=report'} onClick={onClose}><Flag size={15}/> Báo sai</Link>
             <Link to={'/bao-sai/'+encodeURIComponent(detail.slug)+'?loai=edit_place'} onClick={onClose}><Edit3 size={15}/> Đề xuất sửa</Link>
