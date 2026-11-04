@@ -27,13 +27,10 @@ export function PinMap({ latitude, longitude, onChange }: Props) {
   useEffect(() => {
     let cancelled = false;
     let instance: Map | null = null;
-
     async function createMap() {
-      // The raw OpenFreeMap style contains POIs such as homestays and shops.
-      // Use the same sanitized basemap as 11Local's public map.
+      // Sanitize POI labels: all public 11Local places must originate in Neon.
       const style = await loadCleanStyle(MAP_STYLE_URL);
       if (cancelled || !el.current) return;
-
       const start = latest.current;
       const m = new Map({
         container: el.current,
@@ -42,36 +39,26 @@ export function PinMap({ latitude, longitude, onChange }: Props) {
         zoom: 14,
       });
       instance = m;
-
-      // Defense in depth when the style request falls back to its original URL.
       m.once("load", () => {
         for (const layer of m.getStyle().layers ?? []) {
           if (isPoiLayer(layer as StyleLayer)) m.removeLayer(layer.id);
         }
       });
 
-      const pin = new Marker({ draggable: true })
-        .setLngLat([start.longitude, start.latitude])
-        .addTo(m);
-
-      function choosePosition(longitude: number, latitude: number) {
-        lastMapSelection.current = { longitude, latitude };
-        change.current(longitude, latitude);
-      }
-
-      pin.on("dragend", () => {
-        const p = pin.getLngLat();
-        choosePosition(p.lng, p.lat);
+      // Fixed centre pin: drag the MAP, not numeric fields or a far-away marker.
+      // Avoid click-to-set. This also permits navigating long distances easily.
+      const pin = new Marker({ draggable: false })
+        .setLngLat([start.longitude, start.latitude]).addTo(m);
+      pin.getElement().style.pointerEvents = "none";
+      m.on("move", () => { pin.setLngLat(m.getCenter()); });
+      m.on("dragend", () => {
+        const point = m.getCenter();
+        lastMapSelection.current = { longitude: point.lng, latitude: point.lat };
+        change.current(point.lng, point.lat);
       });
-      m.on("click", (event) => {
-        pin.setLngLat(event.lngLat);
-        choosePosition(event.lngLat.lng, event.lngLat.lat);
-      });
-
       map.current = m;
       marker.current = pin;
     }
-
     void createMap();
     return () => {
       cancelled = true;
@@ -85,16 +72,13 @@ export function PinMap({ latitude, longitude, onChange }: Props) {
     const m = map.current;
     const pin = marker.current;
     if (!m || !pin) return;
-    pin.setLngLat([longitude, latitude]);
-
-    const fromMap = lastMapSelection.current;
+    const fromDrag = lastMapSelection.current;
     lastMapSelection.current = null;
-    if (
-      fromMap &&
-      Math.abs(fromMap.latitude - latitude) < 0.0000001 &&
-      Math.abs(fromMap.longitude - longitude) < 0.0000001
-    ) return;
+    if (fromDrag &&
+      Math.abs(fromDrag.latitude - latitude) < 0.0000001 &&
+      Math.abs(fromDrag.longitude - longitude) < 0.0000001) return;
 
+    pin.setLngLat([longitude, latitude]);
     m.easeTo({
       center: [longitude, latitude],
       zoom: Math.max(m.getZoom(), 14),
