@@ -11,6 +11,8 @@ export const runtime="nodejs";
 export const dynamic="force-dynamic";
 const fail=(error:string,status:number)=>NextResponse.json({error},{status,headers:{"Cache-Control":"no-store"}});
 export async function POST(request:Request) {
+  const origin=request.headers.get("origin");
+  if(origin && origin!==new URL(request.url).origin) return fail("INVALID_ORIGIN",403);
   if(Number(request.headers.get("content-length")||0)>MAX_REQUEST_BYTES) return fail("REQUEST_TOO_LARGE",413);
   try {
     if(!await consumeContributionLimit(request)) return fail("RATE_LIMITED",429);
