@@ -1,23 +1,14 @@
 export const OAUTH_STATE_COOKIE = "11local_oauth_state";
 
-// The proxy may expose 0.0.0.0:3000 to Next.js. OAuth must use the
-// registered public HTTPS origin for both authorization and token exchange.
+// 11Local's production OAuth client is registered on this exact public origin.
+// Do not derive it from Docker, proxy headers, or a possibly malformed SITE_URL.
 export function googleOAuthOrigin(requestOrigin: string) {
-  if (process.env.NODE_ENV !== "production") return requestOrigin;
-  const configured = process.env.SITE_URL || "https://11local.vn";
-  const url = new URL(configured);
-  if (url.protocol !== "https:" || url.username || url.password ||
-      url.search || url.hash || url.pathname !== "/" || url.port ||
-      url.hostname === "0.0.0.0") {
-    throw new Error("SITE_URL must be a public HTTPS origin");
-  }
-  return url.origin;
+  return process.env.NODE_ENV === "production" ? "https://11local.vn" : requestOrigin;
 }
 
 export function googleOAuthCallbackUrl(requestOrigin: string) {
   return new URL("/api/auth/google/callback", googleOAuthOrigin(requestOrigin)).toString();
 }
-
 
 export function safeReturnTo(value: string | null | undefined) {
   if (!value || !value.startsWith("/") || /[\\\x00-\x20]/.test(value)) return "/tai-khoan";
