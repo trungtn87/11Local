@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
 import {db} from "@/lib/db";
 import {isAdmin} from "@/lib/admin-auth";
-import {isPlaceId,parseOwnerContentDecision,checkOrigin} from "@/lib/owner-management-input";
+import {isPlaceId,parseOwnerContentDecision} from "@/lib/owner-management-input";
 import {ownershipRole,noStore,errorStatus} from "@/lib/owner-management-server";
 import {enqueueBusinessDiscordInTx} from "@/lib/discord-business-events";
 export const runtime="nodejs";export const dynamic="force-dynamic";
@@ -9,7 +9,6 @@ type Context={params:Promise<{id:string}>};
 const fail=(error:string,status:number)=>NextResponse.json({error},{status,headers:noStore});
 export async function POST(request:Request,{params}:Context){
   if(!await isAdmin())return fail("UNAUTHORIZED",401);
-  if(!checkOrigin(request))return fail("INVALID_ORIGIN",403);
   if(Number(request.headers.get("content-length")||0)>3000)return fail("REQUEST_TOO_LARGE",413);
   const {id}=await params;
   if(!isPlaceId(id))return fail("NOT_FOUND",404);
