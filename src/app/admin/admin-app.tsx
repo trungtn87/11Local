@@ -248,9 +248,11 @@ export default function AdminApp() {
 
   return <main className={styles.shell}>
     <header><div><h1>11Local Admin</h1><span>Quản lý địa điểm thật · Neon V2</span></div>
+      <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
+        <a href="/admin/dong-gop" className={styles.secondary}>Kiểm duyệt đóng góp</a>
       <button type="button" className={styles.secondary} onClick={async () => {
         await fetch("/api/admin/session", { method: "DELETE" }); setAuth(false);
-      }}><LogOut size={16}/>Đăng xuất</button>
+      }}><LogOut size={16}/>Đăng xuất</button></div>
     </header>
     <div className={styles.stats}>
       <b>{places.length}<small>Địa điểm</small></b>

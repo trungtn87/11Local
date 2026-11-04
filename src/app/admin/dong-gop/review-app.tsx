@@ -20,7 +20,7 @@ type Contribution = {
   created_at: string; updated_at: string; decision_note: string | null;
   reviewed_at: string | null; version: number; place_id: string | null;
 };
-type Photo = { id: string; sort_order: number; is_cover: boolean };
+type Photo = { id: string; sort_order: number; is_cover: boolean; published: boolean };
 type Category = { id: string; name: string; visibility: "visible" | "hidden" };
 type CategoryField = {
   category_id: string; field_key: string; field_type: string; label: string;
@@ -28,7 +28,7 @@ type CategoryField = {
 };
 type Nearby = { id: string; slug: string; name: string; distanceMeters: number };
 type Detail = { contribution: Contribution; photos: Photo[]; categories: Category[];
-  fields: CategoryField[]; nearby: Nearby[] };
+  fields: CategoryField[]; nearby: Nearby[]; publishedPlace: { slug: string; name: string } | null };
 
 const statuses: { value: Filter; label: string }[] = [
   { value: "pending", label: "Chờ duyệt" },
@@ -75,36 +75,36 @@ function normalizeDraft(data: Record<string, unknown>): ReviewPlace {
 }
 const stamp = (value: string) => new Date(value).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
 
-function DynamicField({ field, value, onChange }: { field: CategoryField;
-  value: unknown; onChange: (next: unknown) => void }) {
+function DynamicField({ field, value, onChange, disabled = false }: { field: CategoryField;
+  value: unknown; onChange: (next: unknown) => void; disabled?: boolean }) {
   const label = field.label + (field.is_required ? " *" : "");
   const options = Array.isArray(field.options) ? field.options : [];
   const hint = field.help_text ? <small className={styles.hint}>{field.help_text}</small> : null;
   if (field.field_type === "boolean") return <label className={styles.field}>{label}
-    <select value={typeof value === "boolean" ? String(value) : ""}
+    <select disabled={disabled} value={typeof value === "boolean" ? String(value) : ""}
       onChange={e => onChange(e.target.value === "" ? undefined : e.target.value === "true")}>
       <option value="">Chưa rõ</option><option value="true">Có</option><option value="false">Không</option>
     </select>{hint}</label>;
   if (field.field_type === "select") return <label className={styles.field}>{label}
-    <select value={asText(value)} onChange={e => onChange(e.target.value || undefined)}>
+    <select disabled={disabled} value={asText(value)} onChange={e => onChange(e.target.value || undefined)}>
       <option value="">Chưa chọn</option>{options.map(o => <option key={o} value={o}>{o}</option>)}
     </select>{hint}</label>;
   if (field.field_type === "multi_select") {
     const selected = Array.isArray(value) ? value as string[] : [];
     return <div className={styles.field}><strong>{label}</strong>
-      <div className={styles.checks}>{options.map(o => <label key={o}><input type="checkbox"
+      <div className={styles.checks}>{options.map(o => <label key={o}><input type="checkbox" disabled={disabled}
         checked={selected.includes(o)} onChange={e => onChange(e.target.checked
           ? [...selected, o] : selected.filter(v => v !== o))}/>{o}</label>)}</div>{hint}
     </div>;
   }
   if (field.field_type === "long_text") return <label className={styles.field}>{label}
-    <textarea maxLength={5000} rows={3} value={asText(value)}
+    <textarea disabled={disabled} maxLength={5000} rows={3} value={asText(value)}
       onChange={e => onChange(e.target.value || undefined)}/>{hint}</label>;
   if (field.field_type === "number") return <label className={styles.field}>{label}
-    <input type="number" step="any" value={typeof value === "number" ? value : ""}
+    <input type="number" disabled={disabled} step="any" value={typeof value === "number" ? value : ""}
       onChange={e => onChange(e.target.value === "" ? undefined : Number(e.target.value))}/>{hint}</label>;
   return <label className={styles.field}>{label}
-    <input type={field.field_type === "url" ? "url" : "text"} maxLength={500}
+    <input disabled={disabled} type={field.field_type === "url" ? "url" : "text"} maxLength={500}
       value={asText(value)} onChange={e => onChange(e.target.value || undefined)}/>{hint}</label>;
 }
 
@@ -292,8 +292,9 @@ export default function ReviewApp() {
               <p>Gửi lúc {stamp(detail.contribution.created_at)} · Trạng thái: {
                 statuses.find(s => s.value === detail.contribution.moderation_status)?.label
               }</p></div>
-            {detail.contribution.place_id && <Link className={styles.external}
-              href={"/dia-diem/" + detail.contribution.place_id} target="_blank">Đã liên kết</Link>}
+            {detail.publishedPlace && <Link className={styles.external}
+              href={"/dia-diem/" + detail.publishedPlace.slug} target="_blank" rel="noopener noreferrer">
+              Xem địa điểm đã duyệt <ExternalLink size={14}/></Link>}
           </div>
           <form className={styles.form} onSubmit={save}>
             <div className={styles.sectionHeading}><h3>Thông tin đề xuất</h3>
@@ -344,7 +345,8 @@ export default function ReviewApp() {
               <p>Được lấy từ cấu hình trường dữ liệu hiện tại trên Neon.</p>
               <div className={styles.fields}>
                 {selectedFields.map(field => <DynamicField key={field.field_key} field={field}
-                  value={draft.details[field.field_key]} onChange={value => changeExtra(field.field_key, value)}/>)}
+                  disabled={!reviewable} value={draft.details[field.field_key]}
+                  onChange={value => changeExtra(field.field_key, value)}/>)}
               </div></div>}
             <div className={styles.mapSection}>
               <h3><MapPin size={17}/> Xác nhận vị trí</h3>
@@ -370,8 +372,10 @@ export default function ReviewApp() {
                 return <div key={photo.id} className={styles.photo} data-disabled={!enabled}>
                   {/* Admin session is required to load private staged photos. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={"/api/admin/contributions/" + detail.contribution.id + "/photos/" + photo.id}
-                    alt={"Ảnh chờ duyệt " + (photo.sort_order + 1)}/>
+                  <img src={photo.published
+                    ? "/api/place-photos/" + photo.id
+                    : "/api/admin/contributions/" + detail.contribution.id + "/photos/" + photo.id}
+                    alt={"Ảnh địa điểm " + (photo.sort_order + 1)}/>
                   <label><input type="checkbox" disabled={!reviewable}
                     checked={enabled} onChange={e => {
                       setIncluded(list => e.target.checked ? [...list, photo.id] : list.filter(v => v !== photo.id));

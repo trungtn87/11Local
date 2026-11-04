@@ -237,6 +237,8 @@ export function ContributionTracking() {
       <div><span className="small muted">Mã đóng góp</span><h2>{result.trackingCode}</h2></div>
       <div><span className="small muted">Địa điểm</span><p><strong>{result.placeName}</strong></p></div>
       <div className="contrib-track-status"><CheckCircle2 size={18}/><strong>{statusLabels[result.status] || result.status}</strong></div>
+      {result.decisionNote && <div className="card-flat small">Ghi chú của Admin: {result.decisionNote}</div>}
+      {result.placeSlug && <Link className="btn btn-primary btn-block" to={'/dia-diem/' + result.placeSlug}>Xem địa điểm đã duyệt</Link>}
       <p className="small muted">Chỉ Admin mới có thể duyệt và công khai địa điểm. Mã đóng góp không phải bằng chứng quyền sở hữu.</p>
       <button className="btn btn-primary btn-block" onClick={copy}><ClipboardCopy size={18}/> Sao chép liên kết theo dõi</button>
       {copyStatus && <p className="small" role="status">{copyStatus}</p>}

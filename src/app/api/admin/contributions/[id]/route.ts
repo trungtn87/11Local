@@ -21,12 +21,20 @@ export async function GET(_request: Request, { params }: Context) {
     const [contribution] = await sql`SELECT * FROM public.contributions
       WHERE id=${id} AND kind='new_place' LIMIT 1`;
     if (!contribution) return fail("NOT_FOUND", 404);
-    const [photos, categories, fields] = await Promise.all([
-      sql`SELECT id, is_cover, sort_order FROM public.contribution_photos
-        WHERE contribution_id=${id} ORDER BY sort_order, id`,
+    const hasPublishedPlace = contribution.moderation_status === "approved" && Boolean(contribution.place_id);
+    const [photos, categories, fields, publishedPlace] = await Promise.all([
+      hasPublishedPlace
+        ? sql`SELECT id, (photo_type='cover') AS is_cover, sort_order,
+            true AS published
+            FROM public.place_photos WHERE place_id=${contribution.place_id}
+            AND moderation_status='approved' ORDER BY sort_order, id`
+        : sql`SELECT id, is_cover, sort_order, false AS published
+            FROM public.contribution_photos WHERE contribution_id=${id} ORDER BY sort_order, id`,
       sql`SELECT id, name, visibility FROM public.categories ORDER BY sort_order, name`,
       sql`SELECT category_id, field_key, field_type, label, options, is_required, help_text, sort_order
         FROM public.category_fields WHERE is_visible=true ORDER BY category_id, sort_order, field_key`,
+      hasPublishedPlace ? sql`SELECT slug, name FROM public.places WHERE id=${contribution.place_id} LIMIT 1`
+        : Promise.resolve([]),
     ]);
     const payload = contribution.payload as Record<string, unknown>;
     const lat = Number(payload.latitude), lng = Number(payload.longitude);
@@ -47,6 +55,7 @@ export async function GET(_request: Request, { params }: Context) {
     }
     return NextResponse.json({
       contribution, photos, categories, fields, nearby,
+      publishedPlace: publishedPlace[0] ?? null,
     }, { headers: noCache });
   } catch (error) {
     console.error("Admin contribution detail failed", error);
