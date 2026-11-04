@@ -60,6 +60,7 @@ export function AppProvider({ children }) {
     filters, setFilters, resetFilters,
     categories, categoriesState, currentUser, setCurrentUser, authState,
     geo, setGeo, geoPosition, setGeoPosition, toasts, toast,
-  }), [filters, resetFilters, categories, categoriesState, currentUser, authState, geo, geoPosition, toasts, toast]);
+    initialPlaces, initialPlacesState,
+  }), [filters, resetFilters, categories, categoriesState, currentUser, authState, geo, geoPosition, toasts, toast, initialPlaces, initialPlacesState]);
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
