@@ -82,4 +82,22 @@ test("malformed Host never bypasses mismatched SITE_URL", () => {
     }
   });
 });
-\n// Validate deployment case without depending on the Node test runner process env.\ntest("production domain remains valid behind internal reverse proxy when SITE_URL is stale", () => {\n  withSiteUrl("https://one1local-web.onrender.com", () => {\n    const previous = process.env.NODE_ENV;\n    process.env.NODE_ENV = "production";\n    try {\n      assert.equal(isAllowedRequestOrigin(new Request("http://11local-app:3000/api/reviews", {\n        headers: { origin: "https://11local.vn", host: "11local-app:3000" },\n      })), true);\n      assert.equal(isAllowedRequestOrigin(new Request("http://11local-app:3000/api/reviews", {\n        headers: { origin: "https://attacker.example", host: "11local-app:3000" },\n      })), false);\n    } finally {\n      if (previous === undefined) delete process.env.NODE_ENV;\n      else process.env.NODE_ENV = previous;\n    }\n  });\n});\n
+
+// Validate deployment case without depending on the Node test runner process env.
+test("production domain remains valid behind internal reverse proxy when SITE_URL is stale", () => {
+  withSiteUrl("https://one1local-web.onrender.com", () => {
+    const previous = process.env.NODE_ENV;
+    process.env.NODE_ENV = "production";
+    try {
+      assert.equal(isAllowedRequestOrigin(new Request("http://11local-app:3000/api/reviews", {
+        headers: { origin: "https://11local.vn", host: "11local-app:3000" },
+      })), true);
+      assert.equal(isAllowedRequestOrigin(new Request("http://11local-app:3000/api/reviews", {
+        headers: { origin: "https://attacker.example", host: "11local-app:3000" },
+      })), false);
+    } finally {
+      if (previous === undefined) delete process.env.NODE_ENV;
+      else process.env.NODE_ENV = previous;
+    }
+  });
+});
