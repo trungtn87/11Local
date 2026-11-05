@@ -97,7 +97,21 @@ export async function PATCH(request: Request, { params }: Context) {
         field_key: String(row.field_key), field_type: String(row.field_type), label: String(row.label),
         options: row.options, is_required: Boolean(row.is_required),
       })));
-      const next = { ...place, details: valid };
+      // Research imports may not have a verified pin. Keep coordinates absent
+      // until an Admin explicitly positions the pin; never persist UI defaults.
+      const research = current.payload?._research as Record<string, unknown> | undefined;
+      const hasStoredPin = typeof current.payload?.latitude === "number" &&
+        typeof current.payload?.longitude === "number" &&
+        research?.coordinateConfirmed === true;
+      const newPinConfirmed = body.coordinateConfirmed === true;
+      const next = {
+        ...place, details: valid,
+        ...(research && !hasStoredPin && !newPinConfirmed
+          ? { latitude: undefined, longitude: undefined } : {}),
+        ...(research ? { _research: {
+          ...research, coordinateConfirmed: hasStoredPin || newPinConfirmed,
+        } } : {}),
+      };
       const [updated] = await tx`UPDATE public.contributions
         SET payload=${tx.json(next)}, version=version+1, updated_at=now()
         WHERE id=${id} RETURNING *`;

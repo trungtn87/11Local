@@ -54,6 +54,7 @@ const errors: Record<string, string> = {
   INVALID_FACEBOOK_URL: "Liên kết Facebook không hợp lệ.",
   INVALID_YOUTUBE_URL: "Liên kết YouTube không hợp lệ.",
   REVIEW_FAILED: "Không thể hoàn tất kiểm duyệt. Không có thay đổi nào được công khai.",
+  COORDINATES_REQUIRED: "Địa điểm nghiên cứu chưa có ghim được lưu và xác nhận. Hãy kéo ghim tới đúng vị trí, lưu chỉnh sửa rồi mới duyệt.",
   SAVE_FAILED: "Không thể lưu bản chỉnh sửa.",
   UNAUTHORIZED: "Phiên quản trị đã hết hạn.",
 };
@@ -124,6 +125,8 @@ export default function ReviewApp() {
   const [detail, setDetail] = useState<Detail | null>(null);
   const [draft, setDraft] = useState<ReviewPlace | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [coordinatePicked, setCoordinatePicked] = useState(false);
+  const [searchText, setSearchText] = useState("");
   const [included, setIncluded] = useState<string[]>([]);
   const [coverId, setCoverId] = useState<string | null>(null);
   const [note, setNote] = useState("");
@@ -159,6 +162,7 @@ export default function ReviewApp() {
       setDetail(result);
       setDraft(normalizeDraft(result.contribution.payload));
       setDirty(false);
+      setCoordinatePicked(false);
       setIncluded(result.photos.map(photo => photo.id));
       setCoverId(result.photos.find(photo => photo.is_cover)?.id ?? result.photos[0]?.id ?? null);
       setNote(result.contribution.decision_note || "");
@@ -204,6 +208,12 @@ export default function ReviewApp() {
   const selectedFields = detail?.fields.filter(f => f.category_id === draft?.categoryId) ?? [];
   const selectedCategory = detail?.categories.find(c => c.id === draft?.categoryId);
   const selectedPhotos = detail?.photos.filter(p => included.includes(p.id)) ?? [];
+  const research = current?.payload?._research as Record<string, unknown> | undefined;
+  const savedResearchPin = !research || (research.coordinateConfirmed === true &&
+    typeof current?.payload?.latitude === "number" &&
+    typeof current?.payload?.longitude === "number");
+  const visibleRows = rows.filter(row => [row.name, row.area, row.tracking_code]
+    .some(v => (v || "").toLocaleLowerCase("vi-VN").includes(searchText.trim().toLocaleLowerCase("vi-VN"))));
 
   const save = async (event: FormEvent) => {
     event.preventDefault();
@@ -212,12 +222,14 @@ export default function ReviewApp() {
     try {
       const res = await fetch("/api/admin/contributions/" + current.id, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ expectedVersion: current.version, place: draft }),
+        body: JSON.stringify({ expectedVersion: current.version, place: draft,
+          coordinateConfirmed: coordinatePicked }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "SAVE_FAILED");
       setDetail(old => old ? { ...old, contribution: data.contribution } : old);
-      setDirty(false); setNotice("Đã lưu thông tin đã chỉnh sửa vào hàng chờ. Chưa công khai địa điểm.");
+      setDirty(false); setCoordinatePicked(false);
+      setNotice("Đã lưu thông tin đã chỉnh sửa vào hàng chờ. Chưa công khai địa điểm.");
       await loadList(filter);
     } catch (e) { setError(describe((e as Error).message)); }
     finally { setBusy(false); }
@@ -225,6 +237,9 @@ export default function ReviewApp() {
   const decide = async (action: "approve" | "reject" | "needs_info") => {
     if (!current || !draft || !reviewable) return;
     if (action !== "approve" && note.trim().length < 5) { setError("Hãy nhập lý do ít nhất 5 ký tự."); return; }
+    if (action === "approve" && research && (!savedResearchPin || dirty)) {
+      setError("Hãy đặt ghim và lưu chỉnh sửa trước khi duyệt địa điểm nghiên cứu."); return;
+    }
     if (action === "approve" && selectedCategory?.visibility !== "visible") {
       setError("Danh mục đang ẩn. Hãy chuyển sang danh mục đang công khai."); return;
     }
@@ -288,8 +303,11 @@ export default function ReviewApp() {
     <div className={styles.main}>
       <aside className={styles.list}>
         <h2>Đóng góp {listBusy && <span>Đang tải…</span>}</h2>
-        {!rows.length && !listBusy && <p className={styles.empty}>Chưa có đóng góp trong nhóm này.</p>}
-        {rows.map(row => <button key={row.id} className={styles.listItem}
+        <input type="search" aria-label="Tìm trong hàng chờ" placeholder="Tìm tên, khu vực, mã nghiên cứu…"
+          value={searchText} onChange={event => setSearchText(event.target.value)}
+          style={{width:"100%",padding:10,marginBottom:8,border:"1px solid #d1dbd5",borderRadius:8}} />
+        {!visibleRows.length && !listBusy && <p className={styles.empty}>Không có địa điểm phù hợp.</p>}
+        {visibleRows.map(row => <button key={row.id} className={styles.listItem}
           data-active={selectedId === row.id} onClick={() => select(row.id)}>
           <div className={styles.listTitle}><strong>{row.name || "(Chưa có tên)"}</strong><ChevronRight size={16}/></div>
           <span>{kindLabels[row.kind] || row.kind} · {row.tracking_code} · {row.area || "Địa điểm cũ"}</span>
@@ -318,6 +336,21 @@ export default function ReviewApp() {
               href={"/dia-diem/" + detail.publishedPlace.slug} target="_blank" rel="noopener noreferrer">
               Xem địa điểm đã duyệt <ExternalLink size={14}/></Link>}
           </div>
+          {research && <section className={styles.warning}>
+            <strong>Địa điểm nghiên cứu — {String(research.priority ?? "Chưa xếp ưu tiên")}</strong>
+            <p>Chưa được xác minh hoặc công khai. Nguồn và thông tin bên dưới chỉ phục vụ kiểm duyệt.</p>
+            <p>{String(research.auditNotes ?? "")}</p>
+            {["source1","source2","googleSearchUrl","osmUrl"].map(key => {
+              const url = research[key];
+              return typeof url === "string" && url.startsWith("https://")
+                ? <p key={key}><a href={url} target="_blank" rel="noopener noreferrer">
+                    {key === "source1" ? "Nguồn 1" : key === "source2" ? "Nguồn 2" : key === "osmUrl" ? "OSM gợi ý" : "Tìm trên Google Maps"}
+                    <ExternalLink size={12}/></a></p>
+                : null;
+            })}
+            {Boolean(research.duplicateWarning) && <p><b>Nghi trùng:</b> {String(research.duplicateWarning)}</p>}
+            {!savedResearchPin && <p><b>Chưa có tọa độ được xác nhận.</b> Hãy đặt ghim thật, lưu chỉnh sửa rồi mới duyệt. Ghim hiện tại chỉ là vị trí xem bản đồ mặc định.</p>}
+          </section>}
           <form className={styles.form} onSubmit={save}>
             <div className={styles.sectionHeading}><h3>Thông tin đề xuất</h3>
               <span>{dirty ? "Có thay đổi chưa lưu" : "Thông tin đã lưu"}</span></div>
@@ -381,7 +414,7 @@ export default function ReviewApp() {
               <p>Giữ và kéo trực tiếp ghim xanh để chỉnh vị trí, hoặc nhập tọa độ thủ công. Kéo nền bản đồ không làm đổi tọa độ.</p>
               {reviewable
                 ? <LocationPicker key={detail.contribution.id} latitude={draft.latitude} longitude={draft.longitude}
-                    onChange={(longitude, latitude) => { setDraft(p => p ? { ...p, latitude, longitude } : p); setDirty(true); }}/>
+                    onChange={(longitude, latitude) => { setDraft(p => p ? { ...p, latitude, longitude } : p); setDirty(true); setCoordinatePicked(true); }}/>
                 : <div className={styles.coordinates}>Vĩ độ: {draft.latitude.toFixed(6)} · Kinh độ: {draft.longitude.toFixed(6)}</div>}
             </div>
             {detail.nearby.length > 0 && <div className={styles.warning}>
@@ -443,7 +476,7 @@ export default function ReviewApp() {
               <span>Tôi đã kiểm tra và xác nhận địa điểm này khác địa điểm trùng. (Cần ghi lý do)</span>
             </label>
             <div className={styles.actions}>
-              <button type="button" className={styles.approve} disabled={busy} onClick={() => void decide("approve")}>
+              <button type="button" className={styles.approve} disabled={busy || (!!research && (!savedResearchPin || dirty))} onClick={() => void decide("approve")}>
                 <Check size={18}/> Duyệt & công khai</button>
               <button type="button" className={styles.info} disabled={busy} onClick={() => void decide("needs_info")}>
                 Cần bổ sung</button>

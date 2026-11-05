@@ -48,6 +48,16 @@ export async function POST(request: Request, { params }: Context) {
 
       const place = decision.place;
       if (!place) throw new Error("INVALID_INPUT");
+      // Imported research items have no trusted coordinates. Approval requires
+      // a saved, explicitly confirmed pin; never publish the UI preview center.
+      const research = current.payload?._research as Record<string, unknown> | undefined;
+      if (research && (research.coordinateConfirmed !== true ||
+          typeof current.payload?.latitude !== "number" ||
+          typeof current.payload?.longitude !== "number" ||
+          current.payload.latitude !== place.latitude ||
+          current.payload.longitude !== place.longitude)) {
+        throw new Error("COORDINATES_REQUIRED");
+      }
 
       // Serialize publication so two reviewers cannot accidentally create the
       // same nearby name concurrently, even for different contributions.
@@ -111,7 +121,7 @@ export async function POST(request: Request, { params }: Context) {
           SELECT id,mime_type,contents FROM public.contribution_photos
           WHERE contribution_id=${id} AND id=${photoId}`;
       }
-      const reviewedPayload = { ...place, details };
+      const reviewedPayload = { ...place, details, ...(research ? { _research: research } : {}) };
       const [updated] = await tx`UPDATE public.contributions
         SET moderation_status='approved',place_id=${created.id},
           payload=${tx.json(reviewedPayload)},decision_note=${decision.note || null},
@@ -140,7 +150,7 @@ export async function POST(request: Request, { params }: Context) {
     if (["ALREADY_REVIEWED", "STALE_VERSION", "POSSIBLE_DUPLICATE"].includes(code))
       return fail(code, 409);
     if (code === "DUPLICATE_REASON_REQUIRED" || code === "INVALID_CATEGORY" ||
-        code === "INVALID_INPUT" || code === "INVALID_PHOTO_SELECTION" ||
+        code === "INVALID_INPUT" || code === "COORDINATES_REQUIRED" || code === "INVALID_PHOTO_SELECTION" ||
         code === "COVER_NOT_SELECTED" || code.startsWith("UNKNOWN_DETAIL_FIELD") ||
         code.startsWith("REQUIRED_DETAIL_FIELD") || code.startsWith("INVALID_DETAIL_FIELD"))
       return fail(code, 400);
