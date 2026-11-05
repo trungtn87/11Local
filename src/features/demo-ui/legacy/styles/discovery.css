@@ -88,6 +88,21 @@
 .home-stats strong { font-size:28px; color:var(--c-primary, #16856b); }
 .home-stats small { flex-basis:100%; text-align:center; }
 
+/* Home statistics belong to the content flow, not after the main min-height.
+   The page's existing bottom padding keeps them clear of the fixed mobile nav. */
+.discovery-home .home-stats {
+  margin: 0;
+  width: 100%;
+  max-width: none;
+  padding: 18px 16px;
+  gap: 12px;
+  border-radius: 16px;
+}
+.discovery-home .home-stats > div { min-width: 0; gap: 4px; }
+.discovery-home .home-stats strong { font-size: 25px; }
+.discovery-home .home-stats span { font-size: 13px; text-align: center; }
+
+
 
 /* Explore carousels: two fully visible cards on phones, four/five on desktop. */
 .discovery-rail-wrap { position: relative; min-width: 0; }

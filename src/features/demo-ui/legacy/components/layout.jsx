@@ -1,4 +1,3 @@
-import { HomeStats } from "@/components/home-stats";
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Compass, Map as MapIcon, PlusCircle, User } from 'lucide-react';
 import { Logo, SearchBar, Toasts } from './ui.jsx';
@@ -48,7 +47,6 @@ export function PublicShell({ children, hideFooter }) {
   return <>
     <Header />
     <main className="app-main" id="main" key={location.pathname}>{children}</main>
-    {location.pathname === "/" && <HomeStats />}
     {!hideFooter && <Footer />}
     <BottomNav />
   </>;
