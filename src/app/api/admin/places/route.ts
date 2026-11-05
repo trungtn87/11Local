@@ -13,6 +13,9 @@ export async function GET() {
   try {
     const rows = await db()`SELECT p.*, c.name AS category_name,
       COALESCE(d.details, '{}'::jsonb) AS details,
+      (SELECT ml.reason FROM public.moderation_logs ml
+        WHERE ml.entity_type='place' AND ml.entity_id=p.id AND ml.action='rejected'
+        ORDER BY ml.created_at DESC LIMIT 1) AS rejection_reason,
       (SELECT count(*)::int FROM place_photos ph WHERE ph.place_id=p.id) AS photo_count
       FROM public.places p
       JOIN public.categories c ON c.id=p.category_id
