@@ -348,7 +348,7 @@ export default function ReviewApp() {
                     <ExternalLink size={12}/></a></p>
                 : null;
             })}
-            {research.duplicateWarning && <p><b>Nghi trùng:</b> {String(research.duplicateWarning)}</p>}
+            {Boolean(research.duplicateWarning) && <p><b>Nghi trùng:</b> {String(research.duplicateWarning)}</p>}
             {!savedResearchPin && <p><b>Chưa có tọa độ được xác nhận.</b> Hãy đặt ghim thật, lưu chỉnh sửa rồi mới duyệt. Ghim hiện tại chỉ là vị trí xem bản đồ mặc định.</p>}
           </section>}
           <form className={styles.form} onSubmit={save}>
