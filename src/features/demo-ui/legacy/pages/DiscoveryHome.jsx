@@ -9,6 +9,7 @@ import { selectExplorePlaces, selectHotPlaces } from '../../../places/public-pla
 import { useApp } from '../store.jsx';
 import { CardSkeletons, StateBlock } from '../components/ui.jsx';
 import { RealPlaceCover } from '../components/RealPlaceCover.jsx';
+import { HomeStats } from "@/components/home-stats";
 
 const categoryIcons = { utensils: Utensils, coffee: Coffee, bed: BedDouble, mountain: Mountain, 'shopping-bag': ShoppingBag, wrench: Wrench };
 
@@ -70,6 +71,8 @@ export function DiscoveryHome() {
         <SectionHeading id="food-heading" title="🍜 Quán ăn, cafe tiêu biểu" />
         <PlacesState data={data} places={featuredFood} horizontal emptyMessage="Chưa có quán ăn hoặc cafe được công khai." />
       </section>
+
+      <HomeStats />
 
 
 
