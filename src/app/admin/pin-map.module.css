@@ -12,16 +12,28 @@
   height: 100%;
 }
 
-/* The tip points to the map center even while the map is moving. */
-.centerPin {
-  position: absolute;
-  z-index: 5;
-  top: 50%;
-  left: 50%;
-  width: 42px;
-  height: 52.5px;
-  max-width: none;
-  transform: translate(-50%, -100%);
-  pointer-events: none;
+/* A generous drag target on phones; the pin tip is anchored to the coordinates. */
+.draggablePin {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 56px;
+  height: 64px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
   filter: drop-shadow(0 3px 3px rgba(15, 23, 42, .4));
+}
+
+.draggablePin:active {
+  cursor: grabbing;
+}
+
+.draggablePin svg {
+  display: block;
+  width: 48px;
+  height: 60px;
+  max-width: none;
+  pointer-events: none;
 }

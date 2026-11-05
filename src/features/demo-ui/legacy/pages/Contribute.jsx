@@ -79,10 +79,10 @@ export function Contribute() {
   }, [form.name, pin.latitude, pin.longitude, pinSelected]);
 
   const locateMe = () => {
-    if (!navigator.geolocation) { setLocationError('Thiết bị không hỗ trợ GPS. Hãy kéo bản đồ để chọn vị trí.'); return; }
+    if (!navigator.geolocation) { setLocationError('Thiết bị không hỗ trợ GPS. Hãy kéo ghim trên bản đồ để chọn vị trí.'); return; }
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => setLocation(coords.longitude, coords.latitude),
-      () => setLocationError('Không lấy được GPS. Bạn vẫn có thể kéo bản đồ để đặt ghim.'),
+      () => setLocationError('Không lấy được GPS. Bạn vẫn có thể kéo trực tiếp ghim để chọn vị trí.'),
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 },
     );
   };
@@ -103,7 +103,7 @@ export function Contribute() {
 
   const submit = async event => {
     event.preventDefault();
-    if (!pinSelected) { setError('Hãy kéo bản đồ hoặc lấy vị trí GPS để xác nhận ghim địa điểm.'); return; }
+    if (!pinSelected) { setError('Hãy kéo ghim hoặc lấy vị trí GPS để xác nhận địa điểm.'); return; }
     if (!categories.some(category => category.id === form.categoryId)) { setError('Hãy chọn danh mục đang hiển thị.'); return; }
     setBusy(true); setError('');
     try {
@@ -150,10 +150,10 @@ export function Contribute() {
         <section className="stack-sm">
           <div className="row between contrib-map-title"><h2 className="contrib-section-title">Ghim vị trí <span className="req">*</span></h2>
             <button type="button" className="btn btn-outline btn-sm" onClick={locateMe}><LocateFixed size={16}/> Vị trí của tôi</button></div>
-          <p className="small muted">Kéo bản đồ để đưa ghim vào đúng vị trí. Không cần nhập tọa độ hay tìm kiếm trên bản đồ.</p>
+          <p className="small muted">Giữ và kéo trực tiếp ghim xanh đến đúng vị trí. Kéo nền để xem khu vực khác, không làm đổi vị trí ghim.</p>
           <div className="contrib-map"><PinMap latitude={pin.latitude} longitude={pin.longitude} onChange={setLocation}/></div>
           <div className={'contrib-pin-state ' + (pinSelected ? 'selected' : '')}>
-            {pinSelected ? <><CheckCircle2 size={17}/> Đã chọn vị trí địa điểm</> : <><MapPin size={17}/> Hãy kéo bản đồ để xác nhận vị trí ghim</>}
+            {pinSelected ? <><CheckCircle2 size={17}/> Đã chọn vị trí địa điểm</> : <><MapPin size={17}/> Hãy kéo ghim để xác nhận vị trí địa điểm</>}
           </div>
           {locationError && <p className="err-text" role="alert">{locationError}</p>}
           {checking && <p className="small muted" role="status">Đang kiểm tra địa điểm gần đây…</p>}
