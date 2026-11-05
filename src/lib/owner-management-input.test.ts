@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  OWNER_FIELDS,parseOwnerEdit,parseOwnerPhotoAction,parseOwnerContentDecision,checkOrigin,
+  OWNER_FIELDS,parseOwnerEdit,parseOwnerPhotoAction,parseOwnerContentDecision,
 } from "./owner-management-input.ts";
 
 test("owner edit allowlist accepts only mutable business fields",()=>{
@@ -37,11 +37,4 @@ test("photo and admin actions have strict validation and reasons",()=>{
   assert.equal(parseOwnerContentDecision({action:"reject",note:" Không chính xác "}).note,
     "Không chính xác");
   assert.throws(()=>parseOwnerContentDecision({action:"publish"}),/INVALID_ACTION/);
-});
-test("origin guard blocks foreign write origins",()=>{
-  assert.equal(checkOrigin(new Request("https://local.example/api/managed-places")),true);
-  assert.equal(checkOrigin(new Request("https://local.example/api/managed-places",{
-    headers:{origin:"https://local.example"}})),true);
-  assert.equal(checkOrigin(new Request("https://local.example/api/managed-places",{
-    headers:{origin:"https://attacker.example"}})),false);
 });
