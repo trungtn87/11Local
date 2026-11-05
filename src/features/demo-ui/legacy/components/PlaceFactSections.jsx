@@ -1,5 +1,6 @@
 "use client";
-import { Clock3, FileText, Globe, ListChecks, Tag } from "lucide-react";
+import { Clock3, Facebook, FileText, Globe, ListChecks, Tag, Youtube } from "lucide-react";
+import { safeSocialUrl } from "@/lib/place-social-links";
 import {
   formatFact, formatHours, formatPrice, safeUrl,
 } from "../../../places/public-place-format";
@@ -19,6 +20,8 @@ export function PlaceFactSections({ place }) {
     ? place.detail_fields.map(formatFact).filter(Boolean) : [];
   const tags = Array.isArray(place.tags) ? place.tags.filter(tag => typeof tag === "string") : [];
   const website = safeUrl(place.website_url);
+  const facebook = safeSocialUrl(place.facebook_url, "facebook");
+  const youtube = safeSocialUrl(place.youtube_url, "youtube");
   return <>
     {(opening.length > 0 || place.opening_hours) && <Section title="Giờ hoạt động" icon={Clock3}>
       {opening.length > 0
@@ -55,10 +58,18 @@ export function PlaceFactSections({ place }) {
       <div className="local-place-tags">{tags.map((tag,index) => <span key={index}>{tag}</span>)}</div>
     </Section>}
 
-    {website && <Section title="Website" icon={Globe}>
-      <a href={website} target="_blank" rel="noopener noreferrer" className="local-place-website">
-        {new URL(website).hostname}
-      </a>
+    {(website || facebook || youtube) && <Section title="Liên kết" icon={Globe}>
+      <div className="local-place-social-links">
+        {website && <a href={website} target="_blank" rel="noopener noreferrer">
+          <Globe size={17}/> Website
+        </a>}
+        {facebook && <a href={facebook} target="_blank" rel="noopener noreferrer">
+          <Facebook size={17}/> Facebook
+        </a>}
+        {youtube && <a href={youtube} target="_blank" rel="noopener noreferrer">
+          <Youtube size={17}/> YouTube
+        </a>}
+      </div>
     </Section>}
   </>;
 }
