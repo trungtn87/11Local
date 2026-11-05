@@ -167,7 +167,7 @@ export default function AdminApp() {
     event.preventDefault();
     if (!categories.length || catalogError) { setMessage("Chưa tải được danh mục từ Neon."); return; }
     if (coordinateDraftPending) { setMessage("Bạn đã sửa tọa độ. Hãy bấm Đặt ghim theo tọa độ trước khi lưu."); return; }
-    if (!pinSelected) { setMessage("Hãy kéo bản đồ hoặc nhập tọa độ rồi bấm Đặt ghim trước khi lưu."); return; }
+    if (!pinSelected) { setMessage("Hãy kéo ghim trên bản đồ hoặc nhập tọa độ rồi bấm Đặt ghim trước khi lưu."); return; }
     setBusy(true); setMessage("");
     try {
       const payload = { ...form,
@@ -361,7 +361,7 @@ export default function AdminApp() {
             </div>
           </>}
           <h3 className={styles.sectionTitle}><MapPin size={18}/> Vị trí trên bản đồ</h3>
-          {!pinSelected && <p className={styles.pinNotice}>Hãy kéo bản đồ hoặc nhập tọa độ thủ công rồi bấm Đặt ghim trước khi lưu.</p>}
+          {!pinSelected && <p className={styles.pinNotice}>Hãy kéo trực tiếp ghim hoặc nhập tọa độ thủ công rồi bấm Đặt ghim trước khi lưu.</p>}
           <LocationPicker key={selected?.id ?? "new"} latitude={form.latitude} longitude={form.longitude}
             onPendingChange={setCoordinateDraftPending}
             onChange={(longitude, latitude) => {
