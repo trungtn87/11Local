@@ -1,4 +1,4 @@
-import { parseSocialUrl } from "./place-social-links";
+import { parseSocialUrl } from "./place-social-links.ts";
 
 export type PlaceKind = "business" | "attraction" | "public_place";
 export type PlaceInput = {
