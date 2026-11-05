@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Map, Marker, setWorkerUrl, type StyleSpecification } from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
+import { Map, setWorkerUrl, type StyleSpecification } from "maplibre-gl";
+import styles from "./pin-map.module.css";
 import { MAP_STYLE_URL } from "@/features/map/map-config";
 import { isPoiLayer, loadCleanStyle, type StyleLayer } from "@/features/map/map-style";
 
@@ -16,7 +18,6 @@ type Props = {
 export function PinMap({ latitude, longitude, onChange }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<Map | null>(null);
-  const marker = useRef<Marker | null>(null);
   const change = useRef(onChange);
   const latest = useRef({ latitude, longitude });
   const lastMapSelection = useRef<{ latitude: number; longitude: number } | null>(null);
@@ -45,40 +46,36 @@ export function PinMap({ latitude, longitude, onChange }: Props) {
         }
       });
 
-      // Fixed centre pin: drag the MAP, not numeric fields or a far-away marker.
-      // Avoid click-to-set. This also permits navigating long distances easily.
-      const pin = new Marker({ draggable: false })
-        .setLngLat([start.longitude, start.latitude]).addTo(m);
-      pin.getElement().style.pointerEvents = "none";
-      m.on("move", () => { pin.setLngLat(m.getCenter()); });
-      m.on("dragend", () => {
+      // A fixed SVG overlay stays anchored to the visual map center.
+      // Wait for pan inertia to finish before saving the new center.
+      let dragged = false;
+      m.on("dragstart", () => { dragged = true; });
+      m.on("moveend", () => {
+        if (!dragged) return;
+        dragged = false;
         const point = m.getCenter();
         lastMapSelection.current = { longitude: point.lng, latitude: point.lat };
         change.current(point.lng, point.lat);
       });
       map.current = m;
-      marker.current = pin;
     }
     void createMap();
     return () => {
       cancelled = true;
       instance?.remove();
       map.current = null;
-      marker.current = null;
     };
   }, []);
 
   useEffect(() => {
     const m = map.current;
-    const pin = marker.current;
-    if (!m || !pin) return;
+    if (!m) return;
     const fromDrag = lastMapSelection.current;
     lastMapSelection.current = null;
     if (fromDrag &&
       Math.abs(fromDrag.latitude - latitude) < 0.0000001 &&
       Math.abs(fromDrag.longitude - longitude) < 0.0000001) return;
 
-    pin.setLngLat([longitude, latitude]);
     m.easeTo({
       center: [longitude, latitude],
       zoom: Math.max(m.getZoom(), 14),
@@ -86,5 +83,13 @@ export function PinMap({ latitude, longitude, onChange }: Props) {
     });
   }, [latitude, longitude]);
 
-  return <div ref={el} style={{ height: 360, borderRadius: 12, overflow: "hidden" }} />;
+  return (
+    <div className={styles.frame} role="group" aria-label="Bản đồ chọn vị trí, ghim ở giữa bản đồ">
+      <div ref={el} className={styles.map} />
+      <svg className={styles.centerPin} viewBox="0 0 48 60" aria-hidden="true" focusable="false">
+        <path d="M24 59C19 52 5 36 5 23a19 19 0 0 1 38 0c0 13-14 29-19 36Z" fill="#0f766e" stroke="#fff" strokeWidth="3" />
+        <circle cx="24" cy="23" r="7" fill="#fff" />
+      </svg>
+    </div>
+  );
 }
