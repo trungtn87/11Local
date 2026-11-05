@@ -1,17 +1,34 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Eye, MapPin } from 'lucide-react';
+
 export function HomeStats() {
-  const [stats, setStats] = useState<{places: number; visits: number} | null>(null);
+  const [stats, setStats] = useState<{ places: number; visits: number } | null>(null);
   const [error, setError] = useState(false);
+
   useEffect(() => {
     let alive = true;
-    const load = () => fetch('/api/stats').then(r => { if (!r.ok) throw new Error(); return r.json(); })
-      .then(body => { if (alive) { setStats(body); setError(false); } })
+    const load = () => fetch('/api/stats')
+      .then((response) => {
+        if (!response.ok) throw new Error('stats API failed');
+        return response.json();
+      })
+      .then((body) => {
+        if (alive) {
+          setStats(body);
+          setError(false);
+        }
+      })
       .catch(() => { if (alive) setError(true); });
     void load();
     window.addEventListener('11local:stats', load);
-    return () => { alive = false; window.removeEventLi  return (
+    return () => {
+      alive = false;
+      window.removeEventListener('11local:stats', load);
+    };
+  }, []);
+
+  return (
     <section className="home-stats" aria-label="11Local qua những con số">
       <div className="home-stats-metrics">
         <div className="home-stats-item home-stats-item--places">
