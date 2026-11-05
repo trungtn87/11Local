@@ -1,10 +1,6 @@
-import { isAllowedRequestOrigin } from "./request-origin.ts";
 export const SESSION_SECONDS = 30 * 60;
 export function isBot(userAgent: string) {
   return !userAgent || /bot|crawler|spider|slurp|headless|preview|lighthouse/i.test(userAgent);
-}
-export function sameOrigin(request: Request) {
-  return isAllowedRequestOrigin(request, true);
 }
 export function dateRange(params: URLSearchParams, now = new Date()) {
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(now);
