@@ -1,6 +1,6 @@
 import {NextResponse} from "next/server";
 import {db} from "@/lib/db";
-import {isPlaceId,checkOrigin,parseOwnerPhotoAction} from "@/lib/owner-management-input";
+import {isPlaceId,parseOwnerPhotoAction} from "@/lib/owner-management-input";
 import {ownerSession,requireOwnerPlace,errorStatus,noStore} from "@/lib/owner-management-server";
 
 export const runtime="nodejs";
@@ -8,7 +8,6 @@ export const dynamic="force-dynamic";
 type Context={params:Promise<{id:string;photoId:string}>};
 const fail=(error:string,status:number)=>NextResponse.json({error},{status,headers:noStore});
 export async function PATCH(request:Request,{params}:Context){
-  if(!checkOrigin(request))return fail("INVALID_ORIGIN",403);
   if(Number(request.headers.get("content-length")||0)>1500)return fail("REQUEST_TOO_LARGE",413);
   const user=await ownerSession();
   if(!user)return fail("LOGIN_REQUIRED",401);

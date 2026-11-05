@@ -2,7 +2,7 @@ import {randomUUID} from "node:crypto";
 import {NextResponse} from "next/server";
 import sharp from "sharp";
 import {db} from "@/lib/db";
-import {isPlaceId,checkOrigin} from "@/lib/owner-management-input";
+import {isPlaceId} from "@/lib/owner-management-input";
 import {ownerSession,requireOwnerPlace,errorStatus,noStore} from "@/lib/owner-management-server";
 import {enqueueBusinessDiscordInTx} from "@/lib/discord-business-events";
 
@@ -13,7 +13,6 @@ const fail=(error:string,status:number)=>NextResponse.json({error},{status,heade
 const LIMIT=10*1024*1024;
 const ACCEPTED=new Set(["image/jpeg","image/png","image/webp","image/avif"]);
 export async function POST(request:Request,{params}:Context){
-  if(!checkOrigin(request))return fail("INVALID_ORIGIN",403);
   if(Number(request.headers.get("content-length")||0)>LIMIT+100_000)
     return fail("REQUEST_TOO_LARGE",413);
   const user=await ownerSession();

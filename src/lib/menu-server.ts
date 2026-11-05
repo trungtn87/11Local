@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { isAdmin } from '@/lib/admin-auth';
 import { ownerSession, requireOwnerPlace, ownershipRole } from '@/lib/owner-management-server';
-import { sameOrigin } from '@/lib/analytics-policy';
 import { parseMenu, menuPhotoIds, positiveVersion, UUID, currentMenu, canEditMenuRevision, parseMenuDecision, assertMenuDecision } from '@/lib/menu-input';
 import type { MenuContent } from '@/lib/menu-input';
 export const noStore={'Cache-Control':'no-store'};
@@ -30,7 +29,6 @@ export async function checkMenuPhotos(tx:postgres.TransactionSql,id:string,conte
   if(rows.length!==ids.length)throw new Error('PHOTOS_NOT_APPROVED');
 }
 export async function readBody(request:Request){
-  if(!sameOrigin(request))throw new Error('FORBIDDEN');
   if(Number(request.headers.get('content-length')||0)>200_000)throw new Error('REQUEST_TOO_LARGE');
   const reader=request.body?.getReader();if(!reader)throw new Error('INVALID_JSON');
   let size=0;const chunks:Uint8Array[]=[];

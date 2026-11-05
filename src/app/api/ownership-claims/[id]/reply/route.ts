@@ -1,14 +1,13 @@
 import {NextResponse} from "next/server";
 import {db} from "@/lib/db";
 import {getCurrentUser} from "@/lib/user-auth";
-import {isUuid,parseClaimReply,sameOrigin} from "@/lib/ownership-input";
+import {isUuid,parseClaimReply} from "@/lib/ownership-input";
 import {enqueueBusinessDiscordInTx} from "@/lib/discord-business-events";
 export const runtime="nodejs";export const dynamic="force-dynamic";
 type Context={params:Promise<{id:string}>};
 const headers={"Cache-Control":"no-store"};
 const fail=(error:string,status:number)=>NextResponse.json({error},{status,headers});
 export async function POST(request:Request,{params}:Context){
-  if(!sameOrigin(request)) return fail("INVALID_ORIGIN",403);
   if(Number(request.headers.get("content-length")||0)>4000) return fail("REQUEST_TOO_LARGE",413);
   const user=await getCurrentUser();
   if(!user||!isUuid(user.id)) return fail("LOGIN_REQUIRED",401);

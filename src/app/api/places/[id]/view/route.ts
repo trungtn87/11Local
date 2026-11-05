@@ -6,7 +6,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   if (!UUID.test(id)) return NextResponse.json({ error: 'INVALID_PLACE_ID' }, { status: 400 });
   try {
     const result = await recordView(request, id);
-    const response = NextResponse.json(result.error ? { error: result.error } : { ok: true }, { status: result.status, headers: { 'Cache-Control': 'no-store' } });
+    const response = NextResponse.json({ ok: true }, { status: result.status, headers: { 'Cache-Control': 'no-store' } });
     if (result.token) response.cookies.set(visitCookie.name, result.token, visitCookie);
     return response;
   } catch (error) {

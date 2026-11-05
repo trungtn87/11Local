@@ -2,14 +2,13 @@ import {NextResponse} from "next/server";
 import sharp from "sharp";
 import {db} from "@/lib/db";
 import {getCurrentUser} from "@/lib/user-auth";
-import {isUuid,sameOrigin} from "@/lib/ownership-input";
+import {isUuid} from "@/lib/ownership-input";
 export const runtime="nodejs";export const dynamic="force-dynamic";
 type Context={params:Promise<{id:string}>};
 const headers={"Cache-Control":"no-store"};
 const fail=(error:string,status:number)=>NextResponse.json({error},{status,headers});
 const MAX_UPLOAD=8*1024*1024;
 export async function POST(request:Request,{params}:Context){
-  if(!sameOrigin(request)) return fail("INVALID_ORIGIN",403);
   if(Number(request.headers.get("content-length")||0)>MAX_UPLOAD+100_000)
     return fail("REQUEST_TOO_LARGE",413);
   const user=await getCurrentUser();

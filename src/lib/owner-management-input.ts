@@ -1,4 +1,3 @@
-import { isAllowedRequestOrigin } from "./request-origin.ts";
 /** OWN-03: owner-edit allowlist. No admin-only fields (slug, location, category, visibility). */
 import {isUuid} from "./ownership-input.ts";
 
@@ -60,6 +59,3 @@ export function parseOwnerContentDecision(value:unknown):{action:"approve"|"reje
   return {action:input.action,note:note.trim()};
 }
 export function isPlaceId(value:unknown):value is string{return isUuid(value);}
-export function checkOrigin(request:Request):boolean{
-  return isAllowedRequestOrigin(request);
-}
