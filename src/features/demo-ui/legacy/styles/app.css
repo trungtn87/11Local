@@ -30,7 +30,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .app-header { position: sticky; top: 0; z-index: 30; background: rgba(255,255,255,.94); backdrop-filter: blur(10px); border-bottom: 1px solid var(--c-border); }
 .app-header .container { display: flex; align-items: center; gap: var(--s-3); height: var(--header-h); }
 .logo { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 19px; color: var(--c-primary-800); letter-spacing: -.02em; text-decoration: none !important; flex: none; }
-.logo-mark { width: 32px; height: 32px; }
+.logo-mark { width: 35px; height: 41px; object-fit: contain; flex: none; }
 .logo em { font-style: normal; color: var(--c-primary-500); }
 .header-search { flex: 1; min-width: 0; }
 .header-nav { display: none; gap: var(--s-1); align-items: center; }
@@ -377,7 +377,7 @@ table.table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); m
 @media (max-width: 600px) {
   .app-header .container { gap: 8px; padding-left: 12px; padding-right: 12px; }
   .app-header .logo { font-size: 15px; gap: 5px; }
-  .app-header .logo-mark { width: 28px; height: 28px; }
+  .app-header .logo-mark { width: 29px; height: 34px; }
   .app-header .header-search { flex: 1; min-width: 0; }
   .app-header .searchbar { min-height: 38px; gap: 6px; padding-left: 10px; }
   .app-header .searchbar input { font-size: 13px; min-height: 36px; }

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import Image from 'next/image';
 import { Link } from 'react-router-dom';
 import { Search, X, TriangleAlert, WifiOff, Lock, Info, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../store.jsx';
@@ -7,12 +8,7 @@ import { useApp } from '../store.jsx';
 export function Logo({ to = '/' }) {
   return (
     <Link to={to} className="logo" aria-label="11Local — Trang chủ">
-      <svg className="logo-mark" viewBox="0 0 32 32" aria-hidden="true">
-        <rect width="32" height="32" rx="9" fill="#0f5f52" />
-        <path d="M3 24 L11 12 L16 19 L21 10 L29 24 Z" fill="#1d9684" />
-        <path d="M3 24 L11 12 L16 19 L10 24Z" fill="#14796a" />
-        <circle cx="24" cy="9" r="3" fill="#d9822b" />
-      </svg>
+      <Image className="logo-mark" src="/icon.svg" width={40} height={46} alt="" unoptimized />
       <span>11<em>Local</em></span>
     </Link>
   );

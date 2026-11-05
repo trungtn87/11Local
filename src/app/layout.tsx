@@ -23,6 +23,7 @@ export const metadata: Metadata = {
   title: "11Local | Khám phá Cao Bằng",
   description: "Cẩm nang địa điểm và trải nghiệm địa phương tại Cao Bằng.",
   alternates: { canonical: "/" },
+  icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }], apple: "/icon.svg" },
   openGraph: {
     type: "website", locale: "vi_VN", siteName: "11Local",
     title: "11Local | Khám phá Cao Bằng",
