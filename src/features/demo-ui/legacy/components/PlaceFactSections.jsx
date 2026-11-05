@@ -1,5 +1,5 @@
 "use client";
-import { Clock3, Facebook, FileText, Globe, ListChecks, Tag, Youtube } from "lucide-react";
+import { Clock3, ExternalLink, FileText, Globe, ListChecks, Tag } from "lucide-react";
 import { safeSocialUrl } from "@/lib/place-social-links";
 import {
   formatFact, formatHours, formatPrice, safeUrl,
@@ -64,10 +64,10 @@ export function PlaceFactSections({ place }) {
           <Globe size={17}/> Website
         </a>}
         {facebook && <a href={facebook} target="_blank" rel="noopener noreferrer">
-          <Facebook size={17}/> Facebook
+          <ExternalLink size={17}/> Facebook
         </a>}
         {youtube && <a href={youtube} target="_blank" rel="noopener noreferrer">
-          <Youtube size={17}/> YouTube
+          <ExternalLink size={17}/> YouTube
         </a>}
       </div>
     </Section>}
