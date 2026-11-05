@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { CAO_BANG_CAMERA, MAP_STYLE_URL } from "./map-config";
 import { isPoiLayer, loadCleanStyle, type StyleLayer } from "./map-style";
+import { attachPlaceLabelZoom } from "./marker-zoom";
 import styles from "./map-canvas.module.css";
 
 setWorkerUrl(
@@ -41,6 +42,7 @@ export function MapCanvas({ embedded = false, onReady, onMoveEnd }: MapCanvasPro
 
   useEffect(() => {
     let cancelled = false;
+    let detachLabels: (() => void) | null = null;
 
     async function createMap() {
       const style = await loadCleanStyle(MAP_STYLE_URL);
@@ -61,6 +63,7 @@ export function MapCanvas({ embedded = false, onReady, onMoveEnd }: MapCanvasPro
         pitchWithRotate: false,
       });
 
+      detachLabels = attachPlaceLabelZoom(map);
       map.addControl(new AttributionControl({ compact: true }), "bottom-right");
       map.touchZoomRotate.disableRotation();
       map.once("load", () => {
@@ -88,6 +91,7 @@ export function MapCanvas({ embedded = false, onReady, onMoveEnd }: MapCanvasPro
 
     return () => {
       cancelled = true;
+      detachLabels?.();
       mapRef.current?.remove();
       mapRef.current = null;
     };
