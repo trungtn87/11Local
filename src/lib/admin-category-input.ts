@@ -20,8 +20,8 @@ function text(value: unknown, key: string, max: number): string {
 }
 
 function icon(value: unknown): string {
-  const selected = text(value, "icon", 40);
-  if (!(CATEGORY_ICON_OPTIONS as readonly string[]).includes(selected)) throw new CategoryInputError("INVALID_ICON");
+  const selected = text(value, "icon", 48);
+  if (!(CATEGORY_ICON_OPTIONS as readonly string[]).includes(selected) && !/^custom:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(selected)) throw new CategoryInputError("INVALID_ICON");
   return selected;
 }
 

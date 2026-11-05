@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import Image from "next/image";
 import { BedDouble, Coffee, LocateFixed, MapPinOff, Mountain, Navigation, ShoppingBag, Star, Utensils, Wrench } from 'lucide-react';
 
 import { distanceProvider, formatApproximateDistance } from '../../../distance/distance-service';
@@ -71,7 +72,7 @@ export function DiscoveryHome() {
         <div className="cat-grid">
           {categories.filter((category) => category.enabled).map((category) => {
             const Icon = categoryIcons[category.icon] || Mountain;
-            return <button key={category.id} className="cat-item" onClick={() => openCategory(category.id)}><span className="ico"><Icon size={20} /></span>{category.label}</button>;
+            return <button key={category.id} className="cat-item" onClick={() => openCategory(category.id)}><span className="ico">{category.icon?.startsWith("custom:") ? <Image src={`/api/category-icons/${category.icon.slice(7)}`} alt="" width={24} height={24} unoptimized /> : <Icon size={20} />}</span>{category.label}</button>;
           })}
         </div>
       </section>
