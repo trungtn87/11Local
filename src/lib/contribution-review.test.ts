@@ -13,11 +13,14 @@ test("review draft accepts user-submitted place without requiring credentials", 
   const value = parseReviewPlace(valid);
   assert.equal(value.name, valid.name);
   assert.equal(value.websiteUrl, "");
+  assert.equal(value.facebookUrl, null);
+  assert.equal(parseReviewPlace({...valid, youtubeUrl:"https://youtu.be/xyz"}).youtubeUrl,"https://youtu.be/xyz");
   assert.equal(value.placeKind, "business");
 });
 test("review rejects unsafe website and excess text", () => {
   assert.throws(() => parseReviewPlace({ ...valid, websiteUrl: "javascript:alert(1)" }), /INVALID_WEBSITE_URL/);
   assert.throws(() => parseReviewPlace({ ...valid, summary: "a".repeat(351) }), /SUMMARY_TOO_LONG/);
+  assert.throws(() => parseReviewPlace({ ...valid, facebookUrl: "https://youtube.com/wrong" }), /INVALID_FACEBOOK_URL/);
 });
 test("approve only accepts a valid version, place and unique photo IDs", () => {
   const body = { action: "approve", expectedVersion: 1, place: valid, approvedPhotoIds: [id], coverPhotoId: id };
