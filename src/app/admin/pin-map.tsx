@@ -7,6 +7,7 @@ import styles from "./pin-map.module.css";
 import { MAP_STYLE_URL } from "@/features/map/map-config";
 import { isPoiLayer, loadCleanStyle, type StyleLayer } from "@/features/map/map-style";
 import { createPlaceMarkerElement } from "@/features/map/place-marker";
+import { attachPlaceLabelZoom } from "@/features/map/marker-zoom";
 import { parseMapReferencePlaces, type MapReferencePlace } from "@/features/map/map-reference-places";
 import "@/features/map/place-marker.css";
 
@@ -64,6 +65,7 @@ export function PinMap({ latitude, longitude, onChange, referencePlaces }: Props
   useEffect(() => {
     let cancelled = false;
     let instance: Map | null = null;
+    let detachLabels: (() => void) | null = null;
 
     async function createMap() {
       const style = await loadCleanStyle(MAP_STYLE_URL);
@@ -78,6 +80,7 @@ export function PinMap({ latitude, longitude, onChange, referencePlaces }: Props
         pitchWithRotate: false,
       });
       instance = m;
+      detachLabels = attachPlaceLabelZoom(m);
       m.touchZoomRotate.disableRotation();
       m.once("load", () => {
         for (const layer of m.getStyle().layers ?? []) {
@@ -106,6 +109,7 @@ export function PinMap({ latitude, longitude, onChange, referencePlaces }: Props
     void createMap();
     return () => {
       cancelled = true;
+      detachLabels?.();
       instance?.remove();
       setReadyMap(null);
       map.current = null;
