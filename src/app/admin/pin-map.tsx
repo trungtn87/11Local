@@ -129,12 +129,23 @@ export function PinMap({ latitude, longitude, onChange, referencePlaces }: Props
       try {
         let places = referencePlaces;
         if (places === undefined) {
-          const response = await fetch("/api/places", {
-            cache: "no-store", signal: controller.signal,
-          });
-          if (!response.ok) throw new Error("PLACES_UNAVAILABLE");
-          const body: unknown = await response.json();
-          places = parseMapReferencePlaces(body);
+          // A short retry handles transient API/Neon wake-up failures on the
+          // public contribution map, without showing an empty map as success.
+          for (let attempt = 0; attempt < 3; attempt++) {
+            try {
+              const response = await fetch("/api/places", {
+                cache: "no-store", signal: controller.signal,
+              });
+              if (!response.ok) throw new Error("PLACES_UNAVAILABLE");
+              const body: unknown = await response.json();
+              places = parseMapReferencePlaces(body);
+              break;
+            } catch (error) {
+              if (controller.signal.aborted || attempt === 2) throw error;
+              await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 350));
+              if (cancelled) return;
+            }
+          }
         }
         if (cancelled) return;
         for (const place of places) {
