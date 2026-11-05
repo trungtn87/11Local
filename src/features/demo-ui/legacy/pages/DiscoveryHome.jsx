@@ -72,7 +72,16 @@ export function DiscoveryHome() {
         <div className="cat-grid">
           {categories.filter((category) => category.enabled).map((category) => {
             const Icon = categoryIcons[category.icon] || Mountain;
-            return <button key={category.id} className="cat-item" onClick={() => openCategory(category.id)}><span className="ico">{category.icon?.startsWith("custom:") ? <Image src={`/api/category-icons/${category.icon.slice(7)}`} alt="" width={24} height={24} unoptimized /> : <Icon size={20} />}</span>{category.label}</button>;
+            return (
+              <button key={category.id} type="button" className="cat-item" onClick={() => openCategory(category.id)}>
+                <span className="ico" aria-hidden="true">
+                  {category.icon?.startsWith("custom:")
+                    ? <Image className="category-photo" src={`/api/category-icons/${category.icon.slice(7)}`} alt="" width={80} height={80} unoptimized />
+                    : <Icon size={36} />}
+                </span>
+                <span className="cat-label">{category.label}</span>
+              </button>
+            );
           })}
         </div>
       </section>
