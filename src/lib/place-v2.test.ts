@@ -22,6 +22,8 @@ test("defaults attractions to an attraction type and accepts basic V2 data", () 
 
 test("rejects unsafe URLs and invalid coordinates", () => {
   assert.throws(() => parsePlaceInput({ ...fixture(), websiteUrl: "javascript:alert(1)" }), /INVALID_WEBSITE_URL/);
+  assert.equal(parsePlaceInput({ ...fixture(), facebookUrl: "https://facebook.com/cb" }).facebookUrl, "https://facebook.com/cb");
+  assert.throws(() => parsePlaceInput({ ...fixture(), youtubeUrl: "https://evil.test/video" }), /INVALID_YOUTUBE_URL/);
   assert.throws(() => parsePlaceInput({ ...fixture(), latitude: null }), /INVALID_LATITUDE/);
   assert.throws(() => parsePlaceInput({ ...fixture(), longitude: "106" }), /INVALID_LONGITUDE/);
   assert.throws(() => parsePlaceInput({ ...fixture(), details: [] }), /INVALID_DETAILS/);
