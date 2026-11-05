@@ -81,8 +81,8 @@ export function DiscoveryHome() {
               <button key={category.id} type="button" className="cat-item" onClick={() => openCategory(category.id)}>
                 <span className="ico" aria-hidden="true">
                   {category.icon?.startsWith("custom:")
-                    ? <Image className="category-photo" src={`/api/category-icons/${category.icon.slice(7)}`} alt="" width={80} height={80} unoptimized />
-                    : <Icon size={36} />}
+                    ? <Image className="category-photo" src={`/api/category-icons/${category.icon.slice(7)}`} alt="" width={64} height={64} unoptimized />
+                    : <Icon size={30} />}
                 </span>
                 <span className="cat-label">{category.label}</span>
               </button>
@@ -92,12 +92,12 @@ export function DiscoveryHome() {
       </section>
 
       <section aria-labelledby="hot-heading">
-        <SectionHeading id="hot-heading" title="🔥 Địa điểm hot">Xếp theo lượt xem thực tế và đánh giá đã duyệt trên 11Local.</SectionHeading>
+        <SectionHeading id="hot-heading" title="🔥 Địa điểm hot" />
         <PlacesState data={data} places={hot} horizontal emptyMessage="Chưa có lượt xem hoặc đánh giá thật để xếp hạng." />
       </section>
 
       <section aria-labelledby="food-heading">
-        <SectionHeading id="food-heading" title="🍜 Quán ăn, cafe tiêu biểu">Các địa điểm ẩm thực và cafe đã công khai trên 11Local.</SectionHeading>
+        <SectionHeading id="food-heading" title="🍜 Quán ăn, cafe tiêu biểu" />
         <PlacesState data={data} places={featuredFood} horizontal emptyMessage="Chưa có quán ăn hoặc cafe được công khai." />
       </section>
 
@@ -121,7 +121,7 @@ export function DiscoveryHome() {
 }
 
 function SectionHeading({ id, title, children }) {
-  return <div className="section-head discovery-section-head"><div><h2 id={id}>{title}</h2><p className="small muted">{children}</p></div></div>;
+  return <div className="section-head discovery-section-head"><div><h2 id={id}>{title}</h2>{children && <p className="small muted">{children}</p>}</div></div>;
 }
 
 function PlacesState({ data, places, emptyMessage, horizontal = false }) {
