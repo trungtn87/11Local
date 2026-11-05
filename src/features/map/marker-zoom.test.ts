@@ -5,6 +5,7 @@ import { attachPlaceLabelZoom, PLACE_LABEL_MIN_ZOOM, shouldShowPlaceNames } from
 test("zooming out hides place names; zooming in shows them", () => {
   assert.equal(shouldShowPlaceNames(9.2), false);
   assert.equal(shouldShowPlaceNames(12.99), false);
+  assert.equal(shouldShowPlaceNames(13.9), false);
   assert.equal(shouldShowPlaceNames(PLACE_LABEL_MIN_ZOOM), true);
   assert.equal(shouldShowPlaceNames(14), true);
   assert.equal(shouldShowPlaceNames(Number.NaN), false);
