@@ -12,12 +12,12 @@ const fields=[
   ['name','Tên địa điểm'],['address','Địa chỉ'],['area','Khu vực'],
   ['summary','Giới thiệu ngắn'],['description','Mô tả'],
   ['phone','Số điện thoại'],['opening_hours','Giờ mở cửa'],
-  ['website_url','Website'],['price_note','Giá tham khảo'],
+  ['website_url','Website'],['facebook_url','Facebook'],['youtube_url','YouTube'],['price_note','Giá tham khảo'],
 ];
 const fieldValues={
   name:'name',address:'address',area:'area',summary:'summary',
   description:'description',phone:'phone',opening_hours:'opening_hours',
-  website_url:'website_url',price_note:'price_note',
+  website_url:'website_url',facebook_url:'facebook_url',youtube_url:'youtube_url',price_note:'price_note',
 };
 const allowed=['image/jpeg','image/png','image/webp','image/avif'];
 const errors={
@@ -28,7 +28,10 @@ const errors={
   INVALID_IMAGE:'Ảnh không hợp lệ. Chọn JPEG, PNG, WebP hoặc AVIF dưới 10 MB.',
   TOO_MANY_PHOTOS:'Tối đa 4 ảnh.',
   PHOTO_REQUIRED:'Hãy chọn ít nhất một ảnh.',
-  RATE_LIMITED:'Đã vượt giới hạn gửi đóng góp trong 24 giờ.',
+  RATE_LIMITED:'Bạn gửi quá nhanh. Hãy thử lại sau khoảng một phút.',
+  DUPLICATE_SUBMISSION:'Đóng góp này vừa được gửi thành công. Vui lòng kiểm tra trang theo dõi.',
+  INVALID_FACEBOOK_URL:'Liên kết Facebook không hợp lệ.',
+  INVALID_YOUTUBE_URL:'Liên kết YouTube không hợp lệ.',
   PLACE_NOT_PUBLIC:'Địa điểm đã ẩn hoặc không còn công khai.',
   CONTRIBUTION_UNAVAILABLE:'Không lưu được đóng góp vào cơ sở dữ liệu. Vui lòng thử lại.',
   INVALID_ORIGIN:'Máy chủ từ chối địa chỉ gửi. Vui lòng tải lại trang.',
@@ -144,7 +147,7 @@ export function ExistingPlaceFeedback(){
                 value={value} maxLength={fieldKey==='description'?3000:fieldKey==='address'?500:350}
                 onChange={e=>setValue(e.target.value)} rows={4}/>
               :<input id="feedback-value" className="input" value={value}
-                maxLength={fieldKey==='website_url'?500:fieldKey==='opening_hours'||fieldKey==='price_note'?300:160}
+                maxLength={['website_url','facebook_url','youtube_url'].includes(fieldKey)?500:fieldKey==='opening_hours'||fieldKey==='price_note'?300:160}
                 onChange={e=>setValue(e.target.value)}/>}
           </div>
           <p className="small muted">Mỗi lượt đề xuất sửa một trường để Admin dễ đối chiếu. Vị trí bản đồ có thể báo bằng mục “Báo thông tin sai”.</p>
