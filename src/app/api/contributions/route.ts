@@ -1,10 +1,11 @@
-import { createHash, createHmac, randomBytes, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import sharp from "sharp";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/user-auth";
 import { parseNewPlaceContribution } from "@/lib/contribution-input";
 import { findContributionDuplicates } from "@/lib/contribution-duplicates";
+import { claimContribution, submissionHash } from "@/lib/contribution-limit";
 import { enqueueBusinessDiscordInTx } from "@/lib/discord-business-events";
 
 export const runtime = "nodejs";
@@ -16,34 +17,10 @@ const MAX_PHOTOS = 4;
 const MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status });
 
-function fingerprint(request: Request) {
-  // Use the rightmost forwarded address from the trusted deployment proxy.
-  const ip = request.headers.get("x-real-ip") ??
-    request.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim() ??
-    "unknown";
-  const secret = process.env.CONTRIBUTION_RATE_LIMIT_SECRET || process.env.USER_SESSION_SECRET || process.env.DATABASE_URL;
-  if (!secret) throw new Error("DATABASE_URL is not configured");
-  return createHmac("sha256", secret).update(ip).digest("hex");
-}
-
-async function consumeSubmissionLimit(request: Request) {
-  const key = fingerprint(request);
-  const [row] = await db()`INSERT INTO public.contribution_rate_limits (fingerprint, window_start, attempts)
-    VALUES (${key}, now(), 1)
-    ON CONFLICT (fingerprint) DO UPDATE SET
-      attempts = CASE WHEN contribution_rate_limits.window_start < now() - interval '24 hours'
-        THEN 1 ELSE contribution_rate_limits.attempts + 1 END,
-      window_start = CASE WHEN contribution_rate_limits.window_start < now() - interval '24 hours'
-        THEN now() ELSE contribution_rate_limits.window_start END
-    RETURNING attempts`;
-  return Number(row.attempts) <= 5;
-}
-
 export async function POST(request: Request) {
   const declaredLength = Number(request.headers.get("content-length") ?? "0");
   if (declaredLength > MAX_REQUEST_BYTES) return fail("REQUEST_TOO_LARGE", 413);
   try {
-    if (!await consumeSubmissionLimit(request)) return fail("RATE_LIMITED", 429);
     const form = await request.formData();
     const raw = form.get("payload");
     if (typeof raw !== "string" || raw.length > 15000) return fail("INVALID_INPUT", 400);
@@ -82,8 +59,11 @@ export async function POST(request: Request) {
       name: input.name, categoryId: input.categoryId, address: input.address, area: input.area,
       latitude: input.latitude, longitude: input.longitude, description: input.description,
       phone: input.phone, openingHours: input.openingHours,
+      facebookUrl: input.facebookUrl, youtubeUrl: input.youtubeUrl,
     };
     await sql.begin(async tx => {
+      await claimContribution(tx, request, user?.id ?? null,
+        submissionHash("new_place", input, processed.map(photo => photo.contents)));
       const [record] = await tx`INSERT INTO public.contributions
         (tracking_code, tracking_token_hash, kind, payload, contact_phone, submitted_by, moderation_status)
         VALUES (${trackingCode}, ${tokenHash}, 'new_place', ${tx.json(payload)},
@@ -101,6 +81,9 @@ export async function POST(request: Request) {
       status: "pending", photoCount: processed.length,
     }, { status: 201, headers: { "Cache-Control": "no-store" } });
   } catch (error) {
+    const reason = (error as Error).message;
+    if (reason === "RATE_LIMITED") return fail(reason, 429);
+    if (reason === "DUPLICATE_SUBMISSION") return fail(reason, 409);
     console.error("Community contribution failed", error);
     const code = (error as { code?: string }).code;
     if (code === "23505") return fail("TRACKING_CONFLICT_RETRY", 409);
