@@ -45,6 +45,7 @@ export async function PUT(request: Request, { params }: Context) {
         address=${input.address}, area=${input.area},
         latitude=${input.latitude}, longitude=${input.longitude},
         phone=${input.phone}, website_url=${input.websiteUrl},
+        facebook_url=${input.facebookUrl}, youtube_url=${input.youtubeUrl},
         opening_hours=${input.openingHours}, price_note=${input.priceNote},
         featured_rank=${input.featuredRank}, visibility=${input.visibility},
         version=version+1, updated_at=now()
