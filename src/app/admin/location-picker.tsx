@@ -47,7 +47,7 @@ export function LocationPicker({ latitude, longitude, onChange, onPendingChange 
         </span>
       </div>
       <p className={styles.hint}>
-        Kéo bản đồ để chọn vị trí hoặc nhập tọa độ thủ công bên dưới (chỉ dành cho Admin).
+        Giữ và kéo ghim xanh để chọn vị trí, hoặc nhập tọa độ thủ công bên dưới. Di chuyển nền bản đồ không làm đổi tọa độ.
       </p>
       <div className={styles.coordinates}>
         <label>
