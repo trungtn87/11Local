@@ -6,7 +6,7 @@ import {
 
 test("owner edit allowlist accepts only mutable business fields",()=>{
   assert.deepEqual(OWNER_FIELDS,["summary","description","address","phone",
-    "website_url","opening_hours","price_note"]);
+    "website_url","facebook_url","youtube_url","opening_hours","price_note"]);
   const parsed=parseOwnerEdit({expectedVersion:4,changes:{summary:"  Quán cà phê  ",phone:""}});
   assert.deepEqual(parsed,{expectedVersion:4,changes:{summary:"Quán cà phê",phone:null}});
   for(const field of ["slug","latitude","longitude","category_id","featured_rank",
@@ -24,6 +24,8 @@ test("owner edit validates versions, url, address, size and empty body",()=>{
     {expectedVersion:1,changes:{address:null}},
     {expectedVersion:1,changes:{phone:500}},
     {expectedVersion:1,changes:{website_url:"javascript:alert(1)"}},
+    {expectedVersion:1,changes:{facebook_url:"https://youtube.com/@wrong"}},
+    {expectedVersion:1,changes:{youtube_url:"https://facebook.com/wrong"}},
     {expectedVersion:1,changes:{summary:"x".repeat(351)}},
     {expectedVersion:1,changes:{description:"\u0000"}},
   ])assert.throws(()=>parseOwnerEdit(input));
