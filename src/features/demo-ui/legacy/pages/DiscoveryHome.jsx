@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Image from "next/image";
-import { BedDouble, Coffee, LocateFixed, MapPinOff, Mountain, Navigation, ShoppingBag, Star, Utensils, Wrench } from 'lucide-react';
+import { BedDouble, ChevronLeft, ChevronRight, Coffee, LocateFixed, MapPinOff, Mountain, Navigation, ShoppingBag, Star, Utensils, Wrench } from 'lucide-react';
 
 import { distanceProvider, formatApproximateDistance } from '../../../distance/distance-service';
 import { getGoogleMapsDirectionsUrl } from '../../../places/google-maps';
@@ -38,8 +38,13 @@ export function DiscoveryHome() {
     return () => controller.abort();
   }, [initialPlacesState]);
 
-  const explore = selectExplorePlaces(data.places, 6);
-  const hot = selectHotPlaces(data.places, 6);
+  const hot = selectHotPlaces(data.places, 12);
+  const featuredFood = selectExplorePlaces(
+    data.places.filter((place) => /ăn uống|ẩm thực|quán ăn|nhà hàng|cafe|cà phê|coffee|đồ uống|giải khát/i.test(
+      [place.category_name, categories.find((category) => category.id === place.category_id)?.label].filter(Boolean).join(' '),
+    )),
+    12,
+  );
   const nearby = geo === 'granted' && geoPosition
     ? data.places
       .map((place) => ({ place, distance: distanceProvider.calculate(geoPosition, place) }))
@@ -86,9 +91,14 @@ export function DiscoveryHome() {
         </div>
       </section>
 
-      <section aria-labelledby="explore-heading">
-        <SectionHeading id="explore-heading" title="Khám phá">Địa điểm nổi bật do Admin chọn và những nơi mới cập nhật.</SectionHeading>
-        <PlacesState data={data} places={explore} />
+      <section aria-labelledby="hot-heading">
+        <SectionHeading id="hot-heading" title="🔥 Địa điểm hot">Xếp theo lượt xem thực tế và đánh giá đã duyệt trên 11Local.</SectionHeading>
+        <PlacesState data={data} places={hot} horizontal emptyMessage="Chưa có lượt xem hoặc đánh giá thật để xếp hạng." />
+      </section>
+
+      <section aria-labelledby="food-heading">
+        <SectionHeading id="food-heading" title="🍜 Quán ăn, cafe tiêu biểu">Các địa điểm ẩm thực và cafe đã công khai trên 11Local.</SectionHeading>
+        <PlacesState data={data} places={featuredFood} horizontal emptyMessage="Chưa có quán ăn hoặc cafe được công khai." />
       </section>
 
       <section aria-labelledby="nearby-heading">
@@ -106,11 +116,6 @@ export function DiscoveryHome() {
         )}
       </section>
 
-      <section aria-labelledby="hot-heading">
-        <SectionHeading id="hot-heading" title="Địa điểm hot">Xếp theo lượt xem thực tế và đánh giá đã duyệt trên 11Local.</SectionHeading>
-        <PlacesState data={data} places={hot} emptyMessage="Chưa có lượt xem hoặc đánh giá thật để xếp hạng." />
-      </section>
-
     </div>
   );
 }
@@ -119,11 +124,28 @@ function SectionHeading({ id, title, children }) {
   return <div className="section-head discovery-section-head"><div><h2 id={id}>{title}</h2><p className="small muted">{children}</p></div></div>;
 }
 
-function PlacesState({ data, places, emptyMessage }) {
+function PlacesState({ data, places, emptyMessage, horizontal = false }) {
+  const listRef = useRef(null);
   if (data.status === 'loading') return <CardSkeletons n={3} />;
   if (data.status === 'error') return <StateBlock kind="error" title="Không tải được địa điểm">Không thể kết nối dữ liệu Neon. Vui lòng thử lại sau.</StateBlock>;
   if (!places.length) return <StateBlock title="Chưa có địa điểm công khai">{emptyMessage || "Admin chưa công khai dữ liệu phù hợp cho mục này."}</StateBlock>;
-  return <div className="place-grid">{places.map((place, index) => <RealPlaceCard key={place.id} place={place} priority={index === 0} />)}</div>;
+  if (!horizontal) return <div className="place-grid">{places.map((place, index) => <RealPlaceCard key={place.id} place={place} priority={index === 0} />)}</div>;
+  const scroll = (direction) => {
+    const list = listRef.current;
+    if (!list) return;
+    const card = list.querySelector('.real-place-card');
+    const step = card ? card.getBoundingClientRect().width + 12 : list.clientWidth;
+    list.scrollBy({ left: direction * step * 2, behavior: 'smooth' });
+  };
+  return <div className="discovery-rail-wrap">
+    <div className="discovery-rail-controls">
+      <button type="button" aria-label="Xem địa điểm trước" onClick={() => scroll(-1)}><ChevronLeft size={19} /></button>
+      <button type="button" aria-label="Xem địa điểm tiếp theo" onClick={() => scroll(1)}><ChevronRight size={19} /></button>
+    </div>
+    <div ref={listRef} className="discovery-place-rail" role="region" aria-label="Danh sách địa điểm vuốt ngang" tabIndex={0}>
+      {places.map((place, index) => <RealPlaceCard key={place.id} place={place} priority={index === 0} />)}
+    </div>
+  </div>;
 }
 
 export function RealPlaceCard({ place, distance, onDetails, priority = false }) {
