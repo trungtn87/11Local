@@ -20,7 +20,7 @@ export async function GET(request: Request) {
            WHERE ph.contribution_id=c.id) AS photo_count
         FROM public.contributions c
         WHERE (${status}='all' OR c.moderation_status=${status})
-        ORDER BY c.created_at DESC, c.id DESC LIMIT 100`,
+        ORDER BY c.created_at DESC, c.id DESC LIMIT 400`,
       sql`SELECT moderation_status, count(*)::int AS total
         FROM public.contributions GROUP BY moderation_status`,
     ]);
