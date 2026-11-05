@@ -1,8 +1,9 @@
 "use client";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useCallback, useEffect, useState, type FormEvent, type ChangeEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent, type ChangeEvent } from "react";
 import { CheckCircle2, Clock3, MapPin, MapPinned, Plus, Save, Search, Send, Upload } from "lucide-react";
 import { LocationPicker } from "./location-picker";
+import { parseMapReferencePlaces } from "@/features/map/map-reference-places";
 import styles from "./admin.module.css";
 
 type Category = { id: string; name: string; icon: string | null; visibility: "visible" | "hidden"; sort_order: number };
@@ -242,6 +243,16 @@ export default function AdminApp() {
     finally { setBusy(false); }
   };
   const categoryName = (id: string) => categories.find(item => item.id === id)?.name || id;
+  // Admin needs every stored place, including pending/hidden records. Do not
+  // use the public API here: its moderation gate intentionally excludes them.
+  const adminMapPlaces = useMemo(() => {
+    const byId = new Map(categories.map(category => [category.id, category]));
+    return parseMapReferencePlaces({ places: places.map(place => ({
+      ...place,
+      category_name: byId.get(place.category_id)?.name || place.category_id,
+      category_icon: byId.get(place.category_id)?.icon ?? null,
+    })) });
+  }, [places, categories]);
   const pendingCount = places.filter(p => p.moderation_status === "pending").length;
   const approvedCount = places.filter(p => p.moderation_status === "approved").length;
   const filteredPlaces = places.filter(p => {
@@ -365,6 +376,7 @@ export default function AdminApp() {
           <h3 className={styles.sectionTitle}><MapPin size={18}/> Vị trí trên bản đồ</h3>
           {!pinSelected && <p className={styles.pinNotice}>Hãy kéo trực tiếp ghim hoặc nhập tọa độ thủ công rồi bấm Đặt ghim trước khi lưu.</p>}
           <LocationPicker key={selected?.id ?? "new"} latitude={form.latitude} longitude={form.longitude}
+            referencePlaces={adminMapPlaces}
             onPendingChange={setCoordinateDraftPending}
             onChange={(longitude, latitude) => {
               setPinSelected(true);
