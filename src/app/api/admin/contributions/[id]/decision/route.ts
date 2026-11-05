@@ -86,12 +86,13 @@ export async function POST(request: Request, { params }: Context) {
       const slug = contributionSlug(place.name, id);
       const [created] = await tx`INSERT INTO public.places
         (slug,name,category_id,place_kind,summary,description,address,area,
-         latitude,longitude,phone,website_url,opening_hours,price_note,
+         latitude,longitude,phone,website_url,facebook_url,youtube_url,opening_hours,price_note,
          moderation_status,ownership_status,visibility,published_at)
         VALUES (${slug},${place.name},${place.categoryId},${place.placeKind},
           ${place.summary},${place.description},${place.address},${place.area},
           ${place.latitude},${place.longitude},${place.phone || null},
-          ${place.websiteUrl || null},${place.openingHours || null},${place.priceNote || null},
+          ${place.websiteUrl || null},${place.facebookUrl},${place.youtubeUrl},
+          ${place.openingHours || null},${place.priceNote || null},
           'approved','unverified','visible',now())
         RETURNING id,slug,name`;
       await tx`INSERT INTO public.place_details (place_id,details)
