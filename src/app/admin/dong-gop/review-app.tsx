@@ -369,9 +369,9 @@ export default function ReviewApp() {
               </div></div>}
             <div className={styles.mapSection}>
               <h3><MapPin size={17}/> Xác nhận vị trí</h3>
-              <p>Kéo bản đồ để chỉnh ghim. Không có ô nhập tọa độ hoặc tìm kiếm.</p>
+              <p>Giữ và kéo trực tiếp ghim xanh để chỉnh vị trí, hoặc nhập tọa độ thủ công. Kéo nền bản đồ không làm đổi tọa độ.</p>
               {reviewable
-                ? <LocationPicker latitude={draft.latitude} longitude={draft.longitude}
+                ? <LocationPicker key={detail.contribution.id} latitude={draft.latitude} longitude={draft.longitude}
                     onChange={(longitude, latitude) => { setDraft(p => p ? { ...p, latitude, longitude } : p); setDirty(true); }}/>
                 : <div className={styles.coordinates}>Vĩ độ: {draft.latitude.toFixed(6)} · Kinh độ: {draft.longitude.toFixed(6)}</div>}
             </div>
