@@ -2,7 +2,7 @@ import { createHash, createHmac, randomUUID, timingSafeEqual } from 'node:crypto
 import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
 import { isAdmin } from '@/lib/admin-auth';
-import { isBot, sameOrigin, SESSION_SECONDS } from '@/lib/analytics-policy';
+import { isBot, SESSION_SECONDS } from '@/lib/analytics-policy';
 
 const COOKIE = '11local_visit';
 function sign(value: string) {
@@ -24,7 +24,6 @@ function session(token?: string) {
 }
 
 export async function recordView(request: Request, placeId?: string) {
-  if (!sameOrigin(request)) return { status: 403, error: 'INVALID_ORIGIN' };
   if (isBot(request.headers.get('user-agent') || '') || await isAdmin()) return { status: 200 };
   const token = session((await cookies()).get(COOKIE)?.value);
   const hash = createHash('sha256').update(token).digest('hex');
