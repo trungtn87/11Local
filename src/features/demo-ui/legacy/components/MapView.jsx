@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Marker } from 'maplibre-gl';
 import { LocateFixed, Minus, Navigation, Plus, X } from 'lucide-react';
 import { MapCanvas } from '../../../map/map-canvas';
+import { createPlaceMarkerElement } from '../../../map/place-marker';
+import '../../../map/place-marker.css';
 import { getGoogleMapsDirectionsUrl } from '../../../places/google-maps';
 import { Button } from './ui.jsx';
 import { RealPlaceCover } from './RealPlaceCover.jsx';
@@ -17,18 +19,15 @@ export function MapView({ places = [], selectedId, onSelect, full = false, onLoc
     if (!readyMap) return;
     const markers = places.filter((place) => Number.isFinite(Number(place.latitude))
       && Number.isFinite(Number(place.longitude))).map((place) => {
-      const el = document.createElement('button');
-      el.type = 'button';
-      el.title = place.name;
-      el.setAttribute('aria-label', 'Xem địa điểm ' + place.name);
-      el.style.cssText = 'background:#0F766E;border:3px solid white;box-shadow:0 1px 8px #0004;border-radius:50%;width:26px;height:26px;cursor:pointer;';
+      const el = createPlaceMarkerElement(place);
+      if (place.id === selectedId) el.classList.add('selected');
       el.addEventListener('click', () => onSelect?.(place.id));
       return new Marker({ element: el })
         .setLngLat([Number(place.longitude), Number(place.latitude)])
         .addTo(readyMap);
     });
     return () => markers.forEach((marker) => marker.remove());
-  }, [readyMap, places, onSelect]);
+  }, [readyMap, places, onSelect, selectedId]);
 
   useEffect(() => {
     if (!readyMap || !currentLocation) return;
