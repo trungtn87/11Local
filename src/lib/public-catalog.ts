@@ -8,17 +8,19 @@ import { db } from "@/lib/db";
 export async function getPublicPlaces(slug?: string) {
   const sql = db();
   const rows = slug
-    ? await sql`SELECT visible.*, p.place_kind, p.summary, p.website_url,
+    ? await sql`SELECT visible.*, c.icon AS category_icon, p.place_kind, p.summary, p.website_url,
                  p.featured_rank, p.featured_until,
                  p.navigation_latitude, p.navigation_longitude
                  FROM api.public_places visible
                  JOIN public.places p ON p.id=visible.id
+                 LEFT JOIN public.categories c ON c.id=visible.category_id
                  WHERE visible.slug=${slug} LIMIT 1`
-    : await sql`SELECT visible.*, p.place_kind, p.summary, p.website_url,
+    : await sql`SELECT visible.*, c.icon AS category_icon, p.place_kind, p.summary, p.website_url,
                  p.featured_rank, p.featured_until,
                  p.navigation_latitude, p.navigation_longitude
                  FROM api.public_places visible
                  JOIN public.places p ON p.id=visible.id
+                 LEFT JOIN public.categories c ON c.id=visible.category_id
                  ORDER BY visible.updated_at DESC, visible.name LIMIT 500`;
 
   const ids = rows.map((row) => String(row.id));
