@@ -18,7 +18,7 @@ export async function GET(_:Request,{params}:Context){
     const sql=db();
     const [place]=await sql`SELECT p.id,p.slug,p.name,p.address,p.area,p.category_id,
       p.place_kind,p.moderation_status,p.visibility,p.summary,p.description,
-      p.phone,p.website_url,p.opening_hours,p.price_note,p.version,
+      p.phone,p.website_url,p.facebook_url,p.youtube_url,p.opening_hours,p.price_note,p.version,
       m.role
       FROM public.places p JOIN public.place_managers m
         ON m.place_id=p.id AND m.user_id=${user.id} AND m.status='active'
@@ -58,7 +58,7 @@ export async function PATCH(request:Request,{params}:Context){
         WHERE place_id=${id} AND source='owner' AND submitted_by=${user.id}
         AND status='pending' LIMIT 1`;
       if(open)throw new Error("PENDING_REVISION");
-      const currentRows=await tx`SELECT summary,description,address,phone,website_url,
+      const currentRows=await tx`SELECT summary,description,address,phone,website_url,facebook_url,youtube_url,
         opening_hours,price_note FROM public.places WHERE id=${id}`;
       const before=currentRows[0] as Record<string,unknown>;
       const changes=Object.fromEntries(Object.entries(input.changes).filter(
