@@ -1,6 +1,6 @@
 import {NextResponse} from "next/server";
 import {db} from "@/lib/db";
-import {isPlaceId,parseOwnerEdit,checkOrigin} from "@/lib/owner-management-input";
+import {isPlaceId,parseOwnerEdit} from "@/lib/owner-management-input";
 import {ownerSession,requireOwnerPlace,noStore,errorStatus,MAX_JSON_BYTES} from "@/lib/owner-management-server";
 import {enqueueBusinessDiscordInTx} from "@/lib/discord-business-events";
 
@@ -41,7 +41,6 @@ export async function GET(_:Request,{params}:Context){
 }
 
 export async function PATCH(request:Request,{params}:Context){
-  if(!checkOrigin(request))return fail("INVALID_ORIGIN",403);
   if(Number(request.headers.get("content-length")||0)>MAX_JSON_BYTES)
     return fail("REQUEST_TOO_LARGE",413);
   const user=await ownerSession();
