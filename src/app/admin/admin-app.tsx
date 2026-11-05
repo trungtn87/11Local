@@ -100,6 +100,7 @@ export default function AdminApp() {
   const [selected, setSelected] = useState<Place | null>(null);
   const [form, setForm] = useState<FormState>(blank);
   const [pinSelected, setPinSelected] = useState(false);
+  const [coordinateDraftPending, setCoordinateDraftPending] = useState(false);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -141,6 +142,7 @@ export default function AdminApp() {
 
   const pick = (p: Place | null) => {
     setSelected(p); setPhotos([]); setMessage(""); setPinSelected(Boolean(p));
+    setCoordinateDraftPending(false);
     if (p) {
       setForm({ name: p.name, slug: p.slug, categoryId: p.category_id,
         placeKind: p.place_kind, summary: p.summary || "", description: p.description || "",
@@ -164,7 +166,8 @@ export default function AdminApp() {
   const save = async (event: FormEvent) => {
     event.preventDefault();
     if (!categories.length || catalogError) { setMessage("Chưa tải được danh mục từ Neon."); return; }
-    if (!pinSelected) { setMessage("Hãy kéo bản đồ để chọn vị trí thực tế trước khi lưu."); return; }
+    if (coordinateDraftPending) { setMessage("Bạn đã sửa tọa độ. Hãy bấm Đặt ghim theo tọa độ trước khi lưu."); return; }
+    if (!pinSelected) { setMessage("Hãy kéo bản đồ hoặc nhập tọa độ rồi bấm Đặt ghim trước khi lưu."); return; }
     setBusy(true); setMessage("");
     try {
       const payload = { ...form,
@@ -358,9 +361,14 @@ export default function AdminApp() {
             </div>
           </>}
           <h3 className={styles.sectionTitle}><MapPin size={18}/> Vị trí trên bản đồ</h3>
-          {!pinSelected && <p className={styles.pinNotice}>Hãy kéo bản đồ để đặt ghim ở vị trí thật trước khi lưu.</p>}
+          {!pinSelected && <p className={styles.pinNotice}>Hãy kéo bản đồ hoặc nhập tọa độ thủ công rồi bấm Đặt ghim trước khi lưu.</p>}
           <LocationPicker key={selected?.id ?? "new"} latitude={form.latitude} longitude={form.longitude}
-            onChange={(longitude, latitude) => { setPinSelected(true); setForm(current => ({ ...current, latitude, longitude })); }}/>
+            onPendingChange={setCoordinateDraftPending}
+            onChange={(longitude, latitude) => {
+              setPinSelected(true);
+              setCoordinateDraftPending(false);
+              setForm(current => ({ ...current, latitude, longitude }));
+            }}/>
           {selected && <div className={styles.photosSection}>
             <h3>Ảnh địa điểm</h3>
             <p>Chọn ảnh đại diện dùng cho thẻ địa điểm, bản đồ và trang chi tiết. Ảnh khác nằm trong thư viện.</p>
