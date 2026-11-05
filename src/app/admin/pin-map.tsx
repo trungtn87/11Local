@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Map, Marker, setWorkerUrl, type StyleSpecification } from "maplibre-gl";
 import styles from "./pin-map.module.css";
 import { MAP_STYLE_URL } from "@/features/map/map-config";
 import { isPoiLayer, loadCleanStyle, type StyleLayer } from "@/features/map/map-style";
+import { createPlaceMarkerElement } from "@/features/map/place-marker";
+import { parseMapReferencePlaces } from "@/features/map/map-reference-places";
+import "@/features/map/place-marker.css";
 
 setWorkerUrl(new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString());
 
@@ -43,6 +46,7 @@ function createPinElement() {
 
 export function PinMap({ latitude, longitude, onChange }: Props) {
   const el = useRef<HTMLDivElement>(null);
+  const [placesStatus, setPlacesStatus] = useState<{ state: "loading" | "ready" | "error"; count: number }>({ state: "loading", count: 0 });
   const map = useRef<Map | null>(null);
   const marker = useRef<Marker | null>(null);
   const change = useRef(onChange);
@@ -55,6 +59,8 @@ export function PinMap({ latitude, longitude, onChange }: Props) {
   useEffect(() => {
     let cancelled = false;
     let instance: Map | null = null;
+    const controller = new AbortController();
+    const referenceMarkers: Marker[] = [];
 
     async function createMap() {
       const style = await loadCleanStyle(MAP_STYLE_URL);
@@ -74,6 +80,33 @@ export function PinMap({ latitude, longitude, onChange }: Props) {
         for (const layer of m.getStyle().layers ?? []) {
           if (isPoiLayer(layer as StyleLayer)) m.removeLayer(layer.id);
         }
+
+        // The contribution and Admin pickers share the approved public map dataset.
+        // Reference pins must never change the new location's coordinates.
+        void (async () => {
+          try {
+            const response = await fetch("/api/places", { cache: "no-store", signal: controller.signal });
+            if (!response.ok) throw new Error("PLACES_UNAVAILABLE");
+            const body: unknown = await response.json();
+            if (cancelled) return;
+            const places = parseMapReferencePlaces(body);
+            for (const place of places) {
+              const element = createPlaceMarkerElement(place);
+              element.classList.add(styles.referencePin);
+              element.setAttribute("aria-hidden", "true");
+              element.tabIndex = -1;
+              // The non-interactive labels cannot steal drag/pan/touch gestures.
+              element.style.pointerEvents = "none";
+              referenceMarkers.push(new Marker({ element, anchor: "bottom" })
+                .setLngLat([place.longitude, place.latitude]).addTo(m));
+            }
+            setPlacesStatus({ state: "ready", count: referenceMarkers.length });
+          } catch (error) {
+            if (!cancelled && !(error instanceof Error && error.name === "AbortError")) {
+              setPlacesStatus({ state: "error", count: 0 });
+            }
+          }
+        })();
       });
 
       const pin = new Marker({
@@ -96,6 +129,8 @@ export function PinMap({ latitude, longitude, onChange }: Props) {
     void createMap();
     return () => {
       cancelled = true;
+      controller.abort();
+      for (const referenceMarker of referenceMarkers) referenceMarker.remove();
       instance?.remove();
       map.current = null;
       marker.current = null;
@@ -124,6 +159,12 @@ export function PinMap({ latitude, longitude, onChange }: Props) {
   return (
     <div className={styles.frame} role="group" aria-label="Bản đồ chọn vị trí: kéo trực tiếp ghim để đặt tọa độ">
       <div ref={el} className={styles.map} />
+      <p className={styles.referenceStatus} role="status" aria-live="polite">
+        {placesStatus.state === "loading" ? "Đang tải địa điểm đã có trên 11Local…"
+          : placesStatus.state === "error" ? "Không tải được địa điểm đã có; ghim xanh vẫn hoạt động."
+          : placesStatus.count === 0 ? "Chưa có địa điểm đã công khai để hiển thị."
+          : `${placesStatus.count} địa điểm 11Local đã công khai · Ghim xanh là vị trí mới`}
+      </p>
     </div>
   );
 }

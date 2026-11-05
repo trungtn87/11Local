@@ -153,7 +153,7 @@ export function Contribute() {
         <section className="stack-sm">
           <div className="row between contrib-map-title"><h2 className="contrib-section-title">Ghim vị trí <span className="req">*</span></h2>
             <button type="button" className="btn btn-outline btn-sm" onClick={locateMe}><LocateFixed size={16}/> Vị trí của tôi</button></div>
-          <p className="small muted">Giữ và kéo trực tiếp ghim xanh đến đúng vị trí. Kéo nền để xem khu vực khác, không làm đổi vị trí ghim.</p>
+          <p className="small muted">Giữ và kéo ghim xanh để đặt vị trí mới. Các icon kèm tên là địa điểm đã công khai trên 11Local để bạn đối chiếu; kéo nền bản đồ không làm đổi vị trí ghim.</p>
           <div className="contrib-map"><PinMap latitude={pin.latitude} longitude={pin.longitude} onChange={setLocation}/></div>
           <div className={'contrib-pin-state ' + (pinSelected ? 'selected' : '')}>
             {pinSelected ? <><CheckCircle2 size={17}/> Đã chọn vị trí địa điểm</> : <><MapPin size={17}/> Hãy kéo ghim để xác nhận vị trí địa điểm</>}
