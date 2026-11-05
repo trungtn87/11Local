@@ -5,6 +5,8 @@ export type MapReferencePlace = MapPlace & {
   slug: string;
   latitude: number;
   longitude: number;
+  moderation_status?: string;
+  visibility?: string;
 };
 
 function optionalText(value: unknown): string | null {
@@ -35,6 +37,8 @@ export function parseMapReferencePlaces(payload: unknown): MapReferencePlace[] {
       category_id: optionalText(place.category_id),
       category_name: optionalText(place.category_name),
       category_icon: optionalText(place.category_icon),
+      ...(optionalText(place.moderation_status) ? { moderation_status: String(place.moderation_status) } : {}),
+      ...(optionalText(place.visibility) ? { visibility: String(place.visibility) } : {}),
     });
   }
   return result;
