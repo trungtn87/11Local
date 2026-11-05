@@ -1,0 +1,30 @@
+name: OSM Cao Bang preview (no database writes)
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/osm-cao-bang-preview]
+    paths:
+      - 'scripts/osm-preview*.mjs'
+      - '.github/workflows/osm-preview.yml'
+jobs:
+  generate-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test offline filter
+        run: node --test scripts/osm-preview.test.mjs
+      - name: Fetch OSM and generate preview files
+        run: node scripts/osm-preview.mjs
+      - name: Upload review artifacts (no publication)
+        uses: actions/upload-artifact@v4
+        with:
+          name: osm-cao-bang-preview
+          path: tmp/osm-preview/
+          if-no-files-found: error
+          retention-days: 14
