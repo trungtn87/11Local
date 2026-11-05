@@ -52,11 +52,12 @@ export async function POST(request: Request) {
       }
       const [place] = await tx`INSERT INTO public.places
         (slug,name,category_id,place_kind,summary,description,address,area,
-         latitude,longitude,phone,website_url,opening_hours,price_note,
+         latitude,longitude,phone,website_url,facebook_url,youtube_url,opening_hours,price_note,
          featured_rank,moderation_status,visibility)
         VALUES (${input.slug},${input.name},${input.categoryId},${input.placeKind},
                 ${input.summary},${input.description},${input.address},${input.area},
                 ${input.latitude},${input.longitude},${input.phone},${input.websiteUrl},
+                ${input.facebookUrl},${input.youtubeUrl},
                 ${input.openingHours},${input.priceNote},${input.featuredRank},
                 'pending',${input.visibility})
         RETURNING *`;
