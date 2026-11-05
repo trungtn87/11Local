@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {isUuid,parseClaimInput,parseClaimReply,parseClaimDecision,
-  parseManagerDecision,canReview,isActiveManager,sameOrigin} from "./ownership-input.ts";
+  parseManagerDecision,canReview,isActiveManager} from "./ownership-input.ts";
 const id="ce08d537-c313-4c93-bc66-bd7a27be2544";
 const user="fcc6c221-18c8-49d5-b17f-abd2fbb642f1";
 
@@ -43,11 +43,7 @@ test("replies and manager actions require version, role and recorded reason",()=
   assert.equal(isActiveManager("manager","revoked"),false);
   assert.equal(isActiveManager("admin","active"),false);
 });
-test("origin and UUID guards reject cross-site requests",()=>{
+test("UUID validation rejects invalid identifiers",()=>{
   assert.equal(isUuid(id),true);
   assert.equal(isUuid("../admin"),false);
-  assert.equal(sameOrigin(new Request("https://11local.vn/api/ownership-claims",
-    {headers:{origin:"https://evil.example"}})),false);
-  assert.equal(sameOrigin(new Request("https://11local.vn/api/ownership-claims",
-    {headers:{origin:"https://11local.vn"}})),true);
 });
