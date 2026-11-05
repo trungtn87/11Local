@@ -14,6 +14,8 @@ const FIELDS=[
   ["address","Địa chỉ",500,"input"],
   ["phone","Số điện thoại quán",40,"tel"],
   ["website_url","Website",500,"url"],
+  ["facebook_url","Facebook",500,"url"],
+  ["youtube_url","YouTube",500,"url"],
   ["opening_hours","Giờ mở cửa",500,"input"],
   ["price_note","Giá và dịch vụ",300,"textarea"],
 ];

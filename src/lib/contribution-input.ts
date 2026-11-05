@@ -1,3 +1,5 @@
+import { parseSocialUrl } from "./place-social-links.ts";
+
 export type NewPlaceContribution = {
   name: string;
   categoryId: string;
@@ -9,6 +11,8 @@ export type NewPlaceContribution = {
   phone: string;
   openingHours: string;
   contactPhone: string;
+  facebookUrl: string | null;
+  youtubeUrl: string | null;
   acknowledgeDuplicate: boolean;
 };
 
@@ -41,9 +45,11 @@ export function parseNewPlaceContribution(raw: unknown): NewPlaceContribution {
   const contactPhone = field("contactPhone", 40);
   if (phone && !/^[+\d().\s-]{6,40}$/.test(phone)) throw new Error("INVALID_PHONE");
   if (contactPhone && !/^[+\d().\s-]{6,40}$/.test(contactPhone)) throw new Error("INVALID_CONTACT_PHONE");
+  const facebookUrl = parseSocialUrl(field("facebookUrl", 500), "facebook");
+  const youtubeUrl = parseSocialUrl(field("youtubeUrl", 500), "youtube");
   return {
     name, categoryId, address, area,
-    latitude, longitude, phone, contactPhone,
+    latitude, longitude, phone, contactPhone, facebookUrl, youtubeUrl,
     description: field("description", 3000),
     openingHours: field("openingHours", 300),
     acknowledgeDuplicate: value.acknowledgeDuplicate === true,

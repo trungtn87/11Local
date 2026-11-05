@@ -1,8 +1,10 @@
+import { parseSocialUrl } from "./place-social-links.ts";
+
 export type PlaceKind = "business" | "attraction" | "public_place";
 export type PlaceInput = {
   name: string; slug: string; categoryId: string; placeKind: PlaceKind;
   summary: string; description: string; address: string; area: string;
-  latitude: number; longitude: number; phone: string | null; websiteUrl: string | null;
+  latitude: number; longitude: number; phone: string | null; websiteUrl: string | null; facebookUrl: string | null; youtubeUrl: string | null;
   openingHours: string | null; priceNote: string | null; featuredRank: number | null;
   visibility: "visible" | "hidden"; details: Record<string, unknown>;
   expectedVersion: number | null;
@@ -36,6 +38,8 @@ export function parsePlaceInput(body: unknown): PlaceInput {
   if (typeof longitude !== "number" || !Number.isFinite(longitude) || longitude < -180 || longitude > 180) throw new Error("INVALID_LONGITUDE");
   const websiteUrl = text("websiteUrl", 500) || null;
   if (websiteUrl && !isWebsite(websiteUrl)) throw new Error("INVALID_WEBSITE_URL");
+  const facebookUrl = parseSocialUrl(text("facebookUrl", 500), "facebook");
+  const youtubeUrl = parseSocialUrl(text("youtubeUrl", 500), "youtube");
   const featuredRank = v.featuredRank === undefined || v.featuredRank === null || v.featuredRank === "" ? null : v.featuredRank;
   if (featuredRank !== null && (typeof featuredRank !== "number" || !Number.isInteger(featuredRank) || featuredRank < 1 || featuredRank > 10000)) throw new Error("INVALID_FEATURED_RANK");
   const details = v.details ?? {};
@@ -46,7 +50,7 @@ export function parsePlaceInput(body: unknown): PlaceInput {
     name, slug, categoryId, placeKind: kind,
     summary: text("summary", 350), description: text("description", 5000),
     address: text("address", 500, true), area: text("area", 120, true),
-    latitude, longitude, phone: text("phone", 40) || null, websiteUrl,
+    latitude, longitude, phone: text("phone", 40) || null, websiteUrl, facebookUrl, youtubeUrl,
     openingHours: text("openingHours", 500) || null,
     priceNote: text("priceNote", 300) || null,
     featuredRank: featuredRank as number | null,

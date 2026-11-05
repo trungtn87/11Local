@@ -1,15 +1,16 @@
 /** OWN-03: owner-edit allowlist. No admin-only fields (slug, location, category, visibility). */
 import {isUuid} from "./ownership-input.ts";
+import { parseSocialUrl } from "./place-social-links.ts";
 
 export type OwnerField =
-  "summary"|"description"|"address"|"phone"|"website_url"|"opening_hours"|"price_note";
+  "summary"|"description"|"address"|"phone"|"website_url"|"facebook_url"|"youtube_url"|"opening_hours"|"price_note";
 export type OwnerChanges=Partial<Record<OwnerField,string|null>>;
 export const OWNER_FIELDS:ReadonlyArray<OwnerField>=[
-  "summary","description","address","phone","website_url","opening_hours","price_note",
+  "summary","description","address","phone","website_url","facebook_url","youtube_url","opening_hours","price_note",
 ];
 const MAX:Record<OwnerField,number>={
   summary:350,description:5000,address:500,phone:40,
-  website_url:500,opening_hours:500,price_note:300,
+  website_url:500,facebook_url:500,youtube_url:500,opening_hours:500,price_note:300,
 };
 const REQUIRED=new Set<OwnerField>(["summary","description","address"]);
 const CONTROL=/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/u;
@@ -39,6 +40,9 @@ export function parseOwnerEdit(value:unknown):{expectedVersion:number;changes:Ow
         const url=new URL(text);
         if(!["https:","http:"].includes(url.protocol))throw new Error("bad protocol");
       }catch{throw new Error("INVALID_FIELD:"+field);}
+    }
+    if((field==="facebook_url"||field==="youtube_url")&&text) {
+      parseSocialUrl(text,field==="facebook_url"?"facebook":"youtube");
     }
     changes[field]=REQUIRED.has(field)?text??"":text||null;
   }

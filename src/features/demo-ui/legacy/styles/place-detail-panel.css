@@ -108,3 +108,11 @@
 .local-detail-owner-callout small{display:block;font-size:11px;margin-top:3px;color:#667e73;line-height:1.5}
 .local-detail-owner-callout>a{display:flex;align-items:center;justify-content:center;padding:11px 13px;border-radius:9px;background:#0f766e;color:white;font-size:13px;font-weight:800;text-decoration:none}
 .local-detail-owner-callout>a:hover{background:#115e59}
+
+/* Optional approved external links, shared by map rail and full detail view. */
+.local-place-social-links { display: flex; flex-wrap: wrap; gap: 10px; }
+.local-place-social-links a { display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid var(--line, #dce7e8); border-radius: 10px; padding: 9px 12px;
+  color: var(--text, #174b48); background: var(--surface, #fff);
+  text-decoration: none; font-weight: 600; font-size: .9rem; }
+.local-place-social-links a:hover { border-color: #5aada0; }

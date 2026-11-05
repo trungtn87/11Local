@@ -4,7 +4,8 @@ import {NextResponse} from "next/server";
 import {db} from "@/lib/db";
 import {parseContributorReply} from "@/lib/contribution-existing";
 import {processContributionPhotos,MAX_REQUEST_BYTES} from "@/lib/contribution-media";
-import {consumeContributionLimit} from "@/lib/contribution-limit";
+import {claimContribution,submissionHash} from "@/lib/contribution-limit";
+import {getCurrentUser} from "@/lib/user-auth";
 import {enqueueBusinessDiscordInTx} from "@/lib/discord-business-events";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
@@ -12,7 +13,6 @@ const fail=(error:string,status:number)=>NextResponse.json({error},{status,heade
 export async function POST(request:Request) {
   if(Number(request.headers.get("content-length")||0)>MAX_REQUEST_BYTES) return fail("REQUEST_TOO_LARGE",413);
   try {
-    if(!await consumeContributionLimit(request)) return fail("RATE_LIMITED",429);
     const form=await request.formData();
     const token=form.get("token");
     if(typeof token!=="string"||!/^[A-Za-z0-9_-]{32}$/.test(token)) return fail("INVALID_TOKEN",400);
@@ -25,6 +25,7 @@ export async function POST(request:Request) {
     try {photos=await processContributionPhotos(form.getAll("photos"));}
     catch(e) {return fail(e instanceof Error?e.message:"INVALID_IMAGE",400);}
     const hash=createHash("sha256").update(token).digest("hex");
+    const user=await getCurrentUser();
     const result=await db().begin(async tx=>{
       const [item]=await tx`SELECT id,version,moderation_status FROM public.contributions
         WHERE tracking_token_hash=${hash} FOR UPDATE`;
@@ -34,6 +35,8 @@ export async function POST(request:Request) {
       const [count]=await tx`SELECT count(*)::int AS total FROM public.contribution_photos
         WHERE contribution_id=${item.id}`;
       if(Number(count.total)+photos.length>4) throw new Error("TOO_MANY_PHOTOS");
+      await claimContribution(tx,request,user?.id??null,
+        submissionHash("reply",{tokenHash:hash,...reply},photos));
       for(let i=0;i<photos.length;i++){
         const photoId=randomUUID();
         await tx`INSERT INTO public.contribution_photos
@@ -58,6 +61,8 @@ export async function POST(request:Request) {
     if(code==="NOT_FOUND") return fail(code,404);
     if(["NOT_WAITING_FOR_REPLY","STALE_VERSION"].includes(code)) return fail(code,409);
     if(code==="TOO_MANY_PHOTOS") return fail(code,400);
+    if(code==="RATE_LIMITED") return fail(code,429);
+    if(code==="DUPLICATE_SUBMISSION") return fail(code,409);
     console.error("Community reply failed",e);
     return fail("REPLY_UNAVAILABLE",503);
   }

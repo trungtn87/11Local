@@ -36,7 +36,7 @@ export async function GET(_request: Request, { params }: Context) {
       contribution.place_id ? sql`SELECT slug, name FROM public.places WHERE id=${contribution.place_id} LIMIT 1`
         : Promise.resolve([]),
       !isNewPlace && contribution.place_id ? sql`SELECT id,slug,name,version,address,area,description,summary,phone,
-          opening_hours,website_url,price_note FROM public.places WHERE id=${contribution.place_id} LIMIT 1`
+          opening_hours,website_url,facebook_url,youtube_url,price_note FROM public.places WHERE id=${contribution.place_id} LIMIT 1`
         : Promise.resolve([]),
       sql`SELECT id,sender,body,created_at FROM public.contribution_messages
         WHERE contribution_id=${id} ORDER BY created_at,id LIMIT 100`,

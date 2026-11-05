@@ -22,6 +22,8 @@ export type PublishedPlaceDetail = {
   place_kind: string;
   phone: string | null;
   website_url: string | null;
+  facebook_url: string | null;
+  youtube_url: string | null;
   opening_hours: string | null;
   price_note: string | null;
   view_count: number;
@@ -47,7 +49,7 @@ export const getPublishedPlaceDetail = cache(async (slug: string): Promise<Publi
     SELECT v.id,v.slug,v.name,v.description,v.address,v.area,v.latitude,v.longitude,
       v.category_id,v.category_name,v.ownership_status,v.phone,
       v.view_count,v.rating_avg,v.rating_count,
-      p.place_kind,p.summary,p.website_url,p.featured_rank,p.featured_until,
+      p.place_kind,p.summary,p.website_url,p.facebook_url,p.youtube_url,p.featured_rank,p.featured_until,
       p.navigation_latitude,p.navigation_longitude,
       p.opening_hours,p.price_note
     FROM api.public_places v

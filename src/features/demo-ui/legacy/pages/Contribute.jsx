@@ -4,7 +4,7 @@ import { Camera, Check, CheckCircle2, ChevronRight, ClipboardCopy, LocateFixed, 
 import { PinMap } from '../../../../app/admin/pin-map';
 
 const CENTER = { latitude: 22.6666, longitude: 106.2588 };
-const EMPTY = { name: '', categoryId: '', address: '', area: 'Cao Bằng', description: '', phone: '', openingHours: '', contactPhone: '' };
+const EMPTY = { name: '', categoryId: '', address: '', area: 'Cao Bằng', description: '', phone: '', openingHours: '', contactPhone: '', facebookUrl: '', youtubeUrl: '' };
 const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
 const reasons = {
   NAME_REQUIRED: 'Hãy nhập tên địa điểm.', ADDRESS_REQUIRED: 'Hãy nhập địa chỉ hoặc mô tả đường đến.',
@@ -14,7 +14,10 @@ const reasons = {
   INVALID_CONTACT_PHONE: 'Số điện thoại liên hệ của bạn không đúng định dạng.',
   INVALID_IMAGE: 'Ảnh không hợp lệ. Hỗ trợ JPEG, PNG, WebP, AVIF tối đa 10 MB/ảnh.',
   TOO_MANY_PHOTOS: 'Chỉ gửi tối đa 4 ảnh.', REQUEST_TOO_LARGE: 'Dung lượng ảnh quá lớn.',
-  RATE_LIMITED: 'Bạn đã gửi quá nhiều lần. Hãy quay lại sau 24 giờ.',
+  RATE_LIMITED: 'Bạn gửi quá nhanh. Hãy thử lại sau khoảng một phút.',
+  DUPLICATE_SUBMISSION: 'Đóng góp này vừa được gửi thành công. Vui lòng kiểm tra trang theo dõi.',
+  INVALID_FACEBOOK_URL: 'Liên kết Facebook phải thuộc facebook.com hoặc fb.watch.',
+  INVALID_YOUTUBE_URL: 'Liên kết YouTube phải thuộc youtube.com hoặc youtu.be.',
   POSSIBLE_DUPLICATE: 'Địa điểm này có thể đã được gửi. Hãy kiểm tra và xác nhận nếu thực sự khác.',
   CONTRIBUTION_UNAVAILABLE: 'Không thể lưu đóng góp vào Neon. Vui lòng thử lại.',
 };
@@ -186,6 +189,10 @@ export function Contribute() {
             <div className="field"><label htmlFor="contrib-phone">Số điện thoại địa điểm</label><input id="contrib-phone" className="input" type="tel" maxLength={40} value={form.phone} onChange={e => update('phone', e.target.value)}/></div>
             <div className="field"><label htmlFor="contrib-hours">Giờ mở cửa</label><input id="contrib-hours" className="input" maxLength={300} placeholder="Ví dụ: 7:00 - 21:00" value={form.openingHours} onChange={e => update('openingHours', e.target.value)}/></div>
           </div>
+          <div className="contrib-two">
+            <div className="field"><label htmlFor="contrib-facebook">Facebook địa điểm</label><input id="contrib-facebook" className="input" type="url" maxLength={500} placeholder="https://facebook.com/..." value={form.facebookUrl} onChange={e => update("facebookUrl", e.target.value)}/></div>
+            <div className="field"><label htmlFor="contrib-youtube">YouTube địa điểm</label><input id="contrib-youtube" className="input" type="url" maxLength={500} placeholder="https://youtube.com/..." value={form.youtubeUrl} onChange={e => update("youtubeUrl", e.target.value)}/></div>
+          </div>
           <div className="field"><label htmlFor="contrib-contact">Số điện thoại liên hệ của bạn (chỉ Admin xem)</label><input id="contrib-contact" className="input" type="tel" maxLength={40} placeholder="Để Admin hỏi thêm nếu cần" value={form.contactPhone} onChange={e => update('contactPhone', e.target.value)}/></div>
         </section>
         <div className="contrib-assurance"><ShieldCheck size={20}/><p>Không cần đăng nhập. Địa điểm và ảnh chỉ xuất hiện công khai sau khi Admin xét duyệt. Người gửi không tự động là chủ địa điểm.</p></div>
@@ -245,7 +252,8 @@ export function ContributionTracking() {
       setReplyError({ STALE_VERSION: 'Admin đã cập nhật yêu cầu. Hãy tải lại.',
         NOT_WAITING_FOR_REPLY: 'Hồ sơ không còn chờ phản hồi.',
         TOO_MANY_PHOTOS: 'Tổng ảnh gửi không được vượt quá 4.',
-        RATE_LIMITED: 'Bạn đã gửi quá nhiều trong 24 giờ.' }[e.message]
+        RATE_LIMITED: 'Bạn gửi quá nhanh. Hãy thử lại sau khoảng một phút.',
+        DUPLICATE_SUBMISSION: 'Phản hồi tương tự vừa được gửi thành công.' }[e.message]
         || 'Không gửi được phản hồi. Hãy thử lại.');
     } finally { setReplyBusy(false); }
   };

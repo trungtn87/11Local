@@ -40,6 +40,8 @@ export async function POST(request:Request,{params}:Context){
           address=${Object.hasOwn(patch,"address")?patch.address:place.address},
           phone=${Object.hasOwn(patch,"phone")?patch.phone:place.phone},
           website_url=${Object.hasOwn(patch,"website_url")?patch.website_url:place.website_url},
+          facebook_url=${Object.hasOwn(patch,"facebook_url")?patch.facebook_url:place.facebook_url},
+          youtube_url=${Object.hasOwn(patch,"youtube_url")?patch.youtube_url:place.youtube_url},
           opening_hours=${Object.hasOwn(patch,"opening_hours")?patch.opening_hours:place.opening_hours},
           price_note=${Object.hasOwn(patch,"price_note")?patch.price_note:place.price_note},
           version=version+1,updated_at=now()

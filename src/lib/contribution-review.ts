@@ -1,10 +1,12 @@
 import { parseNewPlaceContribution } from "./contribution-input.ts";
+import { parseSocialUrl } from "./place-social-links.ts";
 import { normalizeSlug } from "./place-input.ts";
 
 export type ReviewPlace = {
   name: string; categoryId: string; address: string; area: string;
   latitude: number; longitude: number; description: string; phone: string;
   openingHours: string; summary: string; websiteUrl: string;
+  facebookUrl: string | null; youtubeUrl: string | null;
   priceNote: string; placeKind: "business" | "attraction" | "public_place";
   details: Record<string, unknown>;
 };
@@ -24,6 +26,8 @@ export function parseReviewPlace(value: unknown): ReviewPlace {
   const summary = optional("summary", 350);
   const websiteUrl = optional("websiteUrl", 500);
   const priceNote = optional("priceNote", 300);
+  const facebookUrl = parseSocialUrl(optional("facebookUrl", 500), "facebook");
+  const youtubeUrl = parseSocialUrl(optional("youtubeUrl", 500), "youtube");
   if (websiteUrl) {
     try {
       if (!["https:", "http:"].includes(new URL(websiteUrl).protocol)) throw new Error();
@@ -38,7 +42,7 @@ export function parseReviewPlace(value: unknown): ReviewPlace {
     name: base.name, categoryId: base.categoryId, address: base.address, area: base.area,
     latitude: base.latitude, longitude: base.longitude, description: base.description,
     phone: base.phone, openingHours: base.openingHours,
-    summary, websiteUrl, priceNote,
+    summary, websiteUrl, facebookUrl, youtubeUrl, priceNote,
     placeKind: kind as ReviewPlace["placeKind"], details: details as Record<string, unknown>,
   };
 }

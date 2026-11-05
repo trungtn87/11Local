@@ -21,6 +21,8 @@ test("edit: only one supported field and safe values",()=>{
   assert.throws(()=>parseExistingFeedback({...raw,proposedValue:"<script>"}),/INVALID_PHONE/);
   assert.throws(()=>parseExistingFeedback({...raw,fieldKey:"website_url",proposedValue:"javascript:alert(1)"}),/INVALID_WEBSITE_URL/);
   assert.throws(()=>parseExistingFeedback({...raw,fieldKey:"name",proposedValue:""}),/INVALID_VALUE/);
+  assert.equal(parseExistingFeedback({...raw,fieldKey:"facebook_url",proposedValue:"https://facebook.com/abc"}).fieldKey,"facebook_url");
+  assert.throws(()=>parseExistingFeedback({...raw,fieldKey:"youtube_url",proposedValue:"https://facebook.com/page"}),/INVALID_YOUTUBE_URL/);
 });
 test("photo: supports optional note, strips untrusted proposed fields",()=>{
   const value=parseExistingFeedback({kind:"photo",placeId,note:"",fieldKey:"name",proposedValue:"Fake"});

@@ -5,7 +5,7 @@ import {db} from "@/lib/db";
 import {getCurrentUser} from "@/lib/user-auth";
 import {parseExistingFeedback} from "@/lib/contribution-existing";
 import {processContributionPhotos,MAX_REQUEST_BYTES} from "@/lib/contribution-media";
-import {consumeContributionLimit} from "@/lib/contribution-limit";
+import {claimContribution,submissionHash} from "@/lib/contribution-limit";
 import {enqueueBusinessDiscordInTx} from "@/lib/discord-business-events";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
@@ -13,7 +13,6 @@ const fail=(error:string,status:number)=>NextResponse.json({error},{status,heade
 export async function POST(request:Request) {
   if(Number(request.headers.get("content-length")||0)>MAX_REQUEST_BYTES) return fail("REQUEST_TOO_LARGE",413);
   try {
-    if(!await consumeContributionLimit(request)) return fail("RATE_LIMITED",429);
     const form=await request.formData();
     const raw=form.get("payload");
     if(typeof raw!=="string"||raw.length>15000) return fail("INVALID_INPUT",400);
@@ -35,6 +34,7 @@ export async function POST(request:Request) {
         WHERE id=${input.placeId} AND moderation_status='approved'
           AND visibility='visible' FOR SHARE`;
       if(!place) throw new Error("PLACE_NOT_PUBLIC");
+      await claimContribution(tx,request,user?.id??null,submissionHash(input.kind,input,photos));
       const payload={
         placeName:place.name,baseVersion:Number(place.version), note:input.note,
         reason:input.kind==="report"?input.reason:null,
@@ -58,6 +58,8 @@ export async function POST(request:Request) {
     return NextResponse.json(result,{status:201,headers:{"Cache-Control":"no-store"}});
   } catch(e) {
     if((e as Error).message==="PLACE_NOT_PUBLIC") return fail("PLACE_NOT_PUBLIC",404);
+    if((e as Error).message==="RATE_LIMITED") return fail("RATE_LIMITED",429);
+    if((e as Error).message==="DUPLICATE_SUBMISSION") return fail("DUPLICATE_SUBMISSION",409);
     console.error("Existing-place contribution failed",e);
     return fail("CONTRIBUTION_UNAVAILABLE",503);
   }

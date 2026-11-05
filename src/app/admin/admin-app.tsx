@@ -11,19 +11,19 @@ type Field = { category_id: string; field_key: string; label: string; field_type
 type PlaceKind = "business" | "attraction" | "public_place";
 type Place = { id: string; slug: string; name: string; category_id: string; place_kind: PlaceKind;
   summary: string; description: string; address: string; area: string;
-  latitude: number; longitude: number; phone: string | null; website_url: string | null;
+  latitude: number; longitude: number; phone: string | null; website_url: string | null; facebook_url: string | null; youtube_url: string | null;
   opening_hours: string | null; price_note: string | null; featured_rank: number | null;
   moderation_status: string; visibility: "visible" | "hidden"; photo_count: number;
   version: number; details: Record<string, unknown> };
 type Photo = { id: string; photo_type: string; moderation_status: string; created_at: string };
 type FormState = { name: string; slug: string; categoryId: string; placeKind: PlaceKind;
   summary: string; description: string; address: string; area: string;
-  latitude: number; longitude: number; phone: string; websiteUrl: string;
+  latitude: number; longitude: number; phone: string; websiteUrl: string; facebookUrl: string; youtubeUrl: string;
   openingHours: string; priceNote: string; featuredRank: number | null;
   visibility: "visible" | "hidden"; details: Record<string, unknown> };
 const blank = (): FormState => ({ name: "", slug: "", categoryId: "", placeKind: "business",
   summary: "", description: "", address: "", area: "Cao Bằng",
-  latitude: 22.6666, longitude: 106.258, phone: "", websiteUrl: "",
+  latitude: 22.6666, longitude: 106.258, phone: "", websiteUrl: "", facebookUrl: "", youtubeUrl: "",
   openingHours: "", priceNote: "", featuredRank: null, visibility: "visible", details: {} });
 
 const kindLabels: Record<PlaceKind, string> = {
@@ -147,7 +147,7 @@ export default function AdminApp() {
       setForm({ name: p.name, slug: p.slug, categoryId: p.category_id,
         placeKind: p.place_kind, summary: p.summary || "", description: p.description || "",
         address: p.address, area: p.area, latitude: Number(p.latitude), longitude: Number(p.longitude),
-        phone: p.phone || "", websiteUrl: p.website_url || "",
+        phone: p.phone || "", websiteUrl: p.website_url || "", facebookUrl: p.facebook_url || "", youtubeUrl: p.youtube_url || "",
         openingHours: p.opening_hours || "", priceNote: p.price_note || "",
         featuredRank: p.featured_rank == null ? null : Number(p.featured_rank),
         visibility: p.visibility, details: p.details || {} });
@@ -342,6 +342,8 @@ export default function AdminApp() {
             <label>Điện thoại<input maxLength={40} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}/></label>
             <label className={styles.wide}>Địa chỉ *<input required maxLength={500} value={form.address} onChange={e => setForm({ ...form, address: e.target.value })}/></label>
             <label className={styles.wide}>Website (nếu có)<input type="url" maxLength={500} value={form.websiteUrl} placeholder="https://" onChange={e => setForm({ ...form, websiteUrl: e.target.value })}/></label>
+            <label>Facebook (nếu có)<input type="url" maxLength={500} value={form.facebookUrl} placeholder="https://facebook.com/..." onChange={e => setForm({ ...form, facebookUrl: e.target.value })}/></label>
+            <label>YouTube (nếu có)<input type="url" maxLength={500} value={form.youtubeUrl} placeholder="https://youtube.com/..." onChange={e => setForm({ ...form, youtubeUrl: e.target.value })}/></label>
             <label>Giờ hoạt động (mô tả)<input maxLength={500} value={form.openingHours} placeholder="VD: 07:00–17:00" onChange={e => setForm({ ...form, openingHours: e.target.value })}/></label>
             <label>Giá tham khảo<input maxLength={300} value={form.priceNote} placeholder="VD: 20.000đ/vé" onChange={e => setForm({ ...form, priceNote: e.target.value })}/></label>
             <label>Trạng thái hiển thị<select value={form.visibility} onChange={e => setForm({ ...form, visibility: e.target.value as FormState["visibility"] })}>
