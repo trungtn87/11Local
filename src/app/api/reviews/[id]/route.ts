@@ -78,7 +78,7 @@ export async function PATCH(request: Request, { params }: Context) {
   }
 }
 
-export async function DELETE(request: Request, { params }: Context) {
+export async function DELETE(_request: Request, { params }: Context) {
   const user = await getCurrentUser();
   if (!user || !isReviewUuid(user.id)) return fail("LOGIN_REQUIRED", 401);
   const { id } = await params;
