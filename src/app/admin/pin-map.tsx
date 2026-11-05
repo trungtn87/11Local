@@ -7,7 +7,7 @@ import styles from "./pin-map.module.css";
 import { MAP_STYLE_URL } from "@/features/map/map-config";
 import { isPoiLayer, loadCleanStyle, type StyleLayer } from "@/features/map/map-style";
 import { createPlaceMarkerElement } from "@/features/map/place-marker";
-import { parseMapReferencePlaces } from "@/features/map/map-reference-places";
+import { parseMapReferencePlaces, type MapReferencePlace } from "@/features/map/map-reference-places";
 import "@/features/map/place-marker.css";
 
 setWorkerUrl(new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString());
@@ -16,6 +16,8 @@ type Props = {
   latitude: number;
   longitude: number;
   onChange: (longitude: number, latitude: number) => void;
+  /** Admin passes every stored place; public contribution pages omit this prop. */
+  referencePlaces?: MapReferencePlace[];
 };
 
 // MapLibre's draggable marker handles both mouse and touch gestures.
@@ -23,6 +25,8 @@ type Props = {
 function createPinElement() {
   const element = document.createElement("div");
   element.className = styles.draggablePin;
+  // Keep the draggable edit pin above reference labels, including after async loading.
+  element.style.zIndex = "10";
   element.title = "Giữ và kéo ghim để chọn tọa độ";
   element.setAttribute("aria-label", "Ghim vị trí có thể kéo thả");
 
@@ -44,10 +48,11 @@ function createPinElement() {
   return element;
 }
 
-export function PinMap({ latitude, longitude, onChange }: Props) {
+export function PinMap({ latitude, longitude, onChange, referencePlaces }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const [placesStatus, setPlacesStatus] = useState<{ state: "loading" | "ready" | "error"; count: number }>({ state: "loading", count: 0 });
   const map = useRef<Map | null>(null);
+  const [readyMap, setReadyMap] = useState<Map | null>(null);
   const marker = useRef<Marker | null>(null);
   const change = useRef(onChange);
   const latest = useRef({ latitude, longitude });
@@ -59,8 +64,6 @@ export function PinMap({ latitude, longitude, onChange }: Props) {
   useEffect(() => {
     let cancelled = false;
     let instance: Map | null = null;
-    const controller = new AbortController();
-    const referenceMarkers: Marker[] = [];
 
     async function createMap() {
       const style = await loadCleanStyle(MAP_STYLE_URL);
@@ -80,33 +83,7 @@ export function PinMap({ latitude, longitude, onChange }: Props) {
         for (const layer of m.getStyle().layers ?? []) {
           if (isPoiLayer(layer as StyleLayer)) m.removeLayer(layer.id);
         }
-
-        // The contribution and Admin pickers share the approved public map dataset.
-        // Reference pins must never change the new location's coordinates.
-        void (async () => {
-          try {
-            const response = await fetch("/api/places", { cache: "no-store", signal: controller.signal });
-            if (!response.ok) throw new Error("PLACES_UNAVAILABLE");
-            const body: unknown = await response.json();
-            if (cancelled) return;
-            const places = parseMapReferencePlaces(body);
-            for (const place of places) {
-              const element = createPlaceMarkerElement(place);
-              element.classList.add(styles.referencePin);
-              element.setAttribute("aria-hidden", "true");
-              element.tabIndex = -1;
-              // The non-interactive labels cannot steal drag/pan/touch gestures.
-              element.style.pointerEvents = "none";
-              referenceMarkers.push(new Marker({ element, anchor: "bottom" })
-                .setLngLat([place.longitude, place.latitude]).addTo(m));
-            }
-            setPlacesStatus({ state: "ready", count: referenceMarkers.length });
-          } catch (error) {
-            if (!cancelled && !(error instanceof Error && error.name === "AbortError")) {
-              setPlacesStatus({ state: "error", count: 0 });
-            }
-          }
-        })();
+        setReadyMap(m);
       });
 
       const pin = new Marker({
@@ -129,9 +106,8 @@ export function PinMap({ latitude, longitude, onChange }: Props) {
     void createMap();
     return () => {
       cancelled = true;
-      controller.abort();
-      for (const referenceMarker of referenceMarkers) referenceMarker.remove();
       instance?.remove();
+      setReadyMap(null);
       map.current = null;
       marker.current = null;
     };
