@@ -40,7 +40,10 @@ export function isAllowedRequestOrigin(request: Request, requireOrigin = false):
   const origin = canonicalOrigin(supplied);
   if (!origin || supplied !== origin) return false;
 
-  // Production OAuth and web UI use the canonical 11local.vn domain. The proxy\n  // may forward an internal Host and deployments may have a stale SITE_URL.\n  if (process.env.NODE_ENV === "production" && origin === "https://11local.vn") return true;\n\n  const configured = process.env.SITE_URL?.trim();
+  // Production OAuth and web UI use the canonical 11local.vn domain. The proxy
+  // may forward an internal Host and deployments may have a stale SITE_URL.
+  if (process.env.NODE_ENV === "production" && origin === "https://11local.vn") return true;
+\n  const configured = process.env.SITE_URL?.trim();
   if (configured) {
     const expected = canonicalOrigin(configured);
     if (!expected) return false;
