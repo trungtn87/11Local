@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { MapPin } from "lucide-react";
 import { PinMap } from "./pin-map";
+import type { MapReferencePlace } from "@/features/map/map-reference-places";
 import styles from "./location-picker.module.css";
 
 type Props = {
@@ -10,6 +11,7 @@ type Props = {
   longitude: number;
   onChange: (longitude: number, latitude: number) => void;
   onPendingChange?: (pending: boolean) => void;
+  referencePlaces?: MapReferencePlace[];
 };
 
 function parseCoordinate(raw: string, min: number, max: number): number | null {
@@ -19,7 +21,7 @@ function parseCoordinate(raw: string, min: number, max: number): number | null {
   return Number.isFinite(value) && value >= min && value <= max ? value : null;
 }
 
-export function LocationPicker({ latitude, longitude, onChange, onPendingChange }: Props) {
+export function LocationPicker({ latitude, longitude, onChange, onPendingChange, referencePlaces }: Props) {
   const [latitudeText, setLatitudeText] = useState(String(latitude));
   const [longitudeText, setLongitudeText] = useState(String(longitude));
   const [error, setError] = useState("");
@@ -47,7 +49,7 @@ export function LocationPicker({ latitude, longitude, onChange, onPendingChange 
         </span>
       </div>
       <p className={styles.hint}>
-        Giữ và kéo ghim xanh để chọn vị trí, hoặc nhập tọa độ thủ công bên dưới. Icon có tên là các địa điểm đã công khai; di chuyển nền bản đồ không làm đổi tọa độ.
+        Giữ và kéo ghim xanh để chọn vị trí, hoặc nhập tọa độ thủ công bên dưới. Icon kèm tên là các địa điểm đã lưu trong Admin, kể cả chưa công khai. Di chuyển nền bản đồ không làm đổi tọa độ.
       </p>
       <div className={styles.coordinates}>
         <label>
@@ -76,7 +78,7 @@ export function LocationPicker({ latitude, longitude, onChange, onPendingChange 
         <span>Nhập xong, bấm đặt ghim rồi lưu địa điểm.</span>
       </div>
       {error && <p className={styles.error} role="alert">{error}</p>}
-      <PinMap latitude={latitude} longitude={longitude} onChange={(nextLongitude, nextLatitude) => {
+      <PinMap latitude={latitude} longitude={longitude} referencePlaces={referencePlaces} onChange={(nextLongitude, nextLatitude) => {
         setLatitudeText(String(nextLatitude));
         setLongitudeText(String(nextLongitude));
         onChange(nextLongitude, nextLatitude);
