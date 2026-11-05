@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { MapPin } from "lucide-react";
 import { PinMap } from "./pin-map";
 import styles from "./location-picker.module.css";
@@ -24,12 +24,6 @@ export function LocationPicker({ latitude, longitude, onChange, onPendingChange 
   const [longitudeText, setLongitudeText] = useState(String(longitude));
   const [error, setError] = useState("");
 
-  // Sync inputs with map drags and when switching to another saved location.
-  useEffect(() => {
-    setLatitudeText(String(latitude));
-    setLongitudeText(String(longitude));
-  }, [latitude, longitude]);
-
   const applyCoordinates = () => {
     const nextLatitude = parseCoordinate(latitudeText, -90, 90);
     const nextLongitude = parseCoordinate(longitudeText, -180, 180);
@@ -38,6 +32,8 @@ export function LocationPicker({ latitude, longitude, onChange, onPendingChange 
       return;
     }
     setError("");
+    setLatitudeText(String(nextLatitude));
+    setLongitudeText(String(nextLongitude));
     onChange(nextLongitude, nextLatitude);
     onPendingChange?.(false);
   };
@@ -81,6 +77,8 @@ export function LocationPicker({ latitude, longitude, onChange, onPendingChange 
       </div>
       {error && <p className={styles.error} role="alert">{error}</p>}
       <PinMap latitude={latitude} longitude={longitude} onChange={(nextLongitude, nextLatitude) => {
+        setLatitudeText(String(nextLatitude));
+        setLongitudeText(String(nextLongitude));
         onChange(nextLongitude, nextLatitude);
         onPendingChange?.(false);
         setError("");
