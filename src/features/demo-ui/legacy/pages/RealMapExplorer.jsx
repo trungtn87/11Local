@@ -4,6 +4,8 @@ import { Marker, Popup } from 'maplibre-gl';
 import { ChevronLeft, ImageOff, List, MapPin, Minus, Navigation, Plus, Star, X } from 'lucide-react';
 
 import { MapCanvas } from '../../../map/map-canvas';
+import { createPlaceMarkerElement } from '../../../map/place-marker';
+import '../../../map/place-marker.css';
 import { CAO_BANG_CAMERA } from '../../../map/map-config';
 import { getGoogleMapsDirectionsUrl } from '../../../places/google-maps';
 import { ownershipMessage } from '../../../places/public-place-format';
@@ -144,11 +146,7 @@ function PlaceMap({ places, selectedPlace, onSelect, onOpenDetails, showPopup = 
     if (!map) return;
     const markers = new Map();
     for (const place of places.filter(hasCoordinates)) {
-      const el = document.createElement('button');
-      el.type = 'button';
-      el.className = 'local-map-pin';
-      el.setAttribute('aria-label', 'Xem ' + place.name);
-      el.title = place.name;
+      const el = createPlaceMarkerElement(place);
       el.addEventListener('click', (event) => {
         event.stopPropagation();
         onSelect(place.slug);

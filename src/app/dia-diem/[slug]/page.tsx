@@ -90,7 +90,8 @@ export default async function PublicPlacePage({ params }: PageProps) {
       </div>
       <div className="local-seo-detail-grid">
         <div className="local-seo-map-pane">
-          <PlaceMap latitude={place.latitude} longitude={place.longitude} name={place.name}/>
+          <PlaceMap latitude={place.latitude} longitude={place.longitude} name={place.name}
+            slug={place.slug} categoryId={place.category_id} categoryName={place.category_name}/>
           <div className="local-seo-map-overlay">
             <span><MapPin size={15}/> {place.address || place.area || "Cao Bằng"}</span>
             <a href={directions} target="_blank" rel="noopener noreferrer"><Navigation size={16}/> Chỉ đường</a>
