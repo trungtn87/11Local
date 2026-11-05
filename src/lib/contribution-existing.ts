@@ -1,4 +1,6 @@
 
+import { parseSocialUrl } from "./place-social-links.ts";
+
 export const feedbackKinds = ["report", "edit_place", "photo"] as const;
 export type FeedbackKind = typeof feedbackKinds[number];
 export const changeFields = {
@@ -10,6 +12,8 @@ export const changeFields = {
   phone: "Số điện thoại",
   opening_hours: "Giờ mở cửa",
   website_url: "Website",
+  facebook_url: "Facebook",
+  youtube_url: "YouTube",
   price_note: "Giá tham khảo",
 } as const;
 export type ChangeField = keyof typeof changeFields;
@@ -39,13 +43,16 @@ export function parseExistingFeedback(raw: unknown): ExistingFeedback {
     if (typeof v.proposedValue !== "string") throw new Error("INVALID_VALUE");
     proposedValue = v.proposedValue.trim();
     const max = fieldKey === "description" ? 3000 :
-      fieldKey === "address" || fieldKey === "website_url" ? 500 :
+      fieldKey === "address" || ["website_url", "facebook_url", "youtube_url"].includes(fieldKey) ? 500 :
       fieldKey === "summary" ? 350 : fieldKey === "price_note" || fieldKey === "opening_hours" ? 300 :
       fieldKey === "phone" ? 40 : 160;
     if (proposedValue.length > max || (fieldKey === "name" && !proposedValue))
       throw new Error("INVALID_VALUE");
     if (fieldKey === "phone" && proposedValue && !/^[+\d().\s-]{6,40}$/.test(proposedValue))
       throw new Error("INVALID_PHONE");
+    if (fieldKey === "facebook_url" || fieldKey === "youtube_url") {
+      parseSocialUrl(proposedValue, fieldKey === "facebook_url" ? "facebook" : "youtube");
+    }
     if (fieldKey === "website_url" && proposedValue) {
       try {
         const u = new URL(proposedValue);
