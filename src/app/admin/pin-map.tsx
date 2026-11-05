@@ -148,6 +148,7 @@ export function PinMap({ latitude, longitude, onChange, referencePlaces }: Props
           }
         }
         if (cancelled) return;
+        if (!places) throw new Error("PLACES_UNAVAILABLE");
         for (const place of places) {
           const element = createPlaceMarkerElement(place);
           element.classList.add(styles.referencePin);
