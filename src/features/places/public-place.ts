@@ -3,7 +3,7 @@ export type PublicPlace = {
   summary?: string; address: string; area: string;
   latitude: number; longitude: number;
   navigation_latitude?: number | null; navigation_longitude?: number | null;
-  category_id: string; category_name: string; place_kind?: "business" | "attraction" | "public_place";
+  category_id: string; category_name: string; category_icon?: string | null; place_kind?: "business" | "attraction" | "public_place";
   ownership_status: string; phone: string | null;
   website_url?: string | null; updated_at?: string;
   featured_rank?: number | null; featured_until?: string | null;
