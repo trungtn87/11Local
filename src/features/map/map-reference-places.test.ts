@@ -25,3 +25,14 @@ test("ignores invalid locations, missing names, and empty responses", () => {
     { slug: "ok", name: "Hợp lệ", latitude: 22, longitude: 106 },
   ] }).map(place => place.slug), ["ok"]);
 });
+
+test("retains Admin-only status for pending or hidden saved places", () => {
+  const places = parseMapReferencePlaces({ places: [
+    { slug: "draft", name: "Quán đang chờ duyệt", latitude: 22.66, longitude: 106.25,
+      moderation_status: "pending", visibility: "hidden", category_icon: "coffee" },
+  ] });
+  assert.equal(places.length, 1);
+  assert.equal(places[0].moderation_status, "pending");
+  assert.equal(places[0].visibility, "hidden");
+  assert.equal(places[0].category_icon, "coffee");
+});
