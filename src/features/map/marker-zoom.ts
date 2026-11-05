@@ -2,7 +2,7 @@
  * Consistent marker label density across 11Local maps.
  * On wide-area views we retain the category pins but hide text labels.
  */
-export const PLACE_LABEL_MIN_ZOOM = 13;
+export const PLACE_LABEL_MIN_ZOOM = 14;
 
 type ZoomMap = {
   getZoom(): number;
