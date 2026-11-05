@@ -113,6 +113,55 @@ export function PinMap({ latitude, longitude, onChange, referencePlaces }: Props
     };
   }, []);
 
+  // Unlike the public contribution form, Admin supplies its own complete
+  // protected catalog (including pending and hidden locations).
+  // Rebuild just reference pins when that catalog changes, never the draggable pin.
+  useEffect(() => {
+    if (!readyMap) return;
+    let cancelled = false;
+    const controller = new AbortController();
+    const referenceMarkers: Marker[] = [];
+    void (async () => {
+      try {
+        let places = referencePlaces;
+        if (places === undefined) {
+          const response = await fetch("/api/places", {
+            cache: "no-store", signal: controller.signal,
+          });
+          if (!response.ok) throw new Error("PLACES_UNAVAILABLE");
+          const body: unknown = await response.json();
+          places = parseMapReferencePlaces(body);
+        }
+        if (cancelled) return;
+        for (const place of places) {
+          const element = createPlaceMarkerElement(place);
+          element.classList.add(styles.referencePin);
+          element.setAttribute("aria-hidden", "true");
+          element.tabIndex = -1;
+          element.style.pointerEvents = "none";
+          element.style.zIndex = "1";
+          if (referencePlaces !== undefined &&
+              (place.moderation_status !== "approved" || place.visibility === "hidden")) {
+            element.style.opacity = "0.72";
+            element.title = place.name + " (chưa công khai)";
+          }
+          referenceMarkers.push(new Marker({ element, anchor: "bottom" })
+            .setLngLat([place.longitude, place.latitude]).addTo(readyMap));
+        }
+        setPlacesStatus({ state: "ready", count: referenceMarkers.length });
+      } catch (error) {
+        if (!cancelled && !(error instanceof Error && error.name === "AbortError")) {
+          setPlacesStatus({ state: "error", count: 0 });
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      controller.abort();
+      for (const referenceMarker of referenceMarkers) referenceMarker.remove();
+    };
+  }, [readyMap, referencePlaces]);
+
   useEffect(() => {
     const m = map.current;
     const pin = marker.current;
@@ -138,8 +187,9 @@ export function PinMap({ latitude, longitude, onChange, referencePlaces }: Props
       <p className={styles.referenceStatus} role="status" aria-live="polite">
         {placesStatus.state === "loading" ? "Đang tải địa điểm đã có trên 11Local…"
           : placesStatus.state === "error" ? "Không tải được địa điểm đã có; ghim xanh vẫn hoạt động."
-          : placesStatus.count === 0 ? "Chưa có địa điểm đã công khai để hiển thị."
-          : `${placesStatus.count} địa điểm 11Local đã công khai · Ghim xanh là vị trí mới`}
+          : placesStatus.count === 0 ? (referencePlaces !== undefined
+              ? "Admin chưa có địa điểm lưu trong Neon." : "Chưa có địa điểm đã công khai để hiển thị.")
+          : `${placesStatus.count} địa điểm ${referencePlaces === undefined ? "đã công khai" : "đã lưu trong Admin"} · Ghim xanh là vị trí mới`}
       </p>
     </div>
   );
