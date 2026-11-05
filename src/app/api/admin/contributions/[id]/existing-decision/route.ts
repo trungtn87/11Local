@@ -77,6 +77,8 @@ export async function POST(request:Request,{params}:Context) {
           phone=CASE WHEN ${key}='phone' THEN NULLIF(${value},'') ELSE phone END,
           opening_hours=CASE WHEN ${key}='opening_hours' THEN NULLIF(${value},'') ELSE opening_hours END,
           website_url=CASE WHEN ${key}='website_url' THEN NULLIF(${value},'') ELSE website_url END,
+          facebook_url=CASE WHEN ${key}='facebook_url' THEN NULLIF(${value},'') ELSE facebook_url END,
+          youtube_url=CASE WHEN ${key}='youtube_url' THEN NULLIF(${value},'') ELSE youtube_url END,
           price_note=CASE WHEN ${key}='price_note' THEN NULLIF(${value},'') ELSE price_note END,
           version=version+1,updated_at=now()
           WHERE id=${place.id} RETURNING *`;
