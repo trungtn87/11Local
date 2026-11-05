@@ -51,6 +51,8 @@ const errors: Record<string, string> = {
   INVALID_PHOTO_SELECTION: "Có ảnh không thuộc đóng góp này. Hãy tải lại.",
   COVER_NOT_SELECTED: "Ảnh bìa phải nằm trong nhóm ảnh đã chọn.",
   INVALID_WEBSITE_URL: "Đường dẫn website không hợp lệ.",
+  INVALID_FACEBOOK_URL: "Liên kết Facebook không hợp lệ.",
+  INVALID_YOUTUBE_URL: "Liên kết YouTube không hợp lệ.",
   REVIEW_FAILED: "Không thể hoàn tất kiểm duyệt. Không có thay đổi nào được công khai.",
   SAVE_FAILED: "Không thể lưu bản chỉnh sửa.",
   UNAUTHORIZED: "Phiên quản trị đã hết hạn.",
@@ -70,7 +72,8 @@ function normalizeDraft(data: Record<string, unknown>): ReviewPlace {
     longitude: asNumber(data.longitude, 106.2588),
     description: asText(data.description), phone: asText(data.phone),
     openingHours: asText(data.openingHours), summary: asText(data.summary),
-    websiteUrl: asText(data.websiteUrl), priceNote: asText(data.priceNote),
+    websiteUrl: asText(data.websiteUrl), facebookUrl: asText(data.facebookUrl),
+    youtubeUrl: asText(data.youtubeUrl), priceNote: asText(data.priceNote),
     placeKind: data.placeKind === "attraction" || data.placeKind === "public_place"
       ? data.placeKind : categoryId === "sight" ? "attraction" : "business",
     details: rawDetails && typeof rawDetails === "object" && !Array.isArray(rawDetails)
@@ -355,6 +358,12 @@ export default function ReviewApp() {
               <label className={styles.field}>Website
                 <input type="url" maxLength={500} disabled={!reviewable}
                   value={draft.websiteUrl} onChange={e => change("websiteUrl", e.target.value)}/></label>
+              <label className={styles.field}>Facebook
+                <input type="url" maxLength={500} disabled={!reviewable}
+                  value={draft.facebookUrl || ""} onChange={e => change("facebookUrl", e.target.value)}/></label>
+              <label className={styles.field}>YouTube
+                <input type="url" maxLength={500} disabled={!reviewable}
+                  value={draft.youtubeUrl || ""} onChange={e => change("youtubeUrl", e.target.value)}/></label>
               <label className={styles.field}>Giá tham khảo
                 <input maxLength={300} disabled={!reviewable}
                   value={draft.priceNote} onChange={e => change("priceNote", e.target.value)}/></label>
