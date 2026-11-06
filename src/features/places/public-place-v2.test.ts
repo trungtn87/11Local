@@ -20,7 +20,10 @@ test("featured_rank from Neon ranks only active features", () => {
 });
 test("hot requires real metrics, avoids fictitious cards", () => {
   assert.deepEqual(selectHotPlaces([base]),[]);
-  assert.equal(selectHotPlaces([{...base,id:"popular",view_count:10},base])[0].id,"popular");
+  // V1 Hot ranking uses valid detail views from the last 30 days, not
+  // historical views alone.
+  assert.deepEqual(selectHotPlaces([{...base,id:"old",view_count:10},base]), []);
+  assert.equal(selectHotPlaces([{...base,id:"popular",view_count:10,views_30d:10},base])[0].id,"popular");
 });
 test("handles false, zero, multi-select and blocks javascript URLs", () => {
   assert.equal(formatFact({label:"Bãi xe",field_type:"boolean",value:false})?.text,"Không");
