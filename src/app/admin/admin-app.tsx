@@ -1,7 +1,7 @@
 "use client";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ChangeEvent } from "react";
-import { CheckCircle2, Clock3, MapPin, MapPinned, Plus, Save, Search, Send, Upload } from "lucide-react";
+import { CheckCircle2, Clock3, MapPin, MapPinned, Plus, Save, Search, Send, Upload, XCircle } from "lucide-react";
 import { LocationPicker } from "./location-picker";
 import { parseMapReferencePlaces } from "@/features/map/map-reference-places";
 import styles from "./admin.module.css";
@@ -14,7 +14,8 @@ type Place = { id: string; slug: string; name: string; category_id: string; plac
   summary: string; description: string; address: string; area: string;
   latitude: number; longitude: number; phone: string | null; website_url: string | null; facebook_url: string | null; youtube_url: string | null;
   opening_hours: string | null; price_note: string | null; featured_rank: number | null;
-  moderation_status: string; visibility: "visible" | "hidden"; photo_count: number;
+  moderation_status: "pending" | "approved" | "rejected"; visibility: "visible" | "hidden"; photo_count: number;
+  rejection_reason: string | null;
   version: number; details: Record<string, unknown> };
 type Photo = { id: string; photo_type: string; moderation_status: string; created_at: string };
 type FormState = { name: string; slug: string; categoryId: string; placeKind: PlaceKind;
@@ -33,6 +34,10 @@ const kindLabels: Record<PlaceKind, string> = {
 const describeError = (code: string) => {
   if (code === "POSSIBLE_DUPLICATE") return "Địa điểm có thể bị trùng tên hoặc ghim gần địa điểm đã có.";
   if (code === "STALE_VERSION") return "Dữ liệu đã thay đổi ở một phiên khác. Hãy tải lại địa điểm trước khi sửa.";
+  if (code === "ALREADY_REVIEWED") return "Địa điểm không còn ở trạng thái chờ duyệt. Hãy tải lại danh sách.";
+  if (code === "REASON_REQUIRED") return "Cần nhập lý do từ chối tối thiểu 5 ký tự.";
+  if (code === "REASON_TOO_LONG") return "Lý do từ chối tối đa 500 ký tự.";
+  if (code === "INVALID_VERSION") return "Không xác định được phiên bản địa điểm. Hãy tải lại danh sách.";
   if (code === "SLUG_EXISTS") return "Đường dẫn này đã được dùng. Hãy đổi slug.";
   if (code === "INVALID_CATEGORY") return "Danh mục không còn hợp lệ. Hãy tải lại danh mục.";
   if (code.startsWith("REQUIRED_DETAIL_FIELD:")) return "Thiếu trường bắt buộc: " + code.split(":")[1];
@@ -105,9 +110,11 @@ export default function AdminApp() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
   const [catalogError, setCatalogError] = useState(false);
   const [placeQuery, setPlaceQuery] = useState("");
-  const [placeFilter, setPlaceFilter] = useState<"all" | "pending" | "approved">("all");
+  const [placeFilter, setPlaceFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
 
   const loadPlaces = useCallback(async () => {
     const res = await fetch("/api/admin/places", { cache: "no-store" });
@@ -143,6 +150,7 @@ export default function AdminApp() {
 
   const pick = (p: Place | null) => {
     setSelected(p); setPhotos([]); setMessage(""); setPinSelected(Boolean(p));
+    setRejectOpen(false); setRejectReason("");
     setCoordinateDraftPending(false);
     if (p) {
       setForm({ name: p.name, slug: p.slug, categoryId: p.category_id,
@@ -195,14 +203,37 @@ export default function AdminApp() {
     if (!selected || !confirm("Công khai địa điểm này trên website?")) return;
     setBusy(true); setMessage("");
     try {
-      const res = await fetch("/api/admin/places/" + selected.id + "/publish", { method: "POST" });
-      if (!res.ok) throw new Error("PUBLISH_FAILED");
+      const res = await fetch("/api/admin/places/" + selected.id + "/publish", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ expectedVersion: selected.version }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || "PUBLISH_FAILED");
       const body = await res.json();
       await loadPlaces();
       pick({ ...selected, ...body.place, details: form.details });
       setMessage("Địa điểm đã được công khai.");
-    } catch { setMessage("Không thể công khai địa điểm."); }
-    finally { setBusy(false); }
+    } catch (error) {
+      setMessage(describeError(error instanceof Error ? error.message : "PUBLISH_FAILED"));
+    } finally { setBusy(false); }
+  };
+  const reject = async () => {
+    if (!selected || selected.moderation_status !== "pending" || busy) return;
+    const reason = rejectReason.trim();
+    if (reason.length < 5) { setMessage("Cần nhập lý do từ chối tối thiểu 5 ký tự."); return; }
+    setBusy(true); setMessage("");
+    try {
+      const res = await fetch("/api/admin/places/" + selected.id + "/reject", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason, expectedVersion: selected.version }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "REJECT_FAILED");
+      await loadPlaces();
+      pick({ ...selected, ...body.place, details: form.details, rejection_reason: reason });
+      setMessage("Đã từ chối địa điểm. Lý do đã được lưu trong lịch sử kiểm duyệt.");
+    } catch (error) {
+      setMessage(describeError(error instanceof Error ? error.message : "REJECT_FAILED"));
+    } finally { setBusy(false); }
   };
   const upload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -306,7 +337,7 @@ export default function AdminApp() {
             placeholder="Tìm tên, địa chỉ…" aria-label="Tìm địa điểm"/>
         </label>
         <div className={styles.filterTabs} role="group" aria-label="Lọc địa điểm theo trạng thái">
-          {([["all", "Tất cả"], ["pending", "Chờ duyệt"], ["approved", "Đã duyệt"]] as const)
+          {([["all", "Tất cả"], ["pending", "Chờ duyệt"], ["approved", "Đã duyệt"], ["rejected", "Từ chối"]] as const)
             .map(([value, label]) => <button key={value} type="button"
               aria-pressed={placeFilter === value} onClick={() => setPlaceFilter(value)}>{label}</button>)}
         </div>
@@ -317,7 +348,7 @@ export default function AdminApp() {
             <span className={styles.placeName}>{p.name}</span>
             <span className={styles.placeMeta}><MapPin size={12} aria-hidden="true"/>{categoryName(p.category_id)} · {p.area}</span>
             <em data-status={p.moderation_status}>
-              {p.moderation_status === "approved" ? "Đã duyệt" : "Chờ duyệt"}
+              {p.moderation_status === "approved" ? "Đã duyệt" : p.moderation_status === "rejected" ? "Đã từ chối" : "Chờ duyệt"}
             </em>
           </button>) : <p className={styles.emptyList}>Không tìm thấy địa điểm phù hợp.</p>}
         </div>
@@ -329,9 +360,32 @@ export default function AdminApp() {
             <span className={styles.editorEyebrow}>{selected ? "CHỈNH SỬA" : "TẠO MỚI"}</span>
             <h2>{selected ? selected.name : "Thêm địa điểm"}</h2>
             <p>{selected ? "Cập nhật thông tin và quản lý hình ảnh địa điểm." : "Địa điểm mới được lưu ở trạng thái chờ duyệt."}</p>
-          </div>{selected && <button className={styles.publish} type="button" disabled={busy || selected.moderation_status === "approved"} onClick={publish}>
-            <Send size={16}/>Công khai</button>}</div>
+          </div>{selected?.moderation_status === "pending" && <div className={styles.titleActions}>
+            <button className={styles.rejectButton} type="button" disabled={busy}
+              onClick={() => { setRejectOpen(current => !current); setMessage(""); }}>
+              <XCircle size={16}/>Từ chối</button>
+            <button className={styles.publish} type="button" disabled={busy} onClick={publish}>
+              <Send size={16}/>Công khai</button>
+          </div>}</div>
           {message && <div className={styles.notice} role="status">{message}</div>}
+          {selected?.moderation_status === "rejected" && <div className={styles.rejectionInfo}>
+            <strong>Địa điểm đã bị từ chối</strong>
+            <p>{selected.rejection_reason || "Chưa có lý do từ chối được lưu."}</p>
+          </div>}
+          {selected?.moderation_status === "pending" && rejectOpen && <section className={styles.rejectPanel} aria-label="Xác nhận từ chối địa điểm">
+            <h3>Từ chối địa điểm này?</h3>
+            <p>Địa điểm sẽ không công khai trên website. Vui lòng ghi lý do để lưu lịch sử xử lý.</p>
+            <label htmlFor="place-rejection-reason">Lý do từ chối *</label>
+            <textarea id="place-rejection-reason" rows={3} minLength={5} maxLength={500}
+              placeholder="Ví dụ: Địa điểm đã tồn tại hoặc thông tin không chính xác."
+              value={rejectReason} onChange={event => setRejectReason(event.target.value)}/>
+            <div className={styles.rejectActions}>
+              <button type="button" disabled={busy} onClick={() => setRejectOpen(false)}>Hủy</button>
+              <button type="button" disabled={busy || rejectReason.trim().length < 5} onClick={() => void reject()}>
+                <XCircle size={16}/>{busy ? "Đang từ chối…" : "Xác nhận từ chối"}
+              </button>
+            </div>
+          </section>}
           {catalogError && <div className={styles.notice}>Không tải được danh mục. <button type="button" onClick={() => void loadCatalog()}>Thử lại</button></div>}
           <h3 className={styles.sectionTitle}>Thông tin chung</h3>
           <div className={styles.fields}>
