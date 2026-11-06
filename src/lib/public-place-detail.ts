@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { db } from "@/lib/db";
+import { rankPublicPlaces, type HotBreakdown } from "@/features/places/hot-ranking";
 import { parsePlaceVideoLink } from "@/lib/place-video-links";
 import type { OpeningSlot, PlacePrice, PublicFact } from "@/features/places/public-place-format";
 
@@ -30,6 +31,11 @@ export type PublishedPlaceDetail = {
   view_count: number;
   rating_avg: number;
   rating_count: number;
+  like_count: number;
+  views_30d: number;
+  hot_score: number;
+  hot_rank: number | null;
+  hot_breakdown: HotBreakdown;
   photos: Array<{ id: string; type: string; caption: string | null; alt: string | null }>;
   detail_fields: PublicFact[];
   opening_slots: OpeningSlot[];
@@ -51,7 +57,7 @@ export const getPublishedPlaceDetail = cache(async (slug: string): Promise<Publi
   const [place] = await sql`
     SELECT v.id,v.slug,v.name,v.description,v.address,v.area,v.latitude,v.longitude,
       v.category_id,v.category_name,v.ownership_status,v.phone,
-      v.view_count,v.rating_avg,v.rating_count,
+      v.view_count,v.rating_avg,v.rating_count,v.like_count,v.views_30d,
       p.place_kind,p.summary,p.website_url,p.facebook_url,p.youtube_url,p.featured_rank,p.featured_until,
       p.navigation_latitude,p.navigation_longitude,
       p.opening_hours,p.price_note
@@ -60,7 +66,9 @@ export const getPublishedPlaceDetail = cache(async (slug: string): Promise<Publi
     WHERE v.slug=${slug} LIMIT 1`;
   if (!place) return null;
 
-  const [photos, fields, hours, prices, tags, videos] = await Promise.all([
+  const [hotRows, photos, fields, hours, prices, tags, videos] = await Promise.all([
+    sql`SELECT id,name,rating_avg,rating_count,like_count,views_30d
+      FROM api.public_places`,
     sql`SELECT ph.id,ph.photo_type,ph.caption,ph.alt_text
       FROM public.place_photos ph JOIN public.place_image_blobs blob ON blob.photo_id=ph.id
       WHERE ph.place_id=${place.id} AND ph.moderation_status='approved'
@@ -86,10 +94,19 @@ export const getPublishedPlaceDetail = cache(async (slug: string): Promise<Publi
       ORDER BY is_featured DESC, created_at DESC LIMIT 24`,
   ]);
 
+  const hot = rankPublicPlaces(hotRows.map(row => ({
+    id: String(row.id), name: String(row.name),
+    rating_avg: Number(row.rating_avg), rating_count: Number(row.rating_count),
+    like_count: Number(row.like_count), views_30d: Number(row.views_30d),
+  }))).find(row => row.id === String(place.id));
+
   // Serialize Date/other driver-specific values before crossing the
   // server/client boundary. Never include private moderation fields.
   return JSON.parse(JSON.stringify({
     ...place,
+    hot_rank: hot?.hot_rank ?? null,
+    hot_score: hot?.hot_score ?? 0,
+    hot_breakdown: hot?.hot_breakdown ?? { ratings: 0, likes: 0, views: 0 },
     photos: photos.map((p) => ({
       id: p.id, type: p.photo_type, caption: p.caption, alt: p.alt_text,
     })),

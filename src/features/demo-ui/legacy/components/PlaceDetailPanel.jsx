@@ -1,5 +1,6 @@
 "use client";
 import { PublicMenu } from "@/components/menu/public-menu";
+import { PlacePopularity } from "@/components/place-popularity";
 import { recordPlaceView } from "@/components/visit-tracker";
 
 
@@ -128,6 +129,7 @@ export function PlaceDetailPanel({ place, onClose, mode = "map" }) {
             </div>
           </div>
 
+          <PlacePopularity key={place.id} place={detail} />
           <div className="local-detail-quick-actions">
             <a href={getGoogleMapsDirectionsUrl(detail)} target="_blank" rel="noopener noreferrer" className="primary">
               <Navigation size={17} /> Chỉ đường

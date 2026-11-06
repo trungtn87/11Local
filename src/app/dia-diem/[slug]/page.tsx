@@ -1,4 +1,5 @@
 import { MenuView } from "@/components/menu/menu-view";
+import { PlacePopularity } from "@/components/place-popularity";
 import { getPublicMenu } from "@/lib/menu-server";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -116,6 +117,7 @@ export default async function PublicPlacePage({ params }: PageProps) {
                 {ownership && <span className="local-detail-ownership"><BadgeCheck size={15}/>{ownership}</span>}
               </div>
             </div>
+            <PlacePopularity place={place}/>
             <div className="local-detail-quick-actions">
               <a href={directions} target="_blank" rel="noopener noreferrer" className="primary">
                 <Navigation size={17}/> Chỉ đường

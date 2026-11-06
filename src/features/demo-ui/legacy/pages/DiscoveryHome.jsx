@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Image from "next/image";
-import { BedDouble, ChevronLeft, ChevronRight, Coffee, Mountain, Navigation, ShoppingBag, Star, Utensils, Wrench } from 'lucide-react';
+import { BedDouble, ChevronLeft, ChevronRight, Coffee, Mountain, Navigation, ShoppingBag, Utensils, Wrench } from 'lucide-react';
 
 import { formatApproximateDistance } from '../../../distance/distance-service';
 import { getGoogleMapsDirectionsUrl } from '../../../places/google-maps';
@@ -10,6 +10,7 @@ import { useApp } from '../store.jsx';
 import { CardSkeletons, StateBlock } from '../components/ui.jsx';
 import { RealPlaceCover } from '../components/RealPlaceCover.jsx';
 import { HomeStats } from "@/components/home-stats";
+import { PlacePopularityCompact } from "@/components/place-popularity";
 
 const categoryIcons = { utensils: Utensils, coffee: Coffee, bed: BedDouble, mountain: Mountain, 'shopping-bag': ShoppingBag, wrench: Wrench };
 
@@ -64,7 +65,7 @@ export function DiscoveryHome() {
 
       <section aria-labelledby="hot-heading">
         <SectionHeading id="hot-heading" title="🔥 Địa điểm hot" />
-        <PlacesState data={data} places={hot} horizontal emptyMessage="Chưa có lượt xem hoặc đánh giá thật để xếp hạng." />
+        <PlacesState data={data} places={hot} horizontal emptyMessage="Chưa có đánh giá, lượt tim hoặc lượt xem 30 ngày để xếp hạng." />
       </section>
 
       <section aria-labelledby="food-heading">
@@ -109,7 +110,6 @@ function PlacesState({ data, places, emptyMessage, horizontal = false }) {
 }
 
 export function RealPlaceCard({ place, distance, onDetails, priority = false }) {
-  const ratingCount = Number(place.rating_count) || 0;
   return (
     <article className="place-card real-place-card">
       <Link to={"/ban-do?place=" + encodeURIComponent(place.slug) + "&detail=1"} className="real-place-main" aria-label={"Xem " + place.name + " trên bản đồ"}>
@@ -118,10 +118,8 @@ export function RealPlaceCard({ place, distance, onDetails, priority = false }) 
           <span className="pc-name">{place.name}</span>
           <span className="pc-meta">{place.category_name} · {place.area}</span>
           {place.summary && <p className="real-place-summary">{place.summary}</p>}
-          <div className="row between" style={{ marginTop: 4 }}>
-            <span className="rating"><Star size={14} /> {ratingCount ? `${Number(place.rating_avg).toFixed(1)} (${ratingCount})` : 'Chưa có đánh giá'}</span>
-            {distance && <span className="xs muted" title="Khoảng cách đường thẳng">{formatApproximateDistance(distance)}</span>}
-          </div>
+          <PlacePopularityCompact place={place} />
+          {distance && <span className="xs muted" title="Khoảng cách đường thẳng">{formatApproximateDistance(distance)}</span>}
         </div>
       </Link>
       <div className="real-place-actions">

@@ -1,3 +1,5 @@
+import { hotScore, hasHotActivity } from "./hot-ranking.ts";
+
 export type PublicPlace = {
   id: string; slug: string; name: string; description: string;
   summary?: string; address: string; area: string;
@@ -8,6 +10,7 @@ export type PublicPlace = {
   website_url?: string | null; updated_at?: string;
   featured_rank?: number | null; featured_until?: string | null;
   view_count?: number; rating_avg?: number; rating_count?: number;
+  like_count?: number; views_30d?: number; hot_score?: number; hot_rank?: number | null;
 };
 
 function asTime(date?: string) {
@@ -18,17 +21,13 @@ function activeFeature(p: PublicPlace, now: number) {
   return p.featured_rank != null && Number(p.featured_rank) > 0
     && (!p.featured_until || asTime(p.featured_until) > now);
 }
-function hotScore(place: PublicPlace) {
-  const views = Math.max(0, Number(place.view_count) || 0);
-  const rating = Math.max(0, Number(place.rating_avg) || 0);
-  const reviews = Math.max(0, Number(place.rating_count) || 0);
-  return Math.log1p(views) * Math.max(1, rating) + rating * Math.min(1, reviews / 5);
-}
 /** No simulated hot entries: require real views or approved reviews. */
 export function selectHotPlaces(places: PublicPlace[], limit = 6) {
   return [...places]
-    .filter(p => Number(p.view_count) > 0 || Number(p.rating_count) > 0)
-    .sort((a, b) => hotScore(b) - hotScore(a)
+    .filter(hasHotActivity)
+    .sort((a, b) => (a.hot_rank != null && b.hot_rank != null
+      ? a.hot_rank - b.hot_rank : hotScore(b) - hotScore(a))
+      || Number(b.like_count || 0) - Number(a.like_count || 0)
       || Number(b.rating_count || 0) - Number(a.rating_count || 0)
       || asTime(b.updated_at) - asTime(a.updated_at)
       || a.name.localeCompare(b.name, "vi"))
