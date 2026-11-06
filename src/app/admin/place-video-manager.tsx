@@ -4,7 +4,7 @@ import styles from "./place-video-manager.module.css";
 
 type AdminVideo = { id: string; provider: string; source_url: string;
   title: string; creator_name: string; is_featured: boolean; visibility: "visible" | "hidden" };
-type VideoDraft = { title: string; creator_name: string; is_featured: boolean; visibility: "visible" | "hidden" };
+type VideoDraft = { title: string; creatorName: string; isFeatured: boolean; visibility: "visible" | "hidden" };
 const errors: Record<string, string> = {
   VIDEO_EXISTS: "Video này đã được gắn với địa điểm.",
   INVALID_VIDEO_URL: "Link phải dùng HTTPS và thuộc TikTok, Facebook hoặc YouTube.",
