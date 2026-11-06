@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { safeReturnTo, isValidGoogleIdentity, isGoogleAuthConfigured, googleOAuthOrigin, googleOAuthCallbackUrl } from './google-auth.ts';
+import { safeReturnTo, isValidGoogleIdentity, isGoogleAuthConfigured, googleOAuthCallbackUrl, googleOAuthOrigin } from './google-auth.ts';
 
 test('return destination stays on 11Local, including backslash and control attacks', () => {
   for (const path of ['//evil.example', '/\\evil.example', '/\n/evil.example', 'https://evil.example', null]) {
@@ -36,18 +36,29 @@ test('Google login requires all server configuration', () => {
   }
 });
 
-test('Google OAuth uses public HTTPS origin behind Docker proxy', () => {
-  const oldNodeEnv = process.env.NODE_ENV;
-  const oldSiteUrl = process.env.SITE_URL;
+test('Google OAuth redirect URI uses public site despite internal Docker origin', () => {
+  const originalEnv = process.env.NODE_ENV;
+  const originalSite = process.env.SITE_URL;
   try {
     process.env.NODE_ENV = 'production';
     process.env.SITE_URL = 'https://11local.vn';
-    assert.equal(googleOAuthOrigin('https://0.0.0.0:3000'), 'https://11local.vn');
     assert.equal(googleOAuthCallbackUrl('https://0.0.0.0:3000'), 'https://11local.vn/api/auth/google/callback');
     process.env.SITE_URL = 'http://0.0.0.0:3000';
-    assert.throws(() => googleOAuthOrigin('https://0.0.0.0:3000'));
+    assert.equal(googleOAuthCallbackUrl('https://0.0.0.0:3000'), 'https://11local.vn/api/auth/google/callback');
   } finally {
-    if (oldNodeEnv === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = oldNodeEnv;
-    if (oldSiteUrl === undefined) delete process.env.SITE_URL; else process.env.SITE_URL = oldSiteUrl;
+    if (originalEnv === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = originalEnv;
+    if (originalSite === undefined) delete process.env.SITE_URL; else process.env.SITE_URL = originalSite;
+  }
+});
+
+test('OAuth success and error pages use public origin in production', () => {
+  const previous = process.env.NODE_ENV;
+  try {
+    process.env.NODE_ENV = 'production';
+    const origin = googleOAuthOrigin('https://0.0.0.0:3000');
+    assert.equal(new URL(safeReturnTo('/tai-khoan'), origin).toString(), 'https://11local.vn/tai-khoan');
+    assert.equal(new URL('/dang-nhap?error=auth_failed', origin).toString(), 'https://11local.vn/dang-nhap?error=auth_failed');
+  } finally {
+    if (previous === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = previous;
   }
 });
