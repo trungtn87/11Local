@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { PublishedPlaceDetail } from "@/lib/public-place-detail";
 
-const DEFAULT_ORIGIN = "https://one1local-web.onrender.com";
+const DEFAULT_ORIGIN = "https://11local.vn";
 
 /** Fixed, deployment-configured origin, never derived from user Host headers. */
 export function publicSiteOrigin(): string {
