@@ -27,9 +27,13 @@ export function PlaceVideoManager({ placeId }: { placeId: string }) {
   }, [placeId]);
   useEffect(() => {
     let live = true;
-    void load().catch(e => { if (live) setMessage(e.message); }).finally(() => { if (live) setLoading(false); });
+    void fetch("/api/admin/places/" + placeId + "/videos", { cache: "no-store" })
+      .then(res => { if (!res.ok) throw new Error("Không tải được danh sách video. Kiểm tra migration Neon."); return res.json(); })
+      .then(body => { if (live) setVideos(body.videos || []); })
+      .catch(e => { if (live) setMessage(e.message); })
+      .finally(() => { if (live) setLoading(false); });
     return () => { live = false; };
-  }, [load]);
+  }, [placeId]);
 
   async function addVideo() {
     if (!url.trim() || busy) return;
