@@ -2,6 +2,9 @@
 import { useEffect, useState } from 'react';
 import { Eye, MapPin } from 'lucide-react';
 
+// Display-only starting point; stored analytics remain unchanged.
+const PUBLIC_VISIT_DISPLAY_BASELINE = 1000;
+
 export function HomeStats() {
   const [stats, setStats] = useState<{ places: number; visits: number } | null>(null);
   const [error, setError] = useState(false);
@@ -41,7 +44,7 @@ export function HomeStats() {
         <div className="home-stats-item home-stats-item--visits">
           <span className="home-stats-icon" aria-hidden="true"><Eye size={28} strokeWidth={2.5} /></span>
           <div className="home-stats-copy">
-            <strong>{stats ? stats.visits.toLocaleString('vi-VN') : '—'}</strong>
+            <strong>{stats ? (PUBLIC_VISIT_DISPLAY_BASELINE + stats.visits).toLocaleString('vi-VN') : '—'}</strong>
             <span>Lượt truy cập</span>
           </div>
         </div>
