@@ -3,6 +3,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ChangeEvent } from "react";
 import { CheckCircle2, Clock3, MapPin, MapPinned, Plus, Save, Search, Send, Upload, XCircle } from "lucide-react";
 import { LocationPicker } from "./location-picker";
+import { PlaceVideoManager } from "./place-video-manager";
 import { parseMapReferencePlaces } from "@/features/map/map-reference-places";
 import styles from "./admin.module.css";
 
@@ -426,6 +427,10 @@ export default function AdminApp() {
               {selectedFields.map(field => <DetailField key={field.field_key} field={field}
                 value={form.details[field.field_key]} onChange={value => updateDetail(field.field_key, value)}/>)}
             </div>
+          </>}
+          {selected && <>
+            <h3 className={styles.sectionTitle}>Thông tin kèm theo</h3>
+            <PlaceVideoManager key={selected.id} placeId={selected.id} />
           </>}
           <h3 className={styles.sectionTitle}><MapPin size={18}/> Vị trí trên bản đồ</h3>
           {!pinSelected && <p className={styles.pinNotice}>Hãy kéo trực tiếp ghim hoặc nhập tọa độ thủ công rồi bấm Đặt ghim trước khi lưu.</p>}

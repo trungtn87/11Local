@@ -1,6 +1,7 @@
 "use client";
 import { Clock3, ExternalLink, FileText, Globe, ListChecks, Tag } from "lucide-react";
 import { safeSocialUrl } from "@/lib/place-social-links";
+import { PlaceVideoReviews } from "@/components/place-video-reviews";
 import {
   formatFact, formatHours, formatPrice, safeUrl,
 } from "../../../places/public-place-format";
@@ -57,6 +58,9 @@ export function PlaceFactSections({ place }) {
     {tags.length > 0 && <Section title="Đặc điểm" icon={Tag}>
       <div className="local-place-tags">{tags.map((tag,index) => <span key={index}>{tag}</span>)}</div>
     </Section>}
+
+    {Array.isArray(place.videos) && place.videos.length > 0 &&
+      <PlaceVideoReviews videos={place.videos}/>}
 
     {(website || facebook || youtube) && <Section title="Liên kết" icon={Globe}>
       <div className="local-place-social-links">
