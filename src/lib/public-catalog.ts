@@ -32,7 +32,7 @@ export async function getPublicPlaces(slug?: string) {
   const covers = new Map(photos.map((photo) => [String(photo.place_id), String(photo.cover_photo_id)]));
   // Serialize Postgres values at the React Server Component boundary.
   const ranked = rankPublicPlaces(rows.map((row) => ({
-    ...row, id: String(row.id), name: String(row.name),
+    ...row, id: String(row.id), slug: String(row.slug), name: String(row.name),
     rating_avg: Number(row.rating_avg), rating_count: Number(row.rating_count),
     like_count: Number(row.like_count), views_30d: Number(row.views_30d),
     view_count: Number(row.view_count),
