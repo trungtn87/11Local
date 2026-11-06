@@ -3,6 +3,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ChangeEvent } from "react";
 import { CheckCircle2, Clock3, MapPin, MapPinned, Plus, Save, Search, Send, Upload, XCircle } from "lucide-react";
 import { LocationPicker } from "./location-picker";
+import { PlaceVideoManager } from "./place-video-manager";
 import { parseMapReferencePlaces } from "@/features/map/map-reference-places";
 import styles from "./admin.module.css";
 
@@ -453,6 +454,7 @@ export default function AdminApp() {
               </div>)}
             </div> : <p>Chưa có ảnh. Ảnh đầu tiên tải lên sẽ được chọn làm đại diện.</p>}
           </div>}
+          {selected && <PlaceVideoManager key={selected.id} placeId={selected.id} />}
           <div className={styles.saveBar}>
             <span>Kiểm tra thông tin và vị trí ghim trước khi lưu.</span>
             <button className={styles.save} disabled={busy || !categories.length || catalogError}>

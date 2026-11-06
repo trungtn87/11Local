@@ -1,4 +1,5 @@
 import { MenuView } from "@/components/menu/menu-view";
+import { PlaceVideoReviews } from "@/components/place-video-reviews";
 import { getPublicMenu } from "@/lib/menu-server";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -124,6 +125,7 @@ export default async function PublicPlacePage({ params }: PageProps) {
             </div>
             <PlaceFactSections place={place}/>
             {menu ? <MenuView content={menu.content} publishedAt={String(menu.publishedAt)}/> : menu === undefined ? <p>Chưa tải được menu / bảng giá.</p> : null}
+            <PlaceVideoReviews videos={place.videos}/>
             <ReviewIsland placeId={place.id} slug={place.slug}/>
             <div className="local-detail-community-actions">
               <Link href={"/bao-sai/" + encodeURIComponent(place.slug) + "?loai=report"}><Flag size={15}/> Báo sai</Link>

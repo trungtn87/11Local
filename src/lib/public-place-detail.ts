@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { db } from "@/lib/db";
+import { parsePlaceVideoLink } from "@/lib/place-video-links";
 import type { OpeningSlot, PlacePrice, PublicFact } from "@/features/places/public-place-format";
 
 const SLUG = /^[a-z0-9][a-z0-9-]{0,127}$/;
@@ -34,6 +35,8 @@ export type PublishedPlaceDetail = {
   opening_slots: OpeningSlot[];
   prices: PlacePrice[];
   tags: string[];
+  videos: Array<{ id: string; provider: "tiktok" | "facebook" | "youtube"; title: string;
+    creator_name: string; source_url: string; embed_url: string | null }>;
 };
 
 /**
@@ -57,7 +60,7 @@ export const getPublishedPlaceDetail = cache(async (slug: string): Promise<Publi
     WHERE v.slug=${slug} LIMIT 1`;
   if (!place) return null;
 
-  const [photos, fields, hours, prices, tags] = await Promise.all([
+  const [photos, fields, hours, prices, tags, videos] = await Promise.all([
     sql`SELECT ph.id,ph.photo_type,ph.caption,ph.alt_text
       FROM public.place_photos ph JOIN public.place_image_blobs blob ON blob.photo_id=ph.id
       WHERE ph.place_id=${place.id} AND ph.moderation_status='approved'
@@ -78,6 +81,9 @@ export const getPublishedPlaceDetail = cache(async (slug: string): Promise<Publi
     sql`SELECT t.name
       FROM public.place_tags pt JOIN public.tags t ON t.id=pt.tag_id
       WHERE pt.place_id=${place.id} ORDER BY t.name LIMIT 40`,
+    sql`SELECT id, source_url, title, creator_name FROM public.place_video_reviews
+      WHERE place_id=${place.id} AND visibility='visible'
+      ORDER BY is_featured DESC, created_at DESC LIMIT 24`,
   ]);
 
   // Serialize Date/other driver-specific values before crossing the
@@ -91,6 +97,13 @@ export const getPublishedPlaceDetail = cache(async (slug: string): Promise<Publi
     opening_slots: hours,
     prices,
     tags: tags.map((tag) => String(tag.name)),
+    videos: videos.flatMap(video => {
+      try {
+        const link = parsePlaceVideoLink(String(video.source_url));
+        return [{ id: String(video.id), provider: link.provider, title: String(video.title),
+          creator_name: String(video.creator_name), source_url: link.sourceUrl, embed_url: link.embedUrl }];
+      } catch { return []; }
+    }),
   })) as PublishedPlaceDetail;
 });
 
