@@ -40,7 +40,6 @@ export function PlacePopularity({ place }: { place: PlacePopularityData }) {
   const [message, setMessage] = useState("");
   useEffect(() => {
     const controller = new AbortController();
-    setReady(false); setBusy(false); setLiked(false); setLikeCount(n(place.like_count)); setMessage("");
     fetch("/api/places/" + encodeURIComponent(place.id) + "/like", { cache: "no-store", signal: controller.signal })
       .then(async response => { if (!response.ok) throw new Error("LOOKUP_FAILED"); return response.json(); })
       .then(payload => {
