@@ -20,7 +20,7 @@ export function PlaceVideoReviews({ videos }: { videos: PlaceReviewVideo[] }) {
   if (!videos.length) return null;
   return <section className={styles.section} aria-label="Video review địa điểm">
     <div className={styles.heading}>
-      <h3>Video review thực tế</h3><span>{videos.length} video</span>
+      <h3>Thông tin kèm theo · Video</h3><span>{videos.length} video</span>
     </div>
     <p className={styles.description}>Góc nhìn của người trải nghiệm từ mạng xã hội.</p>
     <div className={styles.scroller}>

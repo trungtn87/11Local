@@ -15,7 +15,7 @@ export async function GET(_request: Request, { params }: Context) {
   if (!UUID.test(id)) return fail("NOT_FOUND", 404);
   try {
     const rows = await db()`SELECT id, place_id, provider, source_url, title, creator_name,
-      is_featured, visibility, created_at
+      is_featured, visibility, moderation_status, source, decision_note, created_at
       FROM public.place_video_reviews WHERE place_id=${id}
       ORDER BY is_featured DESC, created_at DESC LIMIT 120`;
     return NextResponse.json({ videos: rows }, { headers: noStore });

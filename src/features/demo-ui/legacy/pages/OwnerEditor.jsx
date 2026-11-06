@@ -7,6 +7,8 @@ import {
 import {useApp} from "../store.jsx";
 import {Banner,Button,StateBlock} from "../components/ui.jsx";
 import "../styles/owner-editor.css";
+import "../styles/owner-video-links.css";
+import {OwnerVideoLinks} from "../components/OwnerVideoLinks.jsx";
 
 const FIELDS=[
   ["summary","Giới thiệu ngắn",350,"textarea"],
@@ -168,6 +170,8 @@ export function OwnerEditor(){
             <Save size={16}/> Thông tin quán</button>
           <button type="button" aria-pressed={tab==="photos"} onClick={()=>setTab("photos")}>
             <Camera size={16}/> Hình ảnh ({photos.length})</button>
+          <button type="button" aria-pressed={tab==="extras"} onClick={()=>setTab("extras")}>
+            <ExternalLink size={16}/> Thông tin kèm theo</button>
         </nav>
         {tab==="info"&&<form className="owner-editor-card" onSubmit={save}>
           <div className="owner-editor-section-title"><div><h2>Chỉnh sửa thông tin</h2>
@@ -192,6 +196,9 @@ export function OwnerEditor(){
           {pending&&<p className="owner-editor-hint"><Clock3 size={16}/>
             Bạn đang có một bản sửa chờ duyệt, không thể gửi bản mới cho đến khi Admin xử lý.</p>}
         </form>}
+        {tab==="extras"&&(owner?<OwnerVideoLinks key={id} placeId={id}/>:
+          <section className="owner-editor-card"><h2>Thông tin kèm theo</h2>
+            <p>Chỉ chủ sở hữu đã được xác minh mới được thêm link video review.</p></section>)}
         {tab==="photos"&&<section className="owner-editor-card">
           <div className="owner-editor-section-title"><div><h2>Hình ảnh của quán</h2>
             <p>Chỉ quản lý ảnh do quán đăng; không được xóa ảnh cộng đồng.</p></div></div>
@@ -242,6 +249,7 @@ export function OwnerEditor(){
         <section className="owner-editor-help"><h3><ShieldCheck size={18}/> Quy tắc 11Local</h3>
           <p>Chủ quán có thể gửi thay đổi về thông tin, giá, giờ mở cửa và ảnh. Admin duyệt trước khi công khai.</p>
           <p>Chỉ chủ địa điểm được chọn ảnh bìa hoặc ẩn ảnh do quán đăng. Ảnh cộng đồng luôn được quản lý riêng.</p>
+          <p>Video do chủ tự gửi chờ Admin duyệt trước khi xuất hiện tại địa điểm.</p>
           <button type="button" className="btn btn-outline btn-sm" onClick={reload}
             disabled={busy}><RefreshCw size={15}/> Làm mới dữ liệu</button>
         </section>

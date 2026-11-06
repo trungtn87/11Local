@@ -1,6 +1,5 @@
 "use client";
 import { PublicMenu } from "@/components/menu/public-menu";
-import { PlaceVideoReviews } from "@/components/place-video-reviews";
 import { recordPlaceView } from "@/components/visit-tracker";
 
 
@@ -138,7 +137,6 @@ export function PlaceDetailPanel({ place, onClose, mode = "map" }) {
 
           <PlaceFactSections place={detail} />
           <PublicMenu key={place.id} placeId={place.id}/>
-          <PlaceVideoReviews videos={detail.videos || []} />
           <PlaceReviews placeId={place.id} placeSlug={place.slug} onRatingChange={setReviewRating} />
           <p className="local-detail-share-page">
             <a href={'/dia-diem/' + encodeURIComponent(place.slug)}>

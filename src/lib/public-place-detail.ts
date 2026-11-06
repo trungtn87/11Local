@@ -82,7 +82,7 @@ export const getPublishedPlaceDetail = cache(async (slug: string): Promise<Publi
       FROM public.place_tags pt JOIN public.tags t ON t.id=pt.tag_id
       WHERE pt.place_id=${place.id} ORDER BY t.name LIMIT 40`,
     sql`SELECT id, source_url, title, creator_name FROM public.place_video_reviews
-      WHERE place_id=${place.id} AND visibility='visible'
+      WHERE place_id=${place.id} AND visibility='visible' AND moderation_status='approved'
       ORDER BY is_featured DESC, created_at DESC LIMIT 24`,
   ]);
 

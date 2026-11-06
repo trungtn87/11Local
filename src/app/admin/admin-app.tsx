@@ -428,6 +428,10 @@ export default function AdminApp() {
                 value={form.details[field.field_key]} onChange={value => updateDetail(field.field_key, value)}/>)}
             </div>
           </>}
+          {selected && <>
+            <h3 className={styles.sectionTitle}>Thông tin kèm theo</h3>
+            <PlaceVideoManager key={selected.id} placeId={selected.id} />
+          </>}
           <h3 className={styles.sectionTitle}><MapPin size={18}/> Vị trí trên bản đồ</h3>
           {!pinSelected && <p className={styles.pinNotice}>Hãy kéo trực tiếp ghim hoặc nhập tọa độ thủ công rồi bấm Đặt ghim trước khi lưu.</p>}
           <LocationPicker key={selected?.id ?? "new"} latitude={form.latitude} longitude={form.longitude}
@@ -454,7 +458,6 @@ export default function AdminApp() {
               </div>)}
             </div> : <p>Chưa có ảnh. Ảnh đầu tiên tải lên sẽ được chọn làm đại diện.</p>}
           </div>}
-          {selected && <PlaceVideoManager key={selected.id} placeId={selected.id} />}
           <div className={styles.saveBar}>
             <span>Kiểm tra thông tin và vị trí ghim trước khi lưu.</span>
             <button className={styles.save} disabled={busy || !categories.length || catalogError}>
