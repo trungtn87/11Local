@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Eye, Heart, Info, Star } from "lucide-react";
-import type { HotBreakdown } from "@/features/places/hot-ranking";
+import { hotBreakdown, hotScore, type HotBreakdown } from "@/features/places/hot-ranking";
 import "./place-popularity.css";
 
 type PlacePopularityData = {
@@ -38,6 +38,12 @@ export function PlacePopularity({ place }: { place: PlacePopularityData }) {
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [ranking, setRanking] = useState({
+    rank: place.hot_rank ?? null,
+    score: n(place.hot_score),
+    breakdown: place.hot_breakdown ?? null as HotBreakdown | null,
+  });
+  const [rankingStale, setRankingStale] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     fetch("/api/places/" + encodeURIComponent(place.id) + "/like", { cache: "no-store", signal: controller.signal })
@@ -71,7 +77,25 @@ export function PlacePopularity({ place }: { place: PlacePopularityData }) {
       if (!response.ok) throw new Error("MUTATION_FAILED");
       const payload = await response.json();
       setLiked(Boolean(payload.liked));
-      setLikeCount(n(payload.likeCount));
+      const count = n(payload.likeCount);
+      setLikeCount(count);
+      // Calculate immediately, then fetch the public rank again because
+      // changing one like may also shift other locations in the ranking.
+      const metrics = { ...place, like_count: count };
+      setRanking({ rank: null, score: hotScore(metrics), breakdown: hotBreakdown(metrics) });
+      setRankingStale(true);
+      try {
+        const fresh = await fetch("/api/places/" + encodeURIComponent(place.slug) + "/detail",
+          { cache: "no-store" });
+        if (!fresh.ok) throw new Error("RANKING_UNAVAILABLE");
+        const data = await fresh.json();
+        if (!data.place) throw new Error("RANKING_UNAVAILABLE");
+        setRanking({ rank: data.place.hot_rank ?? null, score: n(data.place.hot_score),
+          breakdown: data.place.hot_breakdown ?? null });
+        setRankingStale(false);
+      } catch {
+        setMessage("Đã lưu lượt tim. Tải lại trang để xem thứ hạng mới nhất.");
+      }
     } catch {
       setMessage("Không cập nhật được lượt thích. Vui lòng thử lại.");
     } finally {
@@ -79,7 +103,7 @@ export function PlacePopularity({ place }: { place: PlacePopularityData }) {
     }
   }
 
-  const b = place.hot_breakdown;
+  const b = ranking.breakdown;
   return <section className="place-popularity" aria-label="Mức độ yêu thích và điểm hot">
     <div className="place-popularity-numbers">
       <span title="Đánh giá đã duyệt"><Star size={16} aria-hidden="true"/> {n(place.rating_count) ? n(place.rating_avg).toFixed(1) + " (" + display(place.rating_count) + " đánh giá)" : "Chưa có đánh giá"}</span>
@@ -92,7 +116,9 @@ export function PlacePopularity({ place }: { place: PlacePopularityData }) {
         {busy ? "Đang lưu…" : liked ? "Đã yêu thích" : "Thả tim"}
       </button>
       <div className="place-popularity-rank">
-        {place.hot_rank != null ? <>🔥 Top {place.hot_rank} · <strong>{n(place.hot_score).toFixed(1)}/100</strong></> : "Chưa có điểm xếp hạng"}
+        {rankingStale ? <>Điểm tạm tính <strong>{ranking.score.toFixed(1)}/100</strong> · tải lại để xem Top</>
+          : ranking.rank != null ? <>🔥 Top {ranking.rank} · <strong>{ranking.score.toFixed(1)}/100</strong></>
+          : "Chưa có điểm xếp hạng"}
       </div>
     </div>
     {message && <p className="place-popularity-notice" role="status">{message}</p>}
