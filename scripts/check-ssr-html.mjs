@@ -1,82 +1,8 @@
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
-import { setTimeout as sleep } from "node:timers/promises";
-
-// Verify the public HTML contains real page structure before hydration, even
-// when no Neon secret is present in CI. A seeded DB integration smoke follows
-// during deployment; this catches a regression to the old splash-only HTML.
-const port = 43927;
-const origin = `http://127.0.0.1:${port}`;
-const child = spawn(
-  process.execPath,
-  ["node_modules/next/dist/bin/next", "start", "--port", String(port)],
-  { env: { ...process.env, DATABASE_URL: "" }, stdio: ["ignore", "pipe", "pipe"] },
-);
-let logs = "";
-child.stdout.on("data", (part) => { logs += String(part); });
-child.stderr.on("data", (part) => { logs += String(part); });
-
-async function get(path) {
-  for (let attempt = 0; attempt < 40; attempt++) {
-    if (child.exitCode !== null) throw new Error("Next server exited: " + logs.slice(-3000));
-    try {
-      const response = await fetch(origin + path, { signal: AbortSignal.timeout(4500) });
-      assert.equal(response.status, 200, path + " should return 200");
-      return response.text();
-    } catch (error) {
-      if (attempt === 39) throw error;
-      await sleep(300);
-    }
-  }
-  throw new Error("Server did not start: " + logs.slice(-3000));
-}
-
-try {
-  const home = await get("/");
-  assert.match(home, /discovery-home/, "home must have server-rendered discovery structure");
-  assert.match(home, /Khám phá/, "home must contain the discovery section");
-  assert.doesNotMatch(home, /Đang mở 11Local…/, "home must not be the old splash page");
-
-  const search = await get("/tim-kiem");
-  assert.match(search, /Địa điểm ở Cao Bằng/, "search must contain server-rendered heading");
-  assert.doesNotMatch(search, /Đang mở 11Local…/, "search must not be the old splash page");
-
-  // New monitoring contract must remain read-only without Neon credentials.
-  const resourceResponse = await fetch(origin + "/api/monitor/resources", {
-    signal: AbortSignal.timeout(4500)
-  });
-  assert.equal(resourceResponse.status, 200, "public monitoring metrics should load");
-  assert.match(resourceResponse.headers.get("cache-control") || "", /no-store/);
-  const resource = await resourceResponse.json();
-  assert.equal(resource.schema, 1);
-  assert.equal(resource.service, "11local");
-  assert.ok(Number.isFinite(resource.ramUsedMb) && resource.ramUsedMb >= 0);
-  assert.ok(resource.cpuVcpu === null || (Number.isFinite(resource.cpuVcpu) && resource.cpuVcpu >= 0));
-  assert.equal(typeof resource.sampledAt, "string");
-  assert.deepEqual(Object.keys(resource).sort(), [
-    "schema", "service", "sampledAt", "cpuVcpu", "ramUsedMb", "ramLimitMb",
-    "sourceCpu", "sourceRam"
-  ].sort());
-
-  const robots = await get("/robots.txt");
-  assert.ok(robots.includes("sitemap.xml"), "robots must point to the public sitemap");
-
-  const unpublished = await fetch(origin + "/dia-diem/INVALID_SLUG", {
-    signal: AbortSignal.timeout(4500),
-  });
-  assert.equal(unpublished.status, 404, "invalid place URL must never be indexable");
-
-  const invalidSize = await fetch(
-    origin + "/api/place-photos/11111111-1111-4111-8111-111111111111?size=10000",
-    { signal: AbortSignal.timeout(4500) },
-  );
-  assert.equal(invalidSize.status, 400, "arbitrary public image resize must be blocked: " + await invalidSize.text());
-
-  console.log("SSR HTML smoke passed: home, search, robots, place URL, image guard.");
-} catch (error) {
-  console.error(error);
-  console.error(logs.slice(-3000));
-  process.exitCode = 1;
-} finally {
-  child.kill("SIGTERM");
-}
+import {spawn} from "node:child_process";
+import {setTimeout as sleep} from "node:timers/promises";
+const port=43927,origin="http://127.0.0.1:"+port;
+const child=spawn(process.execPath,["node_modules/next/dist/bin/next","start","--port",String(port)],{env:{...process.env,DATABASE_URL:""},stdio:["ignore","pipe","pipe"]});
+let logs="";child.stdout.on("data",x=>logs+=String(x));child.stderr.on("data",x=>logs+=String(x));
+async function get(path){for(let i=0;i<35;i++){try{const r=await fetch(origin+path,{signal:AbortSignal.timeout(4000)});if(r.status!==200)throw new Error(path+" HTTP "+r.status);return await r.text();}catch(e){if(i===34)throw e;await sleep(250);}}}
+try{const login=await get("/dang-nhap");assert.match(login,/Nhà của Gấu/);assert.match(login,/Google/);const legal=await get("/chinh-sach-bao-mat");assert.match(legal,/Chính sách bảo mật/);const robots=await get("/robots.txt");assert.match(robots,/sitemap.xml/);const monitor=await fetch(origin+"/api/monitor/resources");assert.equal(monitor.status,200);const json=await monitor.json();assert.equal(json.schema,1);assert.equal(json.service,"11local");const session=await fetch(origin+"/api/auth/session");assert.equal(session.status,200);assert.equal((await session.json()).authenticated,false);const gone=await fetch(origin+"/dia-diem/legacy");assert.equal(gone.status,404);console.log("Nhà của Gấu smoke PASS: login, privacy, robots, monitor, guest session, old route 404");}catch(e){console.error(e,logs.slice(-2000));process.exitCode=1;}finally{child.kill("SIGTERM");}

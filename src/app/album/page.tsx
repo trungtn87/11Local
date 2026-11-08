@@ -1,22 +1,3 @@
-import type { Metadata } from "next";
-import { DemoShell } from "@/features/demo-ui/demo-shell";
-import { getPublicBootstrap } from "@/lib/public-catalog";
-
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  title: "Album của Gấu | Nhà của Gấu",
-  description: "Khám phá các album kỷ niệm, hình ảnh và địa điểm gia đình của Gấu.",
-  alternates: { canonical: "/album" },
-  openGraph: {
-    type: "website", locale: "vi_VN", siteName: "Nhà của Gấu",
-    title: "Album của Gấu | Nhà của Gấu",
-    description: "Nơi lưu giữ những năm tháng yêu thương của Gấu cùng gia đình.",
-    url: "/album",
-  },
-};
-
-export default async function AlbumListPage() {
-  const data = await getPublicBootstrap();
-  return <DemoShell pathname="/album" {...data} />;
-}
+import Link from "next/link";import {albums} from "@/lib/family";
+export const dynamic="force-dynamic";export const metadata={title:"Album của Gấu | Nhà của Gấu"};
+export default async function Albums(){const items=await albums();return <main className="wrap"><div className="page-title"><p className="eyebrow">🖼️ Những câu chuyện bằng hình ảnh</p><h1>Album của Gấu</h1><p>Ai cũng có thể cùng xem, thành viên đăng nhập Google có thể đóng góp ảnh.</p></div>{items.length?<div className="album-grid">{items.map(a=><Link className="album-card" key={a.id} href={"/album/"+a.id}>{a.cover_id?<img src={"/api/photos/"+a.cover_id} alt=""/>:<div className="empty-cover">🧸</div>}<div className="card-body"><h2>{a.title}</h2><p>{a.event_date||"Kỷ niệm gia đình"} · {a.photo_count} ảnh</p><small>{a.description}</small></div></Link>)}</div>:<div className="empty">Chưa có album. Admin có thể tạo album đầu tiên trong trang quản trị.</div>}</main>;}

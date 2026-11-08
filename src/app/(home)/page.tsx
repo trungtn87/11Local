@@ -1,9 +1,5 @@
-import { DemoShell } from "@/features/demo-ui/demo-shell";
-import { getPublicBootstrap } from "@/lib/public-catalog";
-
-export const dynamic = "force-dynamic";
-
-export default async function Home() {
-  const data = await getPublicBootstrap();
-  return <DemoShell pathname="/" {...data} />;
-}
+import Link from "next/link";
+import {albums} from "@/lib/family";
+import {GauHeroIllustration} from "@/components/gau-mascot";
+export const dynamic="force-dynamic";
+export default async function Home(){const items=await albums();return <main className="wrap"><section className="hero"><div><p className="eyebrow">❤️ Những ngày tháng bên nhau</p><h1>Nhà của Gấu</h1><p className="lead">Nơi lưu giữ những năm tháng yêu thương, những chuyến đi và khoảnh khắc của Gấu cùng gia đình.</p><Link href="/album" className="primary">Xem album kỷ niệm</Link></div><GauHeroIllustration className="hero-art"/></section><section className="feature-grid">{[["/album","🖼️","Album của Gấu","Những khoảnh khắc yêu thương"],["/ban-do","📍","Gấu đã đi đâu?","Bản đồ hành trình gia đình"],["/dong-thoi-gian","🌱","Gấu lớn lên","Những cột mốc đáng nhớ"],["/dong-gop","💝","Cùng góp kỷ niệm","Đăng nhập Google để chia sẻ ảnh"]].map(([href,icon,name,desc])=><Link href={href} className="feature" key={href}><span className="feature-icon">{icon}</span><h2>{name}</h2><p>{desc}</p></Link>)}</section><div className="section-head"><h2>Album gần đây</h2><Link href="/album">Xem tất cả →</Link></div>{items.length?<div className="album-grid">{items.slice(0,6).map(a=><Link className="album-card" key={a.id} href={"/album/"+a.id}>{a.cover_id?<img src={"/api/photos/"+a.cover_id} alt="" />:<div className="empty-cover">🍯</div>}<div className="card-body"><h3>{a.title}</h3><p>{a.event_date||"Kỷ niệm gia đình"} · {a.photo_count} ảnh</p></div></Link>)}</div>:<div className="empty">Chưa có album nào. Ngôi nhà nhỏ đang chờ những kỷ niệm đầu tiên của Gấu. 💛</div>}</main>;}
