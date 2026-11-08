@@ -10,7 +10,7 @@ return await db().unsafe(q) as unknown as Album[];
 export async function album(id:string){
 const a=await db().unsafe("SELECT id::text,title,description,event_date::text FROM family_albums WHERE id::text=$1",[id]);if(!a.length)return null;
 const p=await db().unsafe("SELECT p.id::text,p.caption,p.created_at::text,COALESCE(u.display_name,'Gia đình Gấu') AS uploader_name FROM family_photos p LEFT JOIN users u ON u.id=p.uploaded_by WHERE p.album_id::text=$1 AND p.status='approved' ORDER BY p.created_at DESC",[id]);
-return {...a[0],photos:p as unknown as Photo[]};
+const row=a[0] as unknown as {id:string;title:string;description:string;event_date:string|null};return {id:row.id,title:row.title,description:row.description,event_date:row.event_date,photos:p as unknown as Photo[]};
 }
 export async function places():Promise<Place[]>{
 const r=await db().unsafe("SELECT id::text,title,latitude,longitude,visited_on::text,album_id::text FROM family_places ORDER BY visited_on DESC NULLS LAST");
