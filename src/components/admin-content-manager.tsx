@@ -21,7 +21,15 @@ export function AdminContentManager(){
       const v=await r.json();setData(v);
     }catch{setMessage("Không thể tải danh sách quản trị.");}finally{setLoading(false);}
   },[]);
-  useEffect(()=>{void refresh();},[refresh]);
+  useEffect(()=>{
+    let active=true;
+    fetch("/api/admin/family",{cache:"no-store"})
+      .then(r=>{if(!r.ok)throw Error();return r.json();})
+      .then(v=>{if(active)setData(v);})
+      .catch(()=>{if(active)setMessage("Không thể tải danh sách quản trị.");})
+      .finally(()=>{if(active)setLoading(false);});
+    return ()=>{active=false;};
+  },[]);
   const rows=useMemo(()=>data[keys[tab]].filter(r=>(tab!=="album"||showArchived||!r.archived_at)&&r.title.toLocaleLowerCase().includes(search.toLocaleLowerCase())),[data,tab,search,showArchived]);
   function open(row:Row|null){setItem(row);setValues(row?{
     title:row.title,description:row.description||"",details:row.details||"",
