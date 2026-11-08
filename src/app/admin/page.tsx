@@ -1,3 +1,3 @@
 import AdminApp from "./admin-app";
-export const metadata={title:"11Local Admin"};
+export const metadata={title:"Nhà của Gấu — Quản trị"};
 export default function AdminPage(){return <AdminApp/>;}

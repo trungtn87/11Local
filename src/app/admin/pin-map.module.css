@@ -4,7 +4,8 @@
   width: 100%;
   height: 360px;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: 16px;
+  border: 1px solid #EAD5B8;
 }
 
 .map {
@@ -23,7 +24,7 @@
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
-  filter: drop-shadow(0 3px 3px rgba(15, 23, 42, .4));
+  filter: drop-shadow(0 3px 3px rgba(67, 47, 31, .35));
 }
 
 .draggablePin:active {
@@ -56,10 +57,11 @@
   max-width: calc(100% - 16px);
   margin: 0;
   padding: 6px 9px;
-  border-radius: 8px;
-  background: rgb(255 255 255 / 94%);
-  color: #28584b;
-  box-shadow: 0 2px 10px rgb(0 0 0 / 13%);
+  border-radius: 10px;
+  background: rgb(255 253 249 / 94%);
+  color: #432F1F;
+  border: 1px solid #EAD5B8;
+  box-shadow: 0 2px 10px rgb(67 47 31 / 12%);
   font-size: 11px;
   font-weight: 700;
   line-height: 1.4;

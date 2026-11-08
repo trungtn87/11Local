@@ -13,8 +13,6 @@ export type PublicShellProps = {
   initialCategoriesState?: "loading" | "ready" | "error";
 };
 
-// Keep legacy account/contribution/map routes unchanged while public pages
-// migrate to real server rendering. They must not block the SSR migration.
 function LegacyClientOnly() {
   const isClient = useSyncExternalStore(subscribe, () => true, () => false);
   if (!isClient) {
@@ -24,7 +22,12 @@ function LegacyClientOnly() {
 }
 
 export function DemoShell(props: PublicShellProps = {}) {
-  if (props.pathname === "/" || props.pathname === "/tim-kiem") {
+  if (
+    props.pathname === "/" ||
+    props.pathname === "/tim-kiem" ||
+    props.pathname === "/album" ||
+    props.pathname === "/dong-thoi-gian"
+  ) {
     return <DemoApp {...props} />;
   }
   return <LegacyClientOnly />;

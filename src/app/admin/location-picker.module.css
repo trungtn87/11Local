@@ -1,18 +1,18 @@
 .root{margin-top:12px}
 .heading{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
-.heading b{display:inline-flex;align-items:center;gap:7px}
-.heading span{font:12px ui-monospace,SFMono-Regular,Consolas,monospace;color:#475569}
-.hint,.attribution{font-size:12px;line-height:1.5;color:#64748b;margin:9px 0}
+.heading b{display:inline-flex;align-items:center;gap:7px;color:#432F1F}
+.heading span{font:12px ui-monospace,SFMono-Regular,Consolas,monospace;color:#8B6A4E}
+.hint,.attribution{font-size:12px;line-height:1.5;color:#8B6A4E;margin:9px 0}
 .attribution{margin-top:7px}
-.attribution a{color:#0f766e;text-decoration:underline}
+.attribution a{color:#D9534F;text-decoration:underline}
 .coordinates{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}
-.coordinates label{min-width:0;display:grid;gap:6px;font-size:13px;font-weight:600;color:#334155}
-.coordinates input{width:100%;min-width:0;min-height:42px;padding:9px 12px;background:#fff;color:#0f172a;border:1px solid #cbd5e1;border-radius:9px;font:14px ui-monospace,SFMono-Regular,Consolas,monospace}
-.coordinates input:focus{outline:2px solid #0f766e;outline-offset:1px}
+.coordinates label{min-width:0;display:grid;gap:6px;font-size:13px;font-weight:600;color:#5C432E}
+.coordinates input{width:100%;min-width:0;min-height:42px;padding:9px 12px;background:#FFFDF9;color:#432F1F;border:1px solid #D9BC96;border-radius:12px;font:14px ui-monospace,SFMono-Regular,Consolas,monospace}
+.coordinates input:focus{outline:2px solid #D9534F;outline-offset:1px}
 .applyRow{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px}
-.applyRow span{font-size:12px;color:#64748b}
-.applyButton{min-height:40px;padding:9px 16px;background:#0f766e;color:white;border:0;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer}
-.applyButton:hover{background:#115e59}
-.applyButton:focus-visible{outline:3px solid #5eead4;outline-offset:2px}
-.error{margin:0 0 12px;color:#b91c1c;font-size:13px;line-height:1.5}
+.applyRow span{font-size:12px;color:#8B6A4E}
+.applyButton{min-height:40px;padding:9px 16px;background:#D9534F;color:#fff;border:0;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer}
+.applyButton:hover{background:#C2413D}
+.applyButton:focus-visible{outline:3px solid #F9C84B;outline-offset:2px}
+.error{margin:0 0 12px;color:#B91C1C;font-size:13px;line-height:1.5}
 @media(max-width:480px){.coordinates{grid-template-columns:1fr}}

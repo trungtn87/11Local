@@ -20,14 +20,14 @@ import "@/features/demo-ui/legacy/styles/contribute.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(publicSiteOrigin()),
-  title: "11Local | Khám phá Cao Bằng",
-  description: "Cẩm nang địa điểm và trải nghiệm địa phương tại Cao Bằng.",
+  title: "Nhà của Gấu | Nơi lưu giữ những năm tháng yêu thương",
+  description: "Nơi lưu giữ những hình ảnh, chuyến đi, dấu mốc trưởng thành và kỷ niệm của Gấu cùng gia đình.",
   alternates: { canonical: "/" },
   icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }], apple: "/icon.svg" },
   openGraph: {
-    type: "website", locale: "vi_VN", siteName: "11Local",
-    title: "11Local | Khám phá Cao Bằng",
-    description: "Cẩm nang địa điểm và trải nghiệm địa phương tại Cao Bằng.",
+    type: "website", locale: "vi_VN", siteName: "Nhà của Gấu",
+    title: "Nhà của Gấu | Nơi lưu giữ những năm tháng yêu thương",
+    description: "Nơi lưu giữ những hình ảnh, chuyến đi, dấu mốc trưởng thành và kỷ niệm của Gấu cùng gia đình.",
     url: "/",
   },
 };
@@ -35,6 +35,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="vi">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Quicksand:wght@600;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body>{children}<VisitTracker /></body>
     </html>
   );

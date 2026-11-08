@@ -1,8 +1,8 @@
 :root {
-  --background: #eaf8ff;
-  --foreground: #073b5c;
-  --brand: #0c8ce9;
-  --brand-deep: #0569b9;
+  --background: #FFF4E0;
+  --foreground: #432F1F;
+  --brand: #D9534F;
+  --brand-deep: #8B6A4E;
 }
 
 html {
@@ -19,9 +19,13 @@ body {
   min-height: 100%;
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font), Arial, Helvetica, sans-serif;
+  font-family: var(--font-body, 'Noto Sans', 'Plus Jakarta Sans', Arial, Helvetica, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading, 'Quicksand', 'Plus Jakarta Sans', sans-serif);
 }
 
 * {

@@ -6,9 +6,9 @@ function Ghost({ className = "" }: { className?: string }) {
 
 export function PublicPageSkeleton({ variant = "home" }: { variant?: Variant }) {
   return <main className="local-loading-root" role="status" aria-live="polite" aria-busy="true">
-    <span className="sr-only">Đang tải 11Local, vui lòng đợi…</span>
+    <span className="sr-only">Đang tải Nhà của Gấu, vui lòng đợi…</span>
     <header className="local-loading-header">
-      <strong>11<em>Local</em></strong>
+      <strong>Nhà của <em>Gấu</em></strong>
       <Ghost className="local-loading-search"/>
       <Ghost className="local-loading-menu"/>
     </header>
@@ -29,7 +29,7 @@ export function PublicPageSkeleton({ variant = "home" }: { variant?: Variant }) 
         {variant === "home" && <>
           <Ghost className="local-loading-title"/>
           <div className="local-loading-categories">
-            {[0, 1, 2, 3, 4, 5].map(i => <Ghost key={i} className="local-loading-category"/>)}
+            {[0, 1, 2, 3].map(i => <Ghost key={i} className="local-loading-category"/>)}
           </div>
         </>}
         <Ghost className="local-loading-title"/>

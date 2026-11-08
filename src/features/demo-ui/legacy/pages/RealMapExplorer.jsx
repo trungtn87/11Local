@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Marker, Popup } from 'maplibre-gl';
-import { ChevronLeft, ImageOff, List, MapPin, Minus, Navigation, Plus, Star, X } from 'lucide-react';
+import { BookOpen, ChevronLeft, ImageOff, List, MapPin, Minus, Navigation, Plus, Star, X } from 'lucide-react';
 
 import { MapCanvas } from '../../../map/map-canvas';
 import { createPlaceMarkerElement } from '../../../map/place-marker';
@@ -39,7 +39,7 @@ function PlaceThumbnail({ place }) {
 function score(place) {
   const count = Number(place.rating_count) || 0;
   const avg = Number(place.rating_avg);
-  return count > 0 && Number.isFinite(avg) ? avg.toFixed(1) + ' (' + count + ')' : 'Chưa có đánh giá';
+  return count > 0 && Number.isFinite(avg) ? avg.toFixed(1) + ' (' + count + ')' : 'Chưa có cảm nhận';
 }
 
 function PlaceRow({ place, selected, onSelect, onOpenDetails }) {
@@ -50,13 +50,15 @@ function PlaceRow({ place, selected, onSelect, onOpenDetails }) {
         <PlaceThumbnail place={place} />
         <span className="local-map-entry-text">
           <strong>{place.name}</strong>
-          <small>{place.category_name || 'Địa điểm'} · {place.area}</small>
+          <small>{place.category_name || 'Điểm kỷ niệm'} · {place.area}</small>
           {place.summary && <small className="local-map-summary">{place.summary}</small>}
           <span className="local-map-entry-rating"><Star size={13} /> {score(place)}</span>
         </span>
       </button>
       <div className="local-map-entry-actions">
-        <button type="button" onClick={() => onOpenDetails(place.slug)}>Chi tiết</button>
+        <button type="button" onClick={() => onOpenDetails(place.slug)}>
+          <BookOpen size={13} /> Xem album liên quan
+        </button>
         <a href={getGoogleMapsDirectionsUrl(place)} target="_blank" rel="noopener noreferrer">
           <Navigation size={14} /> Chỉ đường
         </a>
@@ -70,9 +72,22 @@ function createPlacePopup(place, onOpenDetails) {
   const wrapper = document.createElement('div');
   wrapper.className = 'local-map-popup';
 
+  if (place.cover_photo_id) {
+    const thumbWrap = document.createElement('div');
+    thumbWrap.className = 'local-map-popup-thumb';
+    const img = document.createElement('img');
+    img.src = '/api/place-photos/' + encodeURIComponent(place.cover_photo_id) + '?size=card';
+    img.alt = 'Ảnh đại diện ' + place.name;
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.addEventListener('error', () => thumbWrap.remove(), { once: true });
+    thumbWrap.appendChild(img);
+    wrapper.appendChild(thumbWrap);
+  }
+
   const category = document.createElement('span');
   category.className = 'local-map-popup-category';
-  category.textContent = place.category_name || 'Địa điểm';
+  category.textContent = place.category_name || 'Điểm kỷ niệm của Gấu';
   wrapper.appendChild(category);
 
   const title = document.createElement('strong');
@@ -90,7 +105,7 @@ function createPlacePopup(place, onOpenDetails) {
   rating.textContent = '★ ' + score(place);
   wrapper.appendChild(rating);
 
-  const verification = ownershipMessage(place.place_kind,place.ownership_status);
+  const verification = ownershipMessage(place.place_kind, place.ownership_status);
   if (verification) {
     const verified = document.createElement('small');
     verified.className = 'local-map-popup-verified';
@@ -109,7 +124,7 @@ function createPlacePopup(place, onOpenDetails) {
 
   const detail = document.createElement('button');
   detail.type = 'button';
-  detail.textContent = 'Chi tiết';
+  detail.textContent = 'Xem album liên quan';
   detail.className = 'local-map-popup-detail';
   detail.addEventListener('click', () => onOpenDetails(place.slug));
   actions.appendChild(detail);
@@ -131,8 +146,6 @@ function PlaceMap({ places, selectedPlace, onSelect, onOpenDetails, showPopup = 
   const markerRefs = useRef(new Map());
   const viewportRef = useRef(null);
 
-  // Changing the desktop grid columns resizes the map's container, not the window.
-  // MapLibre needs resize() so selected pins and tiles stay aligned with the actual viewport.
   useEffect(() => {
     if (!map || !viewportRef.current) return;
     map.resize();
@@ -167,12 +180,10 @@ function PlaceMap({ places, selectedPlace, onSelect, onOpenDetails, showPopup = 
     marker?.getElement().classList.add('selected');
 
     let cleanUp = false;
-    // On desktop the full information rail replaces the small pin popup.
-    // Keeping both overlays caused duplicate details and clipped the map.
     const popup = showPopup ? new Popup({
       anchor: 'bottom',
       offset: [0, -29],
-      maxWidth: '310px',
+      maxWidth: '320px',
       closeButton: true,
       closeOnClick: false,
     })
@@ -207,7 +218,7 @@ function PlaceMap({ places, selectedPlace, onSelect, onOpenDetails, showPopup = 
         <button type="button" onClick={() => {
           onSelect(null);
           map?.flyTo({ center: CAO_BANG_CAMERA.center, zoom: CAO_BANG_CAMERA.zoom });
-        }} aria-label="Xem toàn Cao Bằng"><MapPin size={19} /></button>
+        }} aria-label="Xem toàn bản đồ"><MapPin size={19} /></button>
       </div>
     </div>
   );
@@ -276,15 +287,15 @@ export function RealMapExplorer() {
   return (
     <div className="local-map-screen">
       <div className="local-map-heading">
-        <Link className="local-map-back" to="/"><ChevronLeft size={18} /> Khám phá</Link>
-        <strong><MapPin size={17} /> Bản đồ Cao Bằng</strong>
+        <Link className="local-map-back" to="/"><ChevronLeft size={18} /> Trang chủ</Link>
+        <strong><MapPin size={17} /> Gấu đã đi đâu?</strong>
         <button className="local-map-list-toggle" type="button" onClick={() => setShowMobileList((open) => !open)}
           aria-expanded={showMobileList}>
           {showMobileList ? <X size={16} /> : <List size={16} />} {showMobileList ? 'Đóng' : 'Danh sách'}
         </button>
       </div>
-      <div className="local-map-categories" aria-label="Lọc theo danh mục">
-        <button type="button" aria-pressed={category === 'all'} onClick={() => setCategory('all')}>Tất cả</button>
+      <div className="local-map-categories" aria-label="Lọc theo chủ đề chuyến đi">
+        <button type="button" aria-pressed={category === 'all'} onClick={() => setCategory('all')}>Tất cả chuyến đi</button>
         {categories.filter((item) => item.enabled).map((item) => (
           <button type="button" key={item.id} aria-pressed={category === item.id}
             onClick={() => setCategory(item.id)}>{item.label}</button>
@@ -292,21 +303,21 @@ export function RealMapExplorer() {
       </div>
 
       <div className={"local-map-body" + (selectedPlace && detailOpen ? " details-open" : "")}>
-        <aside className={'local-map-sidebar' + (showMobileList ? ' open' : '')} aria-label="Danh sách địa điểm">
+        <aside className={'local-map-sidebar' + (showMobileList ? ' open' : '')} aria-label="Danh sách địa điểm kỷ niệm">
           <div className="local-map-sidebar-head">
-            <strong>Địa điểm đã công khai</strong>
-            <small>{data.status === 'ready' ? matched.length + ' địa điểm' : 'Đang tải…'}</small>
+            <strong>Điểm đến của Gấu</strong>
+            <small>{data.status === 'ready' ? matched.length + ' điểm đến' : 'Đang tải…'}</small>
           </div>
           <label className="local-map-query">
-            <span className="sr-only">Lọc theo tên hoặc địa chỉ trong 11Local</span>
+            <span className="sr-only">Tìm điểm đến trong bản đồ kỷ niệm của Gấu</span>
             <input value={query} onChange={(e) => setQuery(e.target.value)}
-              placeholder="Lọc địa điểm trong 11Local…" />
+              placeholder="Tìm điểm đến, chuyến đi của Gấu…" />
           </label>
           <div className="local-map-results">
-            {data.status === 'loading' && <p role="status">Đang tải dữ liệu từ Neon…</p>}
-            {data.status === 'error' && <div role="alert">Không tải được địa điểm. Hãy thử tải lại trang.</div>}
+            {data.status === 'loading' && <p role="status">Đang tải điểm đến từ dữ liệu thật…</p>}
+            {data.status === 'error' && <div role="alert">Không tải được điểm đến. Hãy thử tải lại trang.</div>}
             {data.status === 'ready' && matched.length === 0 &&
-              <p>Không có địa điểm đã công khai phù hợp. Hãy thử danh mục khác.</p>}
+              <p>Chưa có điểm đến công khai phù hợp. Hãy thử chủ đề khác.</p>}
             {matched.map((place) => (
               <PlaceRow key={place.id} place={place} selected={selectedSlug === place.slug} onSelect={onSelect} onOpenDetails={onOpenDetails} />
             ))}
@@ -317,7 +328,7 @@ export function RealMapExplorer() {
           {data.status === 'error' && <div className="local-map-alert" role="alert">Chưa kết nối được dữ liệu địa điểm.</div>}
           {data.status === 'ready' && selectedSlug && !selectedPlace &&
             <div className="local-map-alert" role="status">
-              Địa điểm này chưa công khai hoặc không thuộc bộ lọc hiện tại.
+              Điểm đến này chưa công khai hoặc không thuộc bộ lọc hiện tại.
               <button type="button" onClick={() => { setCategory('all'); setQuery(''); }}>Bỏ bộ lọc</button>
             </div>}
         </div>
