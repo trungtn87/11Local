@@ -1,4 +1,3 @@
-import { VisitTracker } from "@/components/visit-tracker";
 import type { Metadata } from "next";
 import { publicSiteOrigin } from "@/lib/public-seo";
 import "@fontsource/plus-jakarta-sans/latin-400.css";
@@ -44,7 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           rel="stylesheet"
         />
       </head>
-      <body>{children}<VisitTracker /></body>
+      <body>{children}</body>
     </html>
   );
 }
