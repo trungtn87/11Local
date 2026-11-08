@@ -8,6 +8,7 @@ import {
   FolderTree, LayoutDashboard, LogOut, MapPinned, Menu, MessageSquareText,
   Settings2, ShieldCheck, Store, X,
 } from "lucide-react";
+import { GauLogoMark } from "@/components/gau-mascot";
 import styles from "./admin-shell.module.css";
 
 const groups = [
@@ -15,7 +16,7 @@ const groups = [
     title: "QUẢN LÝ",
     links: [
       { href: "/admin/dashboard", label: "Tổng quan", Icon: LayoutDashboard },
-      { href: "/admin", label: "Địa điểm", Icon: MapPinned },
+      { href: "/admin", label: "Album & Địa điểm", Icon: MapPinned },
       { href: "/admin/danh-muc", label: "Danh mục", Icon: FolderTree },
       { href: "/admin/menu", label: "Menu & bảng giá", Icon: BookOpen },
     ],
@@ -24,7 +25,7 @@ const groups = [
     title: "KIỂM DUYỆT",
     links: [
       { href: "/admin/dong-gop", label: "Đóng góp cộng đồng", Icon: ClipboardCheck },
-      { href: "/admin/danh-gia", label: "Đánh giá", Icon: MessageSquareText },
+      { href: "/admin/danh-gia", label: "Đánh giá & cảm nhận", Icon: MessageSquareText },
       { href: "/admin/xac-minh", label: "Xác minh chủ", Icon: ShieldCheck },
       { href: "/admin/noi-dung-chu", label: "Nội dung chủ quán", Icon: Store },
     ],
@@ -96,8 +97,8 @@ export default function AdminShell({ children }: { children: ReactNode }) {
       aria-label="Đóng menu quản trị" onClick={() => setMenuOpen(false)} />}
     <aside className={styles.sidebar} data-open={menuOpen}>
       <div className={styles.brand}>
-        <div className={styles.brandMark} aria-hidden="true">11</div>
-        <div className={styles.brandName}><strong>11Local</strong><span>ADMIN CONSOLE</span></div>
+        <div className={styles.brandMark} aria-hidden="true"><GauLogoMark size={34} /></div>
+        <div className={styles.brandName}><strong>Nhà của Gấu</strong><span>ADMIN CONSOLE</span></div>
         <button type="button" className={styles.closeMenu} aria-label="Đóng menu"
           onClick={() => setMenuOpen(false)}><X size={20}/></button>
       </div>
@@ -116,7 +117,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
       </nav>
       <div className={styles.sidebarBottom}>
         <Link href="/" className={styles.websiteLink} onClick={() => setMenuOpen(false)}>
-          <ArrowUpRight size={18} aria-hidden="true"/> Xem website
+          <ArrowUpRight size={18} aria-hidden="true"/> Xem Nhà của Gấu
         </Link>
         <button type="button" className={styles.signOut} disabled={signingOut} onClick={() => void signOut()}>
           <LogOut size={18} aria-hidden="true"/>{signingOut ? "Đang đăng xuất…" : "Đăng xuất"}

@@ -1,11 +1,10 @@
-/* Shared-map / detail-rail SEO page. This is the existing map-detail
-   experience presented as real HTML, not a separate article template. */
+/* Shared-map / detail-rail SEO page for Nhà của Gấu */
 .local-seo-page {
   width: 100%;
   max-width: 1480px;
   margin: 0 auto;
   padding: 0 16px 32px;
-  background: #f5faf8;
+  background: #FFF4E0;
 }
 .local-seo-header .local-seo-search {
   display: flex;
@@ -14,10 +13,10 @@
   min-width: 0;
   min-height: 38px;
   padding: 8px 14px;
-  border: 1px solid #dce9e2;
+  border: 1px solid #D9BC96;
   border-radius: 22px;
-  color: #71867c;
-  background: #f6faf8;
+  color: #8B6A4E;
+  background: #FFF9EE;
   font-size: 13px;
 }
 .local-seo-breadcrumb {
@@ -26,47 +25,49 @@
   align-items: center;
   gap: 8px;
   padding: 12px 3px;
-  color: #61766c;
-  font-size: 12px;
+  color: #8B6A4E;
+  font-size: 12.5px;
 }
-.local-seo-breadcrumb span:last-child { color: #204c3f; font-weight: 700; }
+.local-seo-breadcrumb span:last-child { color: #432F1F; font-weight: 700; }
 .local-seo-detail-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(330px, 420px);
+  grid-template-columns: minmax(0, 1fr) minmax(350px, 460px);
   min-height: 620px;
-  height: min(760px, calc(100dvh - 120px));
-  border: 1px solid #dce8e2;
-  border-radius: 16px;
-  background: #fff;
+  height: min(780px, calc(100dvh - 120px));
+  border: 1.5px solid #EAD5B8;
+  border-radius: 20px;
+  background: #FFFDF9;
   overflow: hidden;
-  box-shadow: 0 3px 18px #17402b13;
+  box-shadow: 0 8px 24px rgba(92, 67, 46, 0.10);
 }
-.local-seo-map-pane { min-width: 0; min-height: 0; position: relative; background: #e6f1eb; }
+.local-seo-map-pane { min-width: 0; min-height: 0; position: relative; background: #EFE4D0; }
 .local-seo-map-canvas { width: 100%; height: 100%; }
 .local-seo-map-canvas > div { width: 100%; height: 100%; }
-.local-seo-map-loading { height: 100%; display: grid; place-items: center; color: #5b756a; }
+.local-seo-map-loading { height: 100%; display: grid; place-items: center; color: #6E523B; }
 .local-seo-map-pin {
   width: 27px; height: 27px; border-radius: 50% 50% 50% 3px;
-  border: 3px solid white; background: #f04f50; transform: rotate(-45deg);
+  border: 3px solid white; background: #D9534F; transform: rotate(-45deg);
   box-shadow: 0 3px 9px #0005;
 }
 .local-seo-map-overlay {
   position: absolute; z-index: 3; left: 16px; right: 16px; bottom: 18px;
   display: flex; justify-content: space-between; align-items: center;
-  gap: 12px; padding: 12px 14px; border-radius: 12px;
-  background: #fffffff0; box-shadow: 0 3px 12px #0002;
-  color: #294d40; font-size: 13px;
+  gap: 12px; padding: 12px 14px; border-radius: 14px;
+  background: rgba(255, 253, 249, 0.95); border: 1px solid #EAD5B8;
+  box-shadow: 0 4px 14px rgba(67, 47, 31, 0.14);
+  color: #432F1F; font-size: 13px;
 }
 .local-seo-map-overlay > span { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .local-seo-map-overlay a {
-  white-space: nowrap; color: #fff; background: #0f766e;
-  border-radius: 9px; padding: 9px 11px;
+  white-space: nowrap; color: #fff; background: #D9534F;
+  border-radius: 11px; padding: 9px 12px;
   display: inline-flex; align-items: center; gap: 6px;
-  font-weight: 800;
+  font-family: var(--font-heading);
+  font-weight: 700;
 }
-.local-seo-rail { min-width: 0; min-height: 0; overflow-y: auto; border-left: 1px solid #dce9e3; }
-.local-seo-rail .local-detail-gallery { height: 225px; min-height: 225px; }
-.local-seo-rail .local-detail-name h1 { font-size: 22px; line-height: 1.3; margin: 8px 0 7px; color: #133f36; overflow-wrap: anywhere; }
+.local-seo-rail { min-width: 0; min-height: 0; overflow-y: auto; border-left: 1px solid #EAD5B8; }
+.local-seo-rail .local-detail-gallery { height: 235px; min-height: 235px; }
+.local-seo-rail .local-detail-name h1 { font-size: 23px; line-height: 1.3; margin: 8px 0 7px; color: #432F1F; overflow-wrap: anywhere; }
 .local-seo-rail .local-detail-content { padding: 20px 20px 32px; gap: 16px; }
 .local-seo-rail .local-detail-topbar { position: sticky; top: 0; }
 .local-seo-rail .local-detail-gallery img { object-fit: cover; }
@@ -88,7 +89,7 @@
   .local-seo-map-overlay { left: 10px; right: 10px; bottom: 10px; font-size: 11px; padding: 9px; }
   .local-seo-map-overlay a { font-size: 11px; padding: 8px; }
   .local-seo-rail { overflow: visible; border: 0; }
-  .local-seo-rail .local-detail-gallery { height: 200px; min-height: 200px; }
+  .local-seo-rail .local-detail-gallery { height: 210px; min-height: 210px; }
   .local-seo-rail .local-detail-content { padding: 16px 15px 22px; gap: 15px; }
   .local-seo-rail .local-detail-name h1 { font-size: 20px; }
   .local-seo-rail .local-detail-topbar { position: static; }

@@ -5,13 +5,13 @@ import { getPublicBootstrap } from "@/lib/public-catalog";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Tìm địa điểm ở Cao Bằng | 11Local",
-  description: "Khám phá các địa điểm, dịch vụ và trải nghiệm đã được kiểm duyệt tại Cao Bằng.",
+  title: "Album kỷ niệm | Nhà của Gấu",
+  description: "Khám phá các album hình ảnh, chuyến đi và kỷ niệm gia đình tại Nhà của Gấu.",
   alternates: { canonical: "/tim-kiem" },
   openGraph: {
-    type: "website", locale: "vi_VN", siteName: "11Local",
-    title: "Tìm địa điểm ở Cao Bằng | 11Local",
-    description: "Tìm các địa điểm và trải nghiệm địa phương tại Cao Bằng.",
+    type: "website", locale: "vi_VN", siteName: "Nhà của Gấu",
+    title: "Album kỷ niệm | Nhà của Gấu",
+    description: "Nơi lưu giữ những năm tháng yêu thương của Gấu cùng gia đình.",
     url: "/tim-kiem",
   },
 };

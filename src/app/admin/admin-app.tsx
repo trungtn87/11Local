@@ -297,7 +297,7 @@ export default function AdminApp() {
   if (auth === null) return <main className={styles.center}>Đang kiểm tra phiên Admin…</main>;
   if (!auth) return <main className={styles.center}>
     <form className={styles.login} onSubmit={login}>
-      <h1>11Local Admin</h1><p>Đăng nhập quản trị</p>
+      <h1>Nhà của Gấu — Admin</h1><p>Đăng nhập quản trị album & kỷ niệm gia đình</p>
       <input type="password" autoFocus required value={password} onChange={e => setPassword(e.target.value)} placeholder="Mật khẩu Admin" />
       <button disabled={busy}>Đăng nhập</button>{message && <p className={styles.error}>{message}</p>}
     </form>
@@ -307,7 +307,7 @@ export default function AdminApp() {
     <header className={styles.pageHeader}>
       <div>
         <span className={styles.eyebrow}>QUẢN LÝ NỘI DUNG</span>
-        <h1>Địa điểm</h1>
+        <h1>Album & Địa điểm</h1>
         <p>Quản lý thông tin, vị trí và hình ảnh của các địa điểm trên 11Local.</p>
       </div>
       <span className={styles.sourceBadge}><span/> Dữ liệu Neon</span>
