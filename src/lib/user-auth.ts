@@ -64,7 +64,15 @@ export function verifyUserSession(token?: string): SessionUser | null {
 }
 
 export async function getCurrentUser() {
-  return verifyUserSession((await cookies()).get(COOKIE_NAME)?.value);
+  const session=verifyUserSession((await cookies()).get(COOKIE_NAME)?.value);
+  if (!session) return null;
+  // Database is authoritative on every request: revoking access invalidates old cookies.
+  // Fail closed if migration/database is unavailable.
+  try {
+    const { db } = await import("./db");
+    const rows=await db().unsafe("SELECT 1 FROM users WHERE id::text=$1 AND google_sub IS NOT NULL AND family_access_status='approved' LIMIT 1",[session.id]);
+    return rows.length ? session : null;
+  } catch { return null; }
 }
 
 export { safeReturnTo } from "./google-auth";
