@@ -5,14 +5,14 @@
 /* ===== Hero Section (Mascot Yellow Bear in Red Shirt, Cozy House, Honey Pot) ===== */
 .gau-hero {
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
+  grid-template-columns: 1.12fr 0.88fr;
   align-items: center;
-  gap: 24px;
-  padding: 28px 32px;
+  gap: 28px;
+  padding: 32px 36px;
   border-radius: 20px;
-  background: linear-gradient(135deg, #FFFDF7 0%, #FFF1CE 55%, #FDE3A7 100%);
-  border: 1.5px solid #E8C785;
-  box-shadow: 0 10px 28px rgba(139, 106, 78, 0.10);
+  background: linear-gradient(135deg, #FFFDF9 0%, #FFF6E3 55%, #FAE7BE 100%);
+  border: 1px solid #DFC49B;
+  box-shadow: 0 12px 32px rgba(92, 67, 46, 0.08);
   position: relative;
   overflow: hidden;
 }
@@ -69,9 +69,9 @@
 }
 .gau-hero-svg {
   width: 100%;
-  max-width: 360px;
+  max-width: 390px;
   height: auto;
-  filter: drop-shadow(0 6px 14px rgba(92, 67, 46, 0.12));
+  filter: drop-shadow(0 8px 18px rgba(92, 67, 46, 0.10));
 }
 
 /* Mobile Compact Hero */
