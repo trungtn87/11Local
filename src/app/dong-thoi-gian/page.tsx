@@ -1,22 +1,3 @@
-import type { Metadata } from "next";
-import { DemoShell } from "@/features/demo-ui/demo-shell";
-import { getPublicBootstrap } from "@/lib/public-catalog";
-
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  title: "Gấu lớn lên — Dòng thời gian | Nhà của Gấu",
-  description: "Theo dõi các dấu mốc trưởng thành và kỷ niệm của Gấu theo từng năm tháng.",
-  alternates: { canonical: "/dong-thoi-gian" },
-  openGraph: {
-    type: "website", locale: "vi_VN", siteName: "Nhà của Gấu",
-    title: "Gấu lớn lên — Dòng thời gian | Nhà của Gấu",
-    description: "Dòng thời gian lưu giữ các cột mốc và kỷ niệm của Gấu cùng gia đình.",
-    url: "/dong-thoi-gian",
-  },
-};
-
-export default async function TimelineRoutePage() {
-  const data = await getPublicBootstrap();
-  return <DemoShell pathname="/dong-thoi-gian" {...data} />;
-}
+import Link from "next/link";import {milestones} from "@/lib/family";
+export const dynamic="force-dynamic";export const metadata={title:"Gấu lớn lên | Nhà của Gấu"};
+export default async function Timeline(){const rows=await milestones();return <main className="wrap"><div className="page-title"><p className="eyebrow">🌱 Lớn lên cùng yêu thương</p><h1>Gấu lớn lên</h1><p>Những dấu mốc đặc biệt qua từng năm tháng.</p></div>{rows.length?<div className="timeline">{rows.map(m=><article key={m.id} className="memory"><time>{m.event_date}</time><h2>{m.title}</h2><p>{m.details}</p>{m.album_id&&<Link href={"/album/"+m.album_id}>Xem album liên quan →</Link>}</article>)}</div>:<div className="empty">Những cột mốc đáng nhớ của Gấu sẽ xuất hiện ở đây.</div>}</main>;}

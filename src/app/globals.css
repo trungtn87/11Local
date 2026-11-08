@@ -1,45 +1,4 @@
-:root {
-  --background: #FFF4E0;
-  --foreground: #432F1F;
-  --brand: #D9534F;
-  --brand-deep: #8B6A4E;
-}
-
-html {
-  height: 100%;
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  min-height: 100%;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: var(--font-body, 'Noto Sans', 'Plus Jakarta Sans', Arial, Helvetica, sans-serif);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading, 'Quicksand', 'Plus Jakarta Sans', sans-serif);
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-button,
-input {
-  font: inherit;
-}
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Quicksand:wght@600;700&display=swap');
+:root{--cream:#FFF4E0;--honey:#F9C84B;--red:#D9534F;--sage:#A8C686;--brown:#8B6A4E;--ink:#432F1F}
+*{box-sizing:border-box}html,body{margin:0;max-width:100%;overflow-x:hidden}body{background:var(--cream);color:var(--ink);font-family:'Noto Sans',Arial,sans-serif;font-size:15px;line-height:1.65}h1,h2,h3,.brand{font-family:Quicksand,'Noto Sans',sans-serif;line-height:1.3}h1{font-size:clamp(2rem,4vw,3.4rem)}h2{font-size:1.4rem}a{color:inherit}button,input,select,textarea{font:inherit}button{cursor:pointer}.wrap{max-width:1150px;margin:auto;padding:32px 22px 110px;min-height:65vh}.narrow{max-width:750px}.site-header{background:#fff9ee;border-bottom:1px solid #ead5b8;padding:11px max(20px,calc((100vw - 1150px)/2));display:flex;gap:24px;align-items:center;justify-content:space-between;position:relative;z-index:3}.brand{display:flex;gap:12px;align-items:center;text-decoration:none;font-weight:700;font-size:21px;white-space:nowrap}.brand small{font:500 11px 'Noto Sans',sans-serif;display:block;color:var(--brown)}.site-links{display:flex;gap:24px}.site-links a,.account-link{text-decoration:none;font-weight:700;font-size:13px}.account-link,.primary{background:var(--red);color:white!important;text-decoration:none;border:0;display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:11px 20px;border-radius:14px;font-weight:700}.secondary{background:white;border:1px solid #dcbf99;border-radius:12px;padding:10px 17px}.mobile-nav{display:none}.hero{display:grid;grid-template-columns:1.1fr 1fr;align-items:center;gap:20px;padding:35px;border-radius:25px;background:#fff9eb;box-shadow:0 10px 30px #a7814a1c}.hero h1{margin:12px 0}.hero-art{width:100%;height:auto}.eyebrow{color:var(--red);font-weight:700;font-size:13px}.lead{font-size:17px;max-width:520px;margin-bottom:30px}.feature-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:28px 0 40px}.feature,.panel,.album-card,.memory{border:1px solid #e8d5b7;background:#fffdfa;border-radius:20px;box-shadow:0 4px 16px #795d3710}.feature{text-decoration:none;padding:22px}.feature h2{font-size:17px}.feature p,.card-body p{color:#7d674e;font-size:13px}.feature-icon{font-size:32px}.section-head{display:flex;justify-content:space-between;align-items:center}.section-head a{color:var(--red)}.album-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}.album-card{overflow:hidden;text-decoration:none}.album-card img,.empty-cover{width:100%;height:210px;object-fit:cover;display:grid;place-items:center;background:#f9e6c6;font-size:60px}.card-body{padding:16px}.card-body h2,.card-body h3{margin:0 0 6px;font-size:19px}.card-body small{color:#77634c}.page-title{padding:16px 0 28px}.page-title h1{margin:5px 0}.page-title p{color:#755d47;max-width:730px}.page-title .primary{margin-top:12px}.empty{background:#fff8ec;padding:45px 24px;border-radius:20px;text-align:center;color:#775d44;border:1px dashed #d7b787}.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.photo-grid figure{margin:0;background:white;border-radius:18px;overflow:hidden}.photo-grid img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}.photo-grid figcaption{padding:12px}.photo-grid figcaption small{display:block;color:#806953}.timeline{max-width:780px;display:grid;gap:16px}.memory{padding:22px;border-left:5px solid var(--honey)}.memory time{color:var(--red);font-weight:bold}.map-layout{display:grid;grid-template-columns:minmax(0,2fr) minmax(240px,1fr);gap:16px;min-height:520px}.memory-map{height:550px;min-width:0;border-radius:20px;overflow:hidden;position:relative}.map-list{padding:20px;background:#fffaf0;border-radius:20px;max-height:550px;overflow:auto}.map-place{padding:14px 0;border-bottom:1px solid #e9d8bb}.map-place small,.map-place a{display:block}.memory-pin{border:2px solid white;border-radius:50%;background:#f9c84b;width:40px;height:40px;font-size:20px;box-shadow:0 2px 9px #2225}.panel{padding:30px;display:grid;gap:14px}.panel h1,.panel h2{margin:0}.panel p{margin:0 0 8px}.field{display:grid;gap:5px;margin-bottom:12px}.field input,.field select,.field textarea{border:1px solid #d3bd9c;background:white;border-radius:11px;padding:12px;width:100%;min-width:0}.field textarea{min-height:90px}.status{padding:10px;border-radius:10px;background:#fff1cf}.admin-columns{display:grid;grid-template-columns:1fr 1fr;gap:20px}.footer{background:#fff9ec;text-align:center;padding:27px;color:#806648;font-size:12px}
+@media(max-width:900px){.site-links{gap:10px}.feature-grid{grid-template-columns:repeat(2,1fr)}.album-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:680px){.site-header{padding:8px 14px}.site-links{display:none}.brand{font-size:18px}.account-link{font-size:12px;padding:9px}.mobile-nav{position:fixed;display:flex;bottom:0;left:0;right:0;z-index:20;background:#fffdf6;box-shadow:0 -4px 18px #55422a24;justify-content:space-around;padding:12px 4px max(12px,env(safe-area-inset-bottom))}.mobile-nav a{text-align:center;text-decoration:none;font-size:10px;font-weight:700}.wrap{padding:19px 13px 96px}.hero{grid-template-columns:1fr;padding:20px}.hero-art{max-height:180px}.feature-grid{gap:9px}.feature{padding:14px}.feature h2{font-size:15px}.album-grid,.photo-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.album-card img,.empty-cover{height:130px}.card-body{padding:10px}.map-layout,.admin-columns{grid-template-columns:1fr}.memory-map{height:430px}.map-list{max-height:none}}

@@ -1,0 +1,3 @@
+import Link from "next/link";import {getCurrentUser} from "@/lib/user-auth";import {LogoutButton} from "@/components/logout-button";
+export const dynamic="force-dynamic";
+export default async function Account(){const user=await getCurrentUser();return <main className="wrap narrow"><div className="panel"><h1>Tài khoản</h1>{user?<><h2>{user.name}</h2><p>{user.email}</p><p>Bạn có thể đóng góp ảnh vào album Nhà của Gấu. Ảnh được duyệt trước khi công khai.</p><Link className="primary" href="/dong-gop">Đăng ảnh</Link><LogoutButton/></>:<><p>Đăng nhập Google để góp thêm kỷ niệm.</p><a className="primary" href="/api/auth/google/start?returnTo=%2Ftai-khoan">Đăng nhập Google</a></>}</div></main>;}

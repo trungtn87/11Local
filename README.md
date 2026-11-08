@@ -1,51 +1,25 @@
-# 11Local
+# Nhà của Gấu
 
-Nền tảng khám phá địa phương, bắt đầu từ Cao Bằng. Ứng dụng gồm giao diện demo đa màn hình cho khách, thành viên, chủ địa điểm và quản trị viên; bản đồ MapLibre thật của **MAP-01A** vẫn có tại `/map`.
+Nơi lưu giữ những năm tháng yêu thương của Gấu và gia đình.
 
-## Công nghệ
+- Khách xem album, ảnh đã duyệt, địa điểm và những cột mốc công khai.
+- Tài khoản Google được gửi ảnh vào album, tự nén 2048px WebP chất lượng 82, tối đa 20MB ảnh đầu vào, 30 ảnh/ngày mỗi tài khoản.
+- Admin tạo album, ghim nơi đã đi, thêm cột mốc và duyệt ảnh.
+- Next.js 16, PostgreSQL Neon, MapLibre, Docker trên VPS Nhân Hòa.
 
-- Next.js (App Router) + TypeScript
-- MapLibre GL JS
-- OpenFreeMap Bright (dữ liệu OpenStreetMap), không cần API key cho giai đoạn prototype
-- Giao diện demo V1 với dữ liệu hư cấu, chưa kết nối backend hoặc xác thực thật
+## Cấu hình
 
-## Chạy local
+Cần DATABASE_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, USER_SESSION_SECRET, ADMIN_PASSWORD, ADMIN_SESSION_SECRET, SITE_URL=https://11local.vn.
+OAuth callback được giữ là https://11local.vn/api/auth/google/callback.
+Bản đồ mặc định từ OpenFreeMap, NEXT_PUBLIC_MAP_STYLE_URL là tùy chọn.
 
-Yêu cầu Node.js 22+ và npm.
+## Migration
+Chạy migrations/0021_nha_cua_gau.sql bằng kết nối **direct** trên Neon trước khi đưa code mới lên production. Không tự chạy các migration 0001–0020 cũ.
+Dữ liệu ảnh *đã nén* lưu ở bảng family_photos dạng bytea. Theo dõi dung lượng Neon và chuyển sang object storage khi cần; không giữ ảnh gốc.
 
-```bash
-npm ci
-npm run dev
-```
+## Kiểm tra
+npm ci && npm run check && node scripts/check-ssr-html.mjs
+DEPLOY_STANDALONE=1 npm run build
 
-Mở `http://localhost:3000` để xem giao diện chính hoặc `http://localhost:3000/map` để xem bản đồ MapLibre thật.
-
-Các route demo tiêu biểu: `/tim-kiem`, `/ban-do`, `/dia-diem/p1`, `/dong-gop`, `/quan-ly` và `/admin`. Công cụ ở góc màn hình cho phép đổi vai trò và trạng thái giao diện; đây không phải phân quyền thật.
-
-Các bước kiểm tra:
-
-```bash
-npm run lint
-npm test
-npm run build
-```
-
-## Deploy lên Render
-
-Repo có `render.yaml` để tạo một Node web service tại Singapore:
-
-1. Merge code vào branch deploy (thường là `main`).
-2. Trong Render Dashboard, chọn **New → Blueprint** và kết nối repo này.
-3. Kiểm tra service `11local-web`, sau đó Apply Blueprint.
-
-Render chạy `npm ci && npm run build`, khởi động bằng `npm start` và kiểm tra sức khỏe tại `/map`. Ứng dụng không dùng API riêng của Render nên có thể chuyển sang VPS hỗ trợ Node.js mà không đổi code.
-
-### Đổi nguồn bản đồ
-
-Mặc định ứng dụng dùng style công khai:
-
-```text
-https://tiles.openfreemap.org/styles/bright
-```
-
-Có thể đặt `NEXT_PUBLIC_MAP_STYLE_URL` trong môi trường build để chuyển sang style hoặc tile service tự host khi lên VPS. Nên đánh giá lại hạn mức/chính sách nguồn tile trước khi tăng lưu lượng production.
+## Quyền truy cập
+Bất kỳ ai xem ảnh đã duyệt; chỉ tài khoản Google đăng nhập gửi ảnh. Upload chờ kiểm duyệt. Admin dùng mật khẩu Admin riêng, không chia sẻ public.
