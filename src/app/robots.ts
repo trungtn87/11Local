@@ -7,9 +7,8 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       disallow: [
-        "/api/", "/admin", "/quan-ly", "/tai-khoan",
-        "/dang-nhap", "/nhan-quyen", "/bao-sai",
-        "/theo-doi", "/dong-gop",
+        "/api/", "/admin", "/tai-khoan", "/dang-nhap",
+        "/dong-gop", "/quan-ly", "/nhan-quyen", "/bao-sai", "/theo-doi",
       ],
     }],
     sitemap: absolutePublicUrl("/sitemap.xml"),
