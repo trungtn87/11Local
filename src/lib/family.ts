@@ -36,7 +36,7 @@ export type Photo = {
 export async function albums(): Promise<Album[]> {
   try {
     const q =
-      "SELECT a.id::text,a.title,a.description,a.event_date::text, (SELECT p.id::text FROM family_photos p WHERE p.album_id=a.id AND p.status='approved' ORDER BY p.created_at LIMIT 1) AS cover_id, (SELECT count(*)::int FROM family_photos p WHERE p.album_id=a.id AND p.status='approved') AS photo_count FROM family_albums a ORDER BY a.event_date DESC NULLS LAST,a.created_at DESC";
+      "SELECT a.id::text,a.title,a.description,a.event_date::text, (SELECT p.id::text FROM family_photos p WHERE p.album_id=a.id AND p.status='approved' ORDER BY p.created_at LIMIT 1) AS cover_id, (SELECT count(*)::int FROM family_photos p WHERE p.album_id=a.id AND p.status='approved') AS photo_count FROM family_albums a WHERE a.archived_at IS NULL ORDER BY a.event_date DESC NULLS LAST,a.created_at DESC";
     return (await db().unsafe(q)) as unknown as Album[];
   } catch {
     return [];
@@ -46,7 +46,7 @@ export async function albums(): Promise<Album[]> {
 export async function album(id: string) {
   try {
     const a = await db().unsafe(
-      "SELECT id::text,title,description,event_date::text FROM family_albums WHERE id::text=$1",
+      "SELECT id::text,title,description,event_date::text FROM family_albums WHERE id::text=$1 AND archived_at IS NULL",
       [id],
     );
     if (!a.length) return null;
