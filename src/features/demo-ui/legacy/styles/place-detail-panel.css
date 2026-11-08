@@ -115,3 +115,7 @@
   text-decoration: none; font-weight: 600; font-size: .9rem;
 }
 .local-place-social-links a:hover { border-color: #F9C84B; background: #FFF3CC; }
+
+/* The lightbox is a sibling of the panel under a pointer-transparent map layer.
+   Restore pointer interaction so close and image navigation work on all viewports. */
+.local-detail-layer > .gau-lightbox-overlay{pointer-events:auto}
