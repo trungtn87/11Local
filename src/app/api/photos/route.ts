@@ -12,6 +12,10 @@ export async function POST(request:Request){
   const file=data.get("image");if(!(file instanceof File)||!/^image\/(jpeg|png|webp|avif)$/.test(file.type)||file.size>max||file.size===0)return NextResponse.json({error:"Chọn ảnh JPG, PNG, WebP hoặc AVIF tối đa 20MB"},{status:400});
   if(!/^[0-9a-f-]{36}$/i.test(id))return NextResponse.json({error:"Album không hợp lệ"},{status:400});
   const sql=db();const exists=await sql.unsafe("SELECT id FROM family_albums WHERE id::text=$1",[id]);if(!exists.length)return NextResponse.json({error:"Không tìm thấy album"},{status:404});
+  // Cheap fast-fail for accounts already at quota. The second check under
+  // advisory lock below remains authoritative for concurrent submissions.
+  const preflight=await sql.unsafe("SELECT count(*)::int AS count FROM family_photos WHERE uploaded_by::text=$1 AND created_at > now()-interval '24 hours'",[user.id]);
+  if(Number(preflight[0]?.count)>=30)return NextResponse.json({error:"Bạn đã đạt giới hạn 30 ảnh trong 24 giờ"},{status:429});
   const bytes=Buffer.from(await file.arrayBuffer());const out=await sharp(bytes,{limitInputPixels:50_000_000}).rotate().resize({width:2048,height:2048,fit:"inside",withoutEnlargement:true}).webp({quality:82}).toBuffer({resolveWithObject:true});
   // Serialize concurrent uploads per Google account. Count and insert must
   // happen in the same transaction while holding the same advisory lock.
