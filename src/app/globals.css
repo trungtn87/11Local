@@ -804,34 +804,176 @@ button {
   margin-top: 2px;
 }
 
-.timeline {
-  max-width: 780px;
+/* Family memory tree: years → months → memories, mobile-first. */
+.memory-tree {
+  position: relative;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 4px 0 28px;
+}
+.memory-tree::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  bottom: 20px;
+  left: 19px;
+  width: 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #56B57C, #F8C64E 52%, #ECA0AC);
+}
+.tree-year {
+  position: relative;
+  margin: 0 0 26px;
+}
+.tree-year-summary,
+.tree-month-summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+}
+.tree-year-summary::-webkit-details-marker,
+.tree-month-summary::-webkit-details-marker {
+  display: none;
+}
+.tree-year-summary {
+  margin: 0 0 16px 54px;
+  padding: 10px 16px;
+  width: fit-content;
+  background: var(--green-pastel);
+  border: 1px solid rgba(66, 151, 98, 0.22);
+  border-radius: 16px;
+  color: #285C3C;
+  font-weight: 700;
+  font-size: 1.08rem;
+}
+.tree-year-summary::before {
+  content: "";
+  position: absolute;
+  left: -49px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 4px solid var(--bg);
+  background: #4BAE73;
+  box-shadow: 0 0 0 2px rgba(75, 174, 115, 0.28);
+}
+.tree-year-summary small,
+.tree-month-summary small {
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  font-weight: 500;
+}
+.tree-month {
+  position: relative;
+  margin: 0 0 18px 54px;
+}
+.tree-month-summary {
+  width: fit-content;
+  margin-bottom: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  color: #9A493A;
+  background: var(--yellow-pastel);
+  font-size: 0.89rem;
+  font-weight: 700;
+}
+.tree-month-summary::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -33px;
+  transform: translateY(-50%);
+  width: 33px;
+  height: 2px;
+  background: #EAC38A;
+}
+.tree-month-summary::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -40px;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  border: 3px solid var(--bg);
+  background: #F3B63C;
+  border-radius: 50%;
+}
+.tree-leaves {
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
-
-.memory {
-  padding: 22px;
-  background: var(--surface);
-  border-radius: 22px;
+.tree-memory {
+  position: relative;
+  padding: 18px 20px;
+  border-radius: 20px;
   border: 1px solid var(--border-soft);
-  border-left: 6px solid var(--honey);
+  background: var(--surface);
   box-shadow: var(--shadow-card);
+  min-width: 0;
 }
-
-.memory time {
+.tree-memory::before {
+  content: "";
+  position: absolute;
+  top: 27px;
+  left: -34px;
+  width: 34px;
+  height: 2px;
+  background: #EAC38A;
+}
+.tree-memory::after {
+  content: "";
+  position: absolute;
+  top: 22px;
+  left: -41px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 3px solid var(--bg);
+  background: var(--coral);
+}
+.tree-memory time {
+  display: block;
+  color: var(--coral);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.tree-memory h2 {
+  margin: 5px 0 7px;
+  font-size: 1.06rem;
+  line-height: 1.4;
+}
+.tree-memory p {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+.tree-album-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
   color: var(--coral);
   font-weight: 700;
   font-size: 0.88rem;
+  text-decoration: none;
 }
-
-.memory h2 {
-  margin: 6px 0;
+.tree-year-summary:focus-visible,
+.tree-month-summary:focus-visible,
+.tree-album-link:focus-visible {
+  outline: 3px solid var(--honey);
+  outline-offset: 3px;
 }
-
-.memory p {
-  margin: 0 0 10px;
-  color: var(--text-secondary);
+@media (max-width: 680px) {
+  .tree-year-summary { font-size: 1rem; }
+  .tree-month { margin-left: 46px; }
+  .tree-memory { padding: 14px 15px; }
 }
 
 .map-layout {
