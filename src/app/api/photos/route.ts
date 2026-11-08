@@ -11,7 +11,7 @@ export async function POST(request:Request){
   const data=await request.formData(),id=String(data.get("album_id")||""),caption=String(data.get("caption")||"").slice(0,500);
   const file=data.get("image");if(!(file instanceof File)||!/^image\/(jpeg|png|webp|avif)$/.test(file.type)||file.size>max||file.size===0)return NextResponse.json({error:"Chọn ảnh JPG, PNG, WebP hoặc AVIF tối đa 20MB"},{status:400});
   if(!/^[0-9a-f-]{36}$/i.test(id))return NextResponse.json({error:"Album không hợp lệ"},{status:400});
-  const sql=db();const exists=await sql.unsafe("SELECT id FROM family_albums WHERE id::text=$1",[id]);if(!exists.length)return NextResponse.json({error:"Không tìm thấy album"},{status:404});
+  const sql=db();const exists=await sql.unsafe("SELECT id FROM family_albums WHERE id::text=$1 AND archived_at IS NULL",[id]);if(!exists.length)return NextResponse.json({error:"Không tìm thấy album"},{status:404});
   // Cheap fast-fail for accounts already at quota. The second check under
   // advisory lock below remains authoritative for concurrent submissions.
   const preflight=await sql.unsafe("SELECT count(*)::int AS count FROM family_photos WHERE uploaded_by::text=$1 AND created_at > now()-interval '24 hours'",[user.id]);
