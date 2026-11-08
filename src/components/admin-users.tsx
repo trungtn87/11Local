@@ -17,7 +17,15 @@ export function AdminUsers(){
       const data=await r.json();setUsers(data.users);
     }catch{setMessage("Không thể tải danh sách thành viên.");}finally{setLoading(false);}
   }
-  useEffect(()=>{void refresh();},[]);
+  useEffect(()=>{
+    let active=true;
+    fetch("/api/admin/users",{cache:"no-store"})
+      .then(r=>{if(!r.ok)throw Error();return r.json();})
+      .then(data=>{if(active)setUsers(data.users);})
+      .catch(()=>{if(active)setMessage("Không thể tải danh sách thành viên.");})
+      .finally(()=>{if(active)setLoading(false);});
+    return ()=>{active=false;};
+  },[]);
   const items=useMemo(()=>users.filter(u=>(filter==="all"||u.status===filter)&&
     (u.display_name+" "+(u.email||"")).toLocaleLowerCase().includes(search.toLocaleLowerCase())),[users,filter,search]);
   async function decide(user:User,status:User["status"]){
