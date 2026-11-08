@@ -50,7 +50,7 @@ export async function POST(request:Request){
   const input=await request.json().catch(()=>null);
   if(!input||typeof input!=="object"||Array.isArray(input))return fail("Dữ liệu không hợp lệ");
   const data=validate(input);
-  if("error" in data)return fail(data.error);
+  if("error" in data)return fail(String(data.error));
   try{
     if(data.type==="album")await db().unsafe("INSERT INTO family_albums(title,description,event_date) VALUES ($1,$2,$3::date)",[data.title,data.description,data.eventDate]);
     if(data.type==="place")await db().unsafe("INSERT INTO family_places(title,latitude,longitude,visited_on,album_id) VALUES ($1,$2,$3,$4::date,$5::uuid)",[data.title,data.latitude,data.longitude,data.visitedDate,data.albumId]);
@@ -68,7 +68,7 @@ export async function PATCH(request:Request){
       return rows.length?NextResponse.json({ok:true}):fail("Không tìm thấy album",404);
     }
     const data=validate(body);
-    if("error" in data)return fail(data.error);
+    if("error" in data)return fail(String(data.error));
     let rows;
     if(data.type==="album")rows=await db().unsafe("UPDATE family_albums SET title=$1,description=$2,event_date=$3::date WHERE id::text=$4 RETURNING id",[data.title,data.description,data.eventDate,body.id]);
     else if(data.type==="place")rows=await db().unsafe("UPDATE family_places SET title=$1,latitude=$2,longitude=$3,visited_on=$4::date,album_id=$5::uuid WHERE id::text=$6 RETURNING id",[data.title,data.latitude,data.longitude,data.visitedDate,data.albumId,body.id]);
@@ -84,7 +84,7 @@ export async function DELETE(request:Request){
     // Albums are archived rather than deleted; preserve every family photo.
     const rows=body.type==="album"
       ?await db().unsafe("UPDATE family_albums SET archived_at=now() WHERE id::text=$1 AND archived_at IS NULL RETURNING id",[body.id])
-      :await db().unsafe("DELETE FROM "+TYPES[body.type]+" WHERE id::text=$1 RETURNING id",[body.id]);
+      :await db().unsafe("DELETE FROM "+TYPES[body.type as Kind]+" WHERE id::text=$1 RETURNING id",[body.id]);
     return rows.length?NextResponse.json({ok:true}):fail("Không tìm thấy nội dung",404);
   }catch{return fail("Không thể xóa nội dung",400);}
 }
