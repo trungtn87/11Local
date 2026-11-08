@@ -1,15 +1,28 @@
-"use client";import {useState} from "react";
-type A={id:string;title:string};type P={id:string;caption:string;album_title:string;uploader:string};
-export function AdminDashboard({authenticated,albums,pending,approved}:{authenticated:boolean;albums:A[];pending:P[];approved:P[]}){
- const [password,setPassword]=useState(""),[msg,setMsg]=useState(""),[busy,setBusy]=useState(false);
+"use client";
+import {useState} from "react";
+import {AdminContentManager} from "./admin-content-manager";
+type A={id:string;title:string};
+type P={id:string;caption:string;album_title:string;uploader:string};
+export function AdminDashboard({authenticated,pending,approved}:{authenticated:boolean;albums:A[];pending:P[];approved:P[]}){
+ const [password,setPassword]=useState(""),[msg,setMsg]=useState("");
  async function login(e:React.FormEvent){e.preventDefault();const r=await fetch("/api/admin/session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password})});if(r.ok)location.reload();else setMsg("Sai mật khẩu quản trị.");}
- async function send(e:React.FormEvent<HTMLFormElement>,type:string){e.preventDefault();const form=new FormData(e.currentTarget);setBusy(true);const r=await fetch("/api/admin/family",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type,...Object.fromEntries(form.entries())})});setBusy(false);if(r.ok)location.reload();else setMsg((await r.json()).error||"Không lưu được");}
- async function decide(id:string,status:string){const r=await fetch("/api/admin/photos/"+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status})});if(r.ok)location.reload();else setMsg("Không duyệt được ảnh");}
+ async function decide(id:string,status:string){
+  const r=await fetch("/api/admin/photos/"+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status})});
+  if(r.ok)location.reload();else setMsg("Không cập nhật được ảnh");
+ }
  if(!authenticated)return <form className="panel" onSubmit={login}><label className="field">Mật khẩu Admin<input type="password" required value={password} onChange={e=>setPassword(e.target.value)}/></label><button className="primary">Đăng nhập</button><p role="status">{msg}</p></form>;
- return <><div className="admin-columns"><form className="panel" onSubmit={e=>send(e,"album")}><h2>Tạo album</h2><label className="field">Tên album<input name="title" required maxLength={150}/></label><label className="field">Ngày kỷ niệm<input type="date" name="event_date"/></label><label className="field">Mô tả<textarea name="description"/></label><button disabled={busy} className="primary">Tạo album</button></form>
- <form className="panel" onSubmit={e=>send(e,"place")}><h2>Ghim nơi đã đến</h2><label className="field">Tên nơi đến<input name="title" required maxLength={150}/></label><label className="field">Vĩ độ<input name="latitude" type="number" step="any" min="-90" max="90" required/></label><label className="field">Kinh độ<input name="longitude" type="number" step="any" min="-180" max="180" required/></label><label className="field">Ngày ghé thăm<input name="visited_on" type="date"/></label><label className="field">Album liên quan<select name="album_id"><option value="">Không chọn</option>{albums.map(a=><option value={a.id} key={a.id}>{a.title}</option>)}</select></label><button disabled={busy} className="primary">Thêm địa điểm</button></form>
- <form className="panel" onSubmit={e=>send(e,"milestone")}><h2>Cột mốc của Gấu</h2><label className="field">Tiêu đề<input name="title" required maxLength={150}/></label><label className="field">Ngày tháng<input type="date" name="event_date" required/></label><label className="field">Câu chuyện<textarea name="details"/></label><label className="field">Album liên quan<select name="album_id"><option value="">Không chọn</option>{albums.map(a=><option value={a.id} key={a.id}>{a.title}</option>)}</select></label><button disabled={busy} className="primary">Lưu cột mốc</button></form>
- <section className="panel"><h2>Ảnh chờ duyệt ({pending.length})</h2>{pending.length?pending.map(p=><div className="map-place" key={p.id}><img src={"/api/photos/"+p.id} alt="Ảnh chờ duyệt" style={{width:120,borderRadius:12}}/><strong>{p.album_title}</strong><small>{p.uploader} · {p.caption}</small><button type="button" className="primary" onClick={()=>decide(p.id,"approved")}>Duyệt</button> <button type="button" className="secondary" onClick={()=>decide(p.id,"rejected")}>Từ chối</button></div>):<p>Không có ảnh chờ duyệt.</p>}</section>
- <section className="panel"><h2>Ảnh công khai gần đây ({approved.length})</h2><p>Có thể ẩn ngay những ảnh đã duyệt nhầm hoặc được yêu cầu gỡ.</p>{approved.length?approved.map(p=><div className="map-place" key={p.id}><img src={"/api/photos/"+p.id} alt="Ảnh công khai" style={{width:120,borderRadius:12}}/><strong>{p.album_title}</strong><small>{p.uploader} · {p.caption}</small><button type="button" className="secondary" onClick={()=>decide(p.id,"rejected")}>Ẩn ảnh khỏi trang công khai</button></div>):<p>Chưa có ảnh công khai.</p>}</section>
- </div>{msg&&<p role="status" className="status">{msg}</p>}</>;
+ return <div className="admin-columns">
+  <AdminContentManager/>
+  <section className="panel"><h2>Ảnh chờ duyệt ({pending.length})</h2>{pending.length?pending.map(p=><div className="map-place" key={p.id}>
+   <img src={"/api/photos/"+p.id} alt="Ảnh chờ duyệt" style={{width:120,borderRadius:12}}/>
+   <strong>{p.album_title}</strong><small>{p.uploader} · {p.caption}</small>
+   <div className="empty-actions"><button type="button" className="primary" onClick={()=>void decide(p.id,"approved")}>Duyệt</button><button type="button" className="secondary" onClick={()=>void decide(p.id,"rejected")}>Từ chối</button></div>
+  </div>):<p>Không có ảnh chờ duyệt.</p>}</section>
+  <section className="panel"><h2>Ảnh công khai gần đây ({approved.length})</h2><p>Có thể ẩn ảnh đã duyệt nhầm hoặc được yêu cầu gỡ.</p>
+  {approved.length?approved.map(p=><div className="map-place" key={p.id}>
+   <img src={"/api/photos/"+p.id} alt="Ảnh công khai" style={{width:120,borderRadius:12}}/><strong>{p.album_title}</strong><small>{p.uploader} · {p.caption}</small>
+   <button type="button" className="secondary" onClick={()=>void decide(p.id,"rejected")}>Ẩn ảnh khỏi trang công khai</button>
+  </div>):<p>Chưa có ảnh công khai.</p>}</section>
+  {msg&&<p role="status" className="status">{msg}</p>}
+ </div>;
 }
