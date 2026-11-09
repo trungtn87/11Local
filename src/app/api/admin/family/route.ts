@@ -68,7 +68,7 @@ export async function PATCH(request:Request){
     if(body.type==="album"&&typeof body.restore==="boolean"){
       const rows=await db().unsafe("UPDATE family_albums SET archived_at=$1 WHERE id::text=$2 RETURNING id",[body.restore?null:new Date(),body.id]);
       if (rows.length) invalidateFamilyPublic();
-      return rows.length?NextResponse.json({ok:true}):fail("Không tìm thấy album",404);
+    return rows.length?NextResponse.json({ok:true}):fail("Không tìm thấy album",404);
     }
     const data=validate(body);
     if("error" in data)return fail(String(data.error));
@@ -77,7 +77,7 @@ export async function PATCH(request:Request){
     else if(data.type==="place")rows=await db().unsafe("UPDATE family_places SET title=$1,latitude=$2,longitude=$3,visited_on=$4::date,album_id=$5::uuid WHERE id::text=$6 RETURNING id",[data.title,data.latitude,data.longitude,data.visitedDate,data.albumId,body.id]);
     else rows=await db().unsafe("UPDATE family_milestones SET title=$1,details=$2,event_date=$3::date,album_id=$4::uuid WHERE id::text=$5 RETURNING id",[data.title,data.details,data.eventDate,data.albumId,body.id]);
     if (rows.length) invalidateFamilyPublic();
-      return rows.length?NextResponse.json({ok:true}):fail("Không tìm thấy nội dung",404);
+    return rows.length?NextResponse.json({ok:true}):fail("Không tìm thấy nội dung",404);
   }catch{return fail("Không thể cập nhật nội dung",400);}
 }
 export async function DELETE(request:Request){
@@ -90,6 +90,6 @@ export async function DELETE(request:Request){
       ?await db().unsafe("UPDATE family_albums SET archived_at=now() WHERE id::text=$1 AND archived_at IS NULL RETURNING id",[body.id])
       :await db().unsafe("DELETE FROM "+TYPES[body.type as Kind]+" WHERE id::text=$1 RETURNING id",[body.id]);
     if (rows.length) invalidateFamilyPublic();
-      return rows.length?NextResponse.json({ok:true}):fail("Không tìm thấy nội dung",404);
+    return rows.length?NextResponse.json({ok:true}):fail("Không tìm thấy nội dung",404);
   }catch{return fail("Không thể xóa nội dung",400);}
 }
