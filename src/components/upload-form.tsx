@@ -21,7 +21,7 @@ export function UploadForm({albums,places,milestones,selected}:{
   const [milestoneTitle,setMilestoneTitle]=useState(""),[milestoneDetails,setMilestoneDetails]=useState(""),[milestoneDate,setMilestoneDate]=useState("");
   const [takenOn,setTakenOn]=useState(""),[caption,setCaption]=useState("");
   const [files,setFiles]=useState<File[]>([]);
-  const [previews,setPreviews]=useState<{url:string;name:string}[]>([]);
+  const [previews,setPreviews]=useState<{url:string;name:string;title:string;description:string}[]>([]);
   const previewUrls=useRef<string[]>([]);
   const [prepared,setPrepared]=useState<Prepared|null>(null);
   const [busy,setBusy]=useState(false),[done,setDone]=useState(false),[message,setMessage]=useState("");
@@ -33,7 +33,7 @@ export function UploadForm({albums,places,milestones,selected}:{
   function chooseFiles(event:React.ChangeEvent<HTMLInputElement>) {
     const chosen=Array.from(event.target.files||[]).slice(0,10);
     previewUrls.current.forEach(url=>URL.revokeObjectURL(url));
-    const next=chosen.map(file=>({name:file.name,url:URL.createObjectURL(file)}));
+    const next=chosen.map(file=>({name:file.name,url:URL.createObjectURL(file),title:file.name.replace(/\.[^.]+$/,"").slice(0,150),description:""}));
     previewUrls.current=next.map(item=>item.url);
     setPreviews(next);
     setFiles(chosen);
@@ -69,12 +69,13 @@ export function UploadForm({albums,places,milestones,selected}:{
       }
       let uploaded=0;
       let uploadError="";
-      for(const file of files) {
+      for(const [index,file] of files.entries()) {
         const data=new FormData();
         data.set("image",file);
         data.set("album_id",context.album_id);
         data.set("batch_id",requestId.current!);
-        data.set("caption",caption);
+        data.set("caption",previews[index]?.description||caption);
+        data.set("title",previews[index]?.title||file.name.replace(/\.[^.]+$/,""));
         if(takenOn)data.set("taken_on",takenOn);
         try {
           const r=await fetch("/api/photos",{method:"POST",body:data});
@@ -169,9 +170,11 @@ export function UploadForm({albums,places,milestones,selected}:{
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={preview.url} alt={`Ảnh xem trước ${i+1}`}/>
         <small title={preview.name}>{preview.name}</small>
+        <label className="field">Tên ảnh<input maxLength={150} disabled={busy} value={preview.title} onChange={e=>setPreviews(items=>items.map((item,j)=>j===i?{...item,title:e.target.value}:item))}/></label>
+        <label className="field">Câu chuyện riêng của ảnh<textarea maxLength={2000} disabled={busy} value={preview.description} onChange={e=>setPreviews(items=>items.map((item,j)=>j===i?{...item,description:e.target.value}:item))}/></label>
       </div>)}</div>}
-      <label className="field">Ghi chú cho ảnh<textarea maxLength={500} disabled={locked} value={caption} onChange={e=>setCaption(e.target.value)} placeholder="Một kỷ niệm nhỏ của gia đình…"/></label>
-      <p className={styles.helper}>Ảnh sẽ được nén WebP tối đa 2048px; ảnh gốc vẫn ở thiết bị của bạn. Giới hạn 30 ảnh/24 giờ.</p>
+      <label className="field">Lời nhắn chung (dùng cho ảnh chưa có mô tả riêng)<textarea maxLength={2000} disabled={locked} value={caption} onChange={e=>setCaption(e.target.value)} placeholder="Một kỷ niệm nhỏ của gia đình…"/></label>
+      <p className={styles.helper}>Ảnh sẽ được nén WebP tối đa 2048px; ảnh gốc vẫn ở thiết bị của bạn. Không giới hạn số ảnh đăng mỗi ngày.</p>
     </section>
 
     <p className={styles.note}>Thành viên đã được duyệt sẽ đăng công khai ngay, không phải chờ Admin duyệt ảnh, album, địa điểm hay cột mốc. Admin có thể quản lý nội dung.</p>

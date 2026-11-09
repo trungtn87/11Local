@@ -16,7 +16,8 @@ export async function POST(request:Request) {
   try {
     const data=await request.formData();
     const albumId=String(data.get("album_id")||"");
-    const caption=String(data.get("caption")||"").slice(0,500);
+    const caption=String(data.get("caption")||"").trim().slice(0,2000);
+    const title=String(data.get("title")||"").trim().slice(0,150);
     const batchRaw=data.get("batch_id");
     const batchId=batchRaw===null?null:batchRaw;
     const takenOn=optionalDate(data.get("taken_on"));
@@ -30,20 +31,12 @@ export async function POST(request:Request) {
     const sql=db();
     const exists=await sql.unsafe("SELECT id FROM family_albums WHERE id::text=$1 AND archived_at IS NULL",[albumId]);
     if(!exists.length) return fail("Không tìm thấy album",404);
-    const preflight=await sql.unsafe(
-      "SELECT count(*)::int AS count FROM family_photos WHERE uploaded_by::text=$1 AND created_at > now()-interval '24 hours'",[user.id]);
-    if(Number(preflight[0]?.count)>=30) return fail("Bạn đã đạt giới hạn 30 ảnh trong 24 giờ",429);
-
     const bytes=Buffer.from(await file.arrayBuffer());
     const out=await sharp(bytes,{limitInputPixels:50_000_000}).rotate()
       .resize({width:2048,height:2048,fit:"inside",withoutEnlargement:true})
       .webp({quality:82}).toBuffer({resolveWithObject:true});
     // The lock keeps quota checks correct even when several photos are uploaded concurrently.
     const result=await sql.begin(async tx=>{
-      await tx.unsafe("SELECT pg_advisory_xact_lock(hashtextextended($1,0))",[user.id]);
-      const daily=await tx.unsafe(
-        "SELECT count(*)::int AS count FROM family_photos WHERE uploaded_by::text=$1 AND created_at > now()-interval '24 hours'",[user.id]);
-      if(Number(daily[0]?.count)>=30) return {kind:"quota"} as const;
       let placeId:string|null=null,milestoneId:string|null=null;
       if(batchId!==null) {
         const batches=await tx.unsafe(
@@ -54,11 +47,10 @@ export async function POST(request:Request) {
         milestoneId=batches[0].milestone_id as string|null;
       }
       const rows=await tx.unsafe(
-        "INSERT INTO family_photos(album_id,uploaded_by,content,caption,width,height,status,place_id,milestone_id,taken_on) VALUES ($1::uuid,$2::uuid,$3,$4,$5,$6,'approved',$7::uuid,$8::uuid,$9::date) RETURNING id::text",
-        [albumId,user.id,out.data,caption,out.info.width,out.info.height,placeId,milestoneId,takenOn]);
+        "INSERT INTO family_photos(album_id,uploaded_by,content,caption,width,height,status,place_id,milestone_id,taken_on,title) VALUES ($1::uuid,$2::uuid,$3,$4,$5,$6,'approved',$7::uuid,$8::uuid,$9::date,$10) RETURNING id::text",
+        [albumId,user.id,out.data,caption,out.info.width,out.info.height,placeId,milestoneId,takenOn,title||file.name.replace(/\.[^.]+$/,"").slice(0,150)]);
       return {kind:"ok",id:String(rows[0].id)} as const;
     });
-    if(result.kind==="quota") return fail("Bạn đã đạt giới hạn 30 ảnh trong 24 giờ",429);
     if(result.kind==="invalidBatch") return fail("Lượt đóng góp không còn hợp lệ; hãy tải lại trang",409);
     invalidateFamilyPublic();
     return NextResponse.json({ok:true,id:result.id,status:"approved"},{status:201});
