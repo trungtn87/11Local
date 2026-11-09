@@ -1,0 +1,23 @@
+.memoryForm{display:grid;gap:22px;padding:clamp(16px,4vw,28px);background:#fff;border:1px solid rgba(139,106,78,.15);border-radius:24px;box-shadow:0 8px 24px rgba(78,52,36,.05)}
+.section{display:grid;gap:13px;padding:18px;border:1px solid #eee1d6;border-radius:19px;background:#fffdfa;min-width:0}
+.section:nth-of-type(2){background:#fff9f4}.section:nth-of-type(3){background:#f8fbf8}.section:nth-of-type(4){background:#fcfaff}
+.section h2{font-size:1.07rem;margin:0}.section p{margin:0}
+.choiceGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.choiceGrid button{min-width:0;border-radius:12px;min-height:44px;padding:9px 7px;border:1px solid #dfd3c8;background:white;color:#554135;font-weight:600;font-size:.86rem}
+.choiceGrid button[aria-pressed="true"]{background:#fbe7e8;border-color:#e65359;color:#9e3039}
+.twoChoices{grid-template-columns:repeat(2,minmax(0,1fr))}
+.fields{display:grid;gap:12px}.helper{font-size:.85rem;color:#736053}
+.pinSection{display:grid;gap:10px}.mapFrame{height:300px;min-height:250px;overflow:hidden;border:1px solid #e1d8d0;border-radius:15px;background:#f3f0ea}
+.mapFrame>div{height:100%!important;min-height:100%!important}
+.draggablePin{font-size:27px;line-height:1;width:45px;height:49px;display:grid;place-items:center;border:2px solid white;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);background:#e65359;box-shadow:0 3px 13px #5335;cursor:grab}
+.draggablePin:active{cursor:grabbing}
+.coordinate{font-size:.85rem;font-weight:600;color:#60483c}
+.previews{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px}
+.preview{display:grid;gap:4px;min-width:0}.preview img{width:100%;height:100px;object-fit:cover;border-radius:12px;border:1px solid #ebdfd5}
+.preview small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.75rem}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}.actions button{flex:1;min-width:175px}
+.note{border:1px solid #d5e7d6;border-radius:12px;padding:12px;background:#eff9ef;font-size:.85rem;color:#31543a}
+.error{padding:12px;border-radius:12px;background:#fff0ee;color:#9d2832;font-weight:600}
+.success{padding:18px;border-radius:18px;background:#eff9ef;display:grid;gap:14px}
+.success h2{margin:0}.success p{margin:0}
+@media(max-width:480px){.memoryForm{padding:12px;gap:15px}.section{padding:13px}.mapFrame{height:260px}.choiceGrid button{font-size:.79rem}}
