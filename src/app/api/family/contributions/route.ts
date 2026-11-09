@@ -32,14 +32,6 @@ export async function POST(request: Request) {
         [user.id,request_id]
       );
       if (prior.length) return {album_id:prior[0].album_id as string,place_id:prior[0].place_id as string|null,milestone_id:prior[0].milestone_id as string|null};
-      const creating = Number(album.mode==="new")+Number(place.mode==="new")+Number(milestone.mode==="new");
-      if (creating) {
-        const totals = await tx.unsafe(`SELECT
-          ((SELECT count(*) FROM family_albums WHERE created_by::text=$1 AND created_at > now()-interval '24 hours')
-           +(SELECT count(*) FROM family_places WHERE created_by::text=$1 AND created_at > now()-interval '24 hours')
-           +(SELECT count(*) FROM family_milestones WHERE created_by::text=$1 AND created_at > now()-interval '24 hours'))::int AS total`,[user.id]);
-        if (Number(totals[0]?.total)+creating > 20) throw new ContributionError("Đã đạt giới hạn tạo 20 nội dung trong 24 giờ",429);
-      }
       let albumId: string;
       if (album.mode==="existing") {
         const rows=await tx.unsafe("SELECT id::text FROM family_albums WHERE id::text=$1 AND archived_at IS NULL",[album.id]);
