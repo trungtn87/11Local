@@ -19,5 +19,5 @@ export default async function Admin() {
     ),
   ]);
 
-  return <main className="admin-page"><AdminDashboard authenticated albums={albums as { id: string; title: string }[]} photos={photos as { id: string; caption: string; album_title: string; uploader: string }[]} /></main>;
+  return <main className="admin-page"><AdminDashboard authenticated albums={albums as unknown as { id: string; title: string }[]} photos={photos as unknown as { id: string; caption: string; album_title: string; uploader: string }[]} /></main>;
 }
