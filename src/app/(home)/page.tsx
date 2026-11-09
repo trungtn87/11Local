@@ -15,21 +15,16 @@ export default async function Home() {
     const j = randomInt(i + 1);
     [photoAlbums[i], photoAlbums[j]] = [photoAlbums[j], photoAlbums[i]];
   }
-  const heroAlbums = photoAlbums.slice(0, 4);
+  const heroAlbums = photoAlbums.slice(0, 3);
 
   return (
     <main className="wrap home-wrap">
       <section className="hero-section gau-home-hero" aria-label="Giới thiệu Gia đình Gấu">
         <div className="hero-banner-card gau-memory-banner">
           <div className="hero-banner-copy">
-            <span className="hero-eyebrow-pill">✦ Khám phá cuốn album gia đình</span>
-            <h1 className="hero-banner-title">Gia đình <span>Gấu</span></h1>
-            <p className="hero-banner-slogan">“Nơi lưu giữ những năm tháng yêu thương.” <span aria-hidden="true">♡</span></p>
-            <p className="gau-hero-description">Góc nhỏ ấm áp lưu lại những bức ảnh, chuyến đi và dấu mốc trưởng thành đáng nhớ của Gấu.</p>
-            <div className="gau-hero-actions">
-              <Link href="/album" className="gau-hero-button gau-hero-primary">Xem album của Gấu <span aria-hidden="true">→</span></Link>
-              <Link href="/dong-gop" className="gau-hero-button gau-hero-secondary">Cùng góp kỷ niệm <span aria-hidden="true">→</span></Link>
-            </div>
+            <span className="hero-eyebrow-pill">♡ Nhật ký gia đình</span>
+            <h1 className="hero-banner-title">Mỗi khoảnh khắc, <span>một kỷ niệm.</span></h1>
+            <p className="hero-banner-slogan">Cùng Gấu lưu giữ những ngày thật đẹp.</p>
           </div>
           <div className="gau-photo-collage" aria-label={heroAlbums.length ? "Ảnh kỷ niệm gia đình từ các album" : "Khung ảnh kỷ niệm đang chờ gia đình bổ sung"}>
             {heroAlbums.length > 0 ? heroAlbums.map((album, index) => (
@@ -50,7 +45,7 @@ export default async function Home() {
         </div>
       </section>
 
-            {/* D. Album mới của Gấu */}
+      {/* Album mới của Gấu */}
       <section className="albums-showcase" aria-label="Album mới của Gấu">
         <div className="section-head">
           <div className="section-head-left">
@@ -66,9 +61,6 @@ export default async function Home() {
                 <em>Alb</em>um mới của Gấu
               </h2>
             </div>
-            <p className="section-sub">
-              Những album và trang kỷ niệm vừa được cập nhật gần đây.
-            </p>
           </div>
           <Link href="/album" className="see-all-link">
             <span>Xem tất cả</span>
