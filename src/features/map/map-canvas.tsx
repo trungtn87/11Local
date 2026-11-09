@@ -11,7 +11,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { CAO_BANG_CAMERA, MAP_STYLE_URL } from "./map-config";
-import { isPoiLayer, loadCleanStyle, type StyleLayer } from "./map-style";
+import { loadFullStyle } from "./map-style";
 import styles from "./map-canvas.module.css";
 
 // Restore the worker bundle handling used by the working 11Local map.
@@ -50,7 +50,7 @@ export function MapCanvas({
 
     async function createMap() {
       try {
-        const style = await loadCleanStyle(MAP_STYLE_URL);
+        const style = await loadFullStyle(MAP_STYLE_URL);
         if (cancelled || !containerRef.current) return;
 
         map = new Map({
@@ -70,14 +70,6 @@ export function MapCanvas({
         map.once("load", () => {
           if (cancelled || !map) return;
           didLoad = true;
-
-          // If the clean-style fetch failed, remove POIs after loading the
-          // original style, as the previous 11Local map implementation did.
-          if (typeof style === "string") {
-            for (const layer of map.getStyle().layers) {
-              if (isPoiLayer(layer as StyleLayer)) map.removeLayer(layer.id);
-            }
-          }
 
           setStatus("ready");
           onReadyRef.current?.(map);
