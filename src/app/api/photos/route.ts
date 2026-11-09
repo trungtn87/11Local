@@ -1,3 +1,4 @@
+import {invalidateFamilyPublic} from "@/lib/family";
 import {NextResponse} from "next/server";
 import sharp from "sharp";
 import {getCurrentUser} from "@/lib/user-auth";
@@ -59,6 +60,7 @@ export async function POST(request:Request) {
     });
     if(result.kind==="quota") return fail("Bạn đã đạt giới hạn 30 ảnh trong 24 giờ",429);
     if(result.kind==="invalidBatch") return fail("Lượt đóng góp không còn hợp lệ; hãy tải lại trang",409);
+    invalidateFamilyPublic();
     return NextResponse.json({ok:true,id:result.id,status:"approved"},{status:201});
   } catch(error) {
     console.error("Photo upload failed",error instanceof Error?error.name:"unknown");

@@ -54,6 +54,7 @@ export function SiteNav() {
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={item.href === "/" || item.href === "/album" || item.href === "/dong-thoi-gian" ? true : undefined}
                 className={isActive(item.href) ? "site-link active" : "site-link"}
               >
                 {item.label}
@@ -132,6 +133,7 @@ export function SiteNav() {
       <nav className="mobile-nav" aria-label="Điều hướng di động">
         <Link
           href="/"
+          prefetch={true}
           className={isActive("/") ? "mobile-nav-item active" : "mobile-nav-item"}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -143,6 +145,7 @@ export function SiteNav() {
 
         <Link
           href="/album"
+          prefetch={true}
           className={isActive("/album") ? "mobile-nav-item active" : "mobile-nav-item"}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -167,6 +170,7 @@ export function SiteNav() {
 
         <Link
           href="/dong-thoi-gian"
+          prefetch={true}
           className={isActive("/dong-thoi-gian") ? "mobile-nav-item active" : "mobile-nav-item"}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
