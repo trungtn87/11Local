@@ -226,7 +226,7 @@ export function AdminPlaceManager() {
       </div>
       <div className="admin-place-picker">
         <strong>Ghim trên bản đồ</strong>
-        <ContributionPinPicker value={pin} onChange={setPin} />
+        <ContributionPinPicker key={item?.id || "new"} value={pin} onChange={setPin} />
       </div>
       <fieldset className="admin-place-albums">
         <legend>Album liên quan ({values.album_ids.length})</legend>
