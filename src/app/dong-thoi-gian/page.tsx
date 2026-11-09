@@ -40,7 +40,11 @@ export default async function Timeline() {
                         </time>
                         <h2>{memory.title}</h2>
                         {memory.details && <p>{memory.details}</p>}
-                        {memory.album_id && (
+                        {memory.photo_count > 0 ? (
+                          <Link href={`/ky-niem/thoi-gian/${memory.id}`} className="tree-album-link">
+                            Xem {memory.photo_count} ảnh của mốc thời gian →
+                          </Link>
+                        ) : memory.album_id && (
                           <Link href={`/album/${memory.album_id}`} className="tree-album-link">
                             Xem album liên quan →
                           </Link>

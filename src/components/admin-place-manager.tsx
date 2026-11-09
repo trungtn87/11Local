@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { Archive, Eye, EyeOff, MapPin, Pencil, Plus, RotateCcw, Search, X } from "lucide-react";
 import { ContributionPinPicker, type MemoryPin } from "@/components/contribution-pin-picker";
-import { MAP_CATEGORIES, type MapCategory, type PlaceKind } from "@/lib/map-place";
+import { type MapCategory, type PlaceKind } from "@/lib/map-place";
 
 type PlaceRow = {
   id: string; title: string; description: string; address: string;
@@ -18,9 +18,8 @@ type FormValues = {
 };
 const empty = (): FormValues => ({
   title: "", description: "", address: "", category: "other",
-  kind: "curated", visibility: true, visited_on: "", album_ids: [],
+  kind: "memory", visibility: true, visited_on: "", album_ids: [],
 });
-const kindLabel = (kind: PlaceKind) => kind === "memory" ? "Đã ghé thăm" : "Địa điểm giới thiệu";
 
 export function AdminPlaceManager() {
   const [data, setData] = useState<Data>({ places: [], albums: [] });
@@ -28,7 +27,6 @@ export function AdminPlaceManager() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | PlaceKind>("all");
   const [showArchived, setShowArchived] = useState(false);
   const [editing, setEditing] = useState(false);
   const [item, setItem] = useState<PlaceRow | null>(null);
@@ -56,16 +54,15 @@ export function AdminPlaceManager() {
 
   const rows = useMemo(() => data.places.filter(place =>
     (showArchived || !place.archived_at) &&
-    (filter === "all" || place.kind === filter) &&
     (place.title + " " + place.address).toLocaleLowerCase("vi").includes(search.toLocaleLowerCase("vi"))
-  ), [data.places, showArchived, filter, search]);
+  ), [data.places, showArchived, search]);
 
   function closeEditor() { setEditing(false); setItem(null); setPin(null); setValues(empty()); }
   function openEditor(row: PlaceRow | null) {
     setItem(row);
     setValues(row ? {
       title: row.title, description: row.description || "", address: row.address || "",
-      category: row.category, kind: row.kind, visibility: row.visibility,
+      category: row.category, kind: "memory", visibility: row.visibility,
       visited_on: row.visited_on || "", album_ids: row.album_ids || [],
     } : empty());
     setPin(row ? { latitude: Number(row.latitude), longitude: Number(row.longitude) } : null);
@@ -98,7 +95,7 @@ export function AdminPlaceManager() {
     setBusy(true); setMessage("");
     try {
       await send(item ? "PATCH" : "POST", {
-        ...values, latitude: pin.latitude, longitude: pin.longitude,
+        ...values, kind: "memory", latitude: pin.latitude, longitude: pin.longitude,
         visited_on: values.visited_on || null, ...(item ? { id: item.id } : {}),
       });
       await refresh();
@@ -115,7 +112,7 @@ export function AdminPlaceManager() {
       await send("PATCH", {
         title: row.title, description: row.description || "", address: row.address || "",
         latitude: Number(row.latitude), longitude: Number(row.longitude),
-        category: row.category, kind: row.kind, visibility: !row.visibility,
+        category: row.category, kind: "memory", visibility: !row.visibility,
         visited_on: row.visited_on, album_ids: row.album_ids || [], id: row.id,
       });
       await refresh();
@@ -151,7 +148,7 @@ export function AdminPlaceManager() {
   return <section className="admin-panel admin-places" aria-label="Quản lý địa điểm bản đồ">
     <div className="admin-section-heading">
       <div><h2>Địa điểm bản đồ</h2>
-        <p>Quản lý điểm ghim của gia đình và những điểm giới thiệu riêng. Địa điểm nền OpenFreeMap không sửa được tại đây.</p></div>
+        <p>Quản lý các địa điểm kỷ niệm của gia đình, vị trí ghim và album liên quan.</p></div>
       <span className="admin-count-pill">{data.places.filter(place => !place.archived_at).length} địa điểm</span>
     </div>
     <div className="admin-content-toolbar">
@@ -159,12 +156,6 @@ export function AdminPlaceManager() {
         <Search size={17} aria-hidden="true" />
         <input type="search" value={search} onChange={event => setSearch(event.target.value)}
           placeholder="Tìm tên hoặc địa chỉ…" aria-label="Tìm địa điểm" />
-      </label>
-      <label className="admin-location-filter">Loại
-        <select value={filter} onChange={event => setFilter(event.target.value as typeof filter)}>
-          <option value="all">Tất cả</option><option value="memory">Đã ghé thăm</option>
-          <option value="curated">Địa điểm giới thiệu</option>
-        </select>
       </label>
       <label className="admin-archive-toggle"><input type="checkbox" checked={showArchived}
         onChange={event => setShowArchived(event.target.checked)} /> Gồm đã lưu trữ</label>
@@ -174,11 +165,10 @@ export function AdminPlaceManager() {
     </div>
     {loading ? <div className="admin-empty"><p>Đang tải địa điểm…</p></div> :
       rows.length ? <div className="admin-content-list">{rows.map(row => {
-        const cat = MAP_CATEGORIES.find(entry => entry.value === row.category);
         return <article key={row.id} className="admin-content-row">
           <div className="admin-content-row-info">
-            <strong>{cat?.emoji || "🍯"} {row.title}</strong>
-            <small>{kindLabel(row.kind)} · {cat?.label || "Khác"} · {row.album_ids.length} album
+            <strong>🍯 {row.title}</strong>
+            <small>{row.album_ids.length} album
               {row.archived_at ? " · Đã lưu trữ" : row.visibility ? " · Đang hiện" : " · Đang ẩn"}</small>
             {row.address && <small>{row.address}</small>}
           </div>
@@ -202,18 +192,6 @@ export function AdminPlaceManager() {
         <button type="button" className="admin-icon-action" onClick={closeEditor} aria-label="Đóng"><X size={18} /></button></div>
       <label className="field">Tên địa điểm<input required maxLength={150} value={values.title}
         onChange={event => set("title",event.target.value)} placeholder="Ví dụ: Quán cà phê ven hồ" /></label>
-      <div className="admin-editor-grid">
-        <label className="field">Loại địa điểm<select value={values.kind}
-          onChange={event => set("kind",event.target.value as PlaceKind)}>
-          <option value="curated">Điểm giới thiệu trên bản đồ</option>
-          <option value="memory">Nơi gia đình đã ghé thăm</option>
-        </select></label>
-        <label className="field">Danh mục<select value={values.category}
-          onChange={event => set("category",event.target.value as MapCategory)}>
-          {MAP_CATEGORIES.map(category => <option key={category.value} value={category.value}>
-            {category.emoji} {category.label}
-          </option>)}</select></label>
-      </div>
       <label className="field">Địa chỉ (không bắt buộc)<input maxLength={300} value={values.address}
         onChange={event => set("address",event.target.value)} placeholder="Tên đường, khu vực…" /></label>
       <label className="field">Mô tả<input maxLength={2000} value={values.description}
