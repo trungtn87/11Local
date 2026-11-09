@@ -2,6 +2,7 @@ import { isAdmin } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { AdminDashboard } from "@/components/admin-dashboard";
 import "./admin.css";
+import "./admin-map-places.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Quản trị | Gia đình Gấu" };
