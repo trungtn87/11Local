@@ -91,11 +91,11 @@ export function MemoryMap({ places }: { places: Place[] }) {
             <button type="button" aria-label="Đóng ảnh địa điểm" onClick={() => setSelectedId(null)}>×</button>
           </div>
           {selected.photo_ids.length ? <div className="gau-map-photo-grid">
-            {selected.photo_ids.map(id => <a href={`/api/photos/${id}`} target="_blank" rel="noreferrer" key={id}
-              aria-label={`Mở ảnh tại ${selected.title}`}>
+            {selected.photo_ids.map(id => <Link href={`/anh/${id}?view=place&group=${selected.id}`} key={id}
+              aria-label={`Xem ảnh tại ${selected.title}`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={`/api/photos/${id}`} loading="lazy" alt={`Ảnh kỷ niệm tại ${selected.title}`} />
-            </a>)}
+            </Link>)}
           </div> : <p className="gau-map-no-photos">Chưa có ảnh gắn trực tiếp với địa điểm này.</p>}
           {selected.photo_count > 0 && <Link className="gau-map-gallery-link"
             href={`/ky-niem/dia-diem/${selected.id}`}>Xem tất cả {selected.photo_count} ảnh →</Link>}

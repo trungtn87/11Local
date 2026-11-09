@@ -29,7 +29,7 @@ export default async function MemoryPhotos({ params }: { params: Promise<{ nhom:
       a.id::text AS album_id,a.title AS album_title
     FROM family_photos p JOIN family_albums a ON a.id=p.album_id AND a.archived_at IS NULL
     WHERE p.${photoColumn}::text=$1 AND p.status='approved'
-    ORDER BY p.taken_on DESC NULLS LAST,p.created_at DESC`, [id]) as unknown as PhotoRow[];
+    ORDER BY p.taken_on DESC NULLS LAST,p.created_at DESC,p.id DESC`, [id]) as unknown as PhotoRow[];
   const backHref = isPlace ? "/ban-do" : "/dong-thoi-gian";
 
   return <main className="wrap">
@@ -42,10 +42,10 @@ export default async function MemoryPhotos({ params }: { params: Promise<{ nhom:
     </div>
     {photos.length > 0 ? <div className="photo-grid">
       {photos.map(photo => <figure key={photo.id}>
-        <a href={`/api/photos/${photo.id}`} target="_blank" rel="noreferrer">
+        <Link href={`/anh/${photo.id}?view=${isPlace ? "place" : "milestone"}&group=${id}`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img loading="lazy" src={`/api/photos/${photo.id}`} alt={photo.caption || memory.title} />
-        </a>
+        </Link>
         <figcaption>
           {photo.caption || "Kỷ niệm của Gấu"}
           {photo.taken_on && <small>📅 {photo.taken_on}</small>}
