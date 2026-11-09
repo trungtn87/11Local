@@ -6,9 +6,9 @@ export type Album = {
 };
 export type Place = {
   id:string;title:string;latitude:number;longitude:number;visited_on:string|null;album_id:string|null;
-  album_ids:string[];category:string;kind:"memory"|"curated";description:string;address:string;
+  album_ids:string[];photo_ids:string[];photo_count:number;category:string;kind:"memory"|"curated";description:string;address:string;
 };
-export type Milestone = {id:string;title:string;details:string;event_date:string;album_id:string|null};
+export type Milestone = {id:string;title:string;details:string;event_date:string;album_id:string|null;photo_count:number};
 export type Photo = {
   id:string;caption:string;created_at:string;uploader_name:string;taken_on:string|null;
   place_title:string|null;milestone_title:string|null;
@@ -54,9 +54,16 @@ async function rawPlaces():Promise<Place[]> {
             EXISTS (SELECT 1 FROM family_place_albums l WHERE l.place_id=pl.id AND l.album_id=a.id) OR
             EXISTS (SELECT 1 FROM family_photos p WHERE p.place_id=pl.id AND p.album_id=a.id AND p.status='approved')
           ) ORDER BY a.event_date DESC NULLS LAST,a.created_at DESC
-        ) AS album_ids
+        ) AS album_ids,
+        (SELECT count(*)::int FROM family_photos p
+          JOIN family_albums a ON a.id=p.album_id AND a.archived_at IS NULL
+          WHERE p.place_id=pl.id AND p.status='approved') AS photo_count,
+        ARRAY(SELECT p.id::text FROM family_photos p
+          JOIN family_albums a ON a.id=p.album_id AND a.archived_at IS NULL
+          WHERE p.place_id=pl.id AND p.status='approved'
+          ORDER BY p.taken_on DESC NULLS LAST,p.created_at DESC LIMIT 8) AS photo_ids
        FROM family_places pl
-       WHERE pl.visibility=true AND pl.archived_at IS NULL
+       WHERE pl.kind='memory' AND pl.visibility=true AND pl.archived_at IS NULL
        ORDER BY pl.visited_on DESC NULLS LAST,pl.created_at DESC`);
     return r.map(x=>({...x,latitude:Number(x.latitude),longitude:Number(x.longitude)})) as unknown as Place[];
 }
@@ -69,7 +76,10 @@ async function rawMilestones():Promise<Milestone[]> {
            WHERE p.milestone_id=m.id AND p.status='approved'
            ORDER BY p.created_at DESC LIMIT 1),
           (SELECT a.id::text FROM family_albums a WHERE a.id=m.album_id AND a.archived_at IS NULL)
-        ) AS album_id
+        ) AS album_id,
+        (SELECT count(*)::int FROM family_photos p
+          JOIN family_albums a ON a.id=p.album_id AND a.archived_at IS NULL
+          WHERE p.milestone_id=m.id AND p.status='approved') AS photo_count
        FROM family_milestones m ORDER BY m.event_date DESC`
     )) as unknown as Milestone[];
 }
