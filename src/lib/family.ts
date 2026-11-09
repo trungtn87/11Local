@@ -104,7 +104,7 @@ export function invalidateFamilyPublic() {
 export async function albums(): Promise<Album[]> {
   try { return await readAlbums(); } catch { return []; }
 }
-export async function album(id: string): Promise<(Album & {photos: Photo[]}) | null> {
+export async function album(id: string): Promise<Awaited<ReturnType<typeof rawAlbum>>> {
   try { return await readAlbum(id); } catch { return null; }
 }
 export async function places(): Promise<Place[]> {
