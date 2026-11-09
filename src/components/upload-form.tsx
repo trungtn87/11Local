@@ -5,6 +5,7 @@ import Link from "next/link";
 import {ContributionPinPicker,type MemoryPin} from "./contribution-pin-picker";
 import styles from "./upload-form.module.css";
 
+const MAX_PHOTOS_PER_BATCH=100;
 type Choice = "none"|"existing"|"new";
 type Item = {id:string;title:string};
 type Prepared = {album_id:string;place_id:string|null;milestone_id:string|null};
@@ -28,13 +29,19 @@ export function UploadForm({albums,places,milestones,selected}:{
   const previewUrls=useRef<string[]>([]);
   const [prepared,setPrepared]=useState<Prepared|null>(null);
   const [busy,setBusy]=useState(false),[done,setDone]=useState(false),[message,setMessage]=useState("");
+  const [progress,setProgress]=useState<{processed:number;total:number;uploaded:number}|null>(null);
   const requestId=useRef<string|null>(null);
   const locked=busy||prepared!==null;
 
   // Manage object URLs from the input event, not from a state-setting effect.
   useEffect(()=>()=>{previewUrls.current.forEach(url=>URL.revokeObjectURL(url));},[]);
   function chooseFiles(event:React.ChangeEvent<HTMLInputElement>) {
-    const chosen=Array.from(event.target.files||[]).slice(0,10);
+    const selectedFiles=Array.from(event.target.files||[]);
+    const chosen=selectedFiles.slice(0,MAX_PHOTOS_PER_BATCH);
+    setProgress(null);
+    setMessage(selectedFiles.length>MAX_PHOTOS_PER_BATCH
+      ?`Đã chọn ${MAX_PHOTOS_PER_BATCH}/${selectedFiles.length} ảnh. Bạn có thể chọn thêm ở lượt tiếp theo.`:"");
+    event.target.value="";
     previewUrls.current.forEach(url=>URL.revokeObjectURL(url));
     const next=chosen.map(file=>({name:file.name,url:URL.createObjectURL(file),title:file.name.replace(/\.[^.]+$/,"").slice(0,150),description:""}));
     previewUrls.current=next.map(item=>item.url);
@@ -71,7 +78,9 @@ export function UploadForm({albums,places,milestones,selected}:{
         setPrepared(context);
       }
       let uploaded=0;
-      let uploadError="";
+      const uploadedIndexes=new Set<number>();
+      const failures:string[]=[];
+      setProgress({processed:0,total:files.length,uploaded:0});
       for(const [index,file] of files.entries()) {
         const data=new FormData();
         data.set("image",file);
@@ -83,21 +92,27 @@ export function UploadForm({albums,places,milestones,selected}:{
         try {
           const r=await fetch("/api/photos",{method:"POST",body:data});
           const body=await r.json();
-          if(!r.ok){uploadError=body.error||"Không tải được ảnh";break;}
+          if(!r.ok)throw new Error(body.error||"Không tải được ảnh");
           uploaded++;
-        } catch {uploadError="Không kết nối được máy chủ";break;}
+          uploadedIndexes.add(index);
+        } catch(error) {
+          failures.push(`${file.name}: ${error instanceof Error?error.message:"Không kết nối được máy chủ"}`);
+        } finally {
+          setProgress({processed:index+1,total:files.length,uploaded});
+        }
       }
-      if(uploaded) {
-        previewUrls.current.slice(0,uploaded).forEach(url=>URL.revokeObjectURL(url));
-        previewUrls.current=previewUrls.current.slice(uploaded);
-        setPreviews(current=>current.slice(uploaded));
-        setFiles(current=>current.slice(uploaded));
+      if(uploadedIndexes.size) {
+        const remainingPreviews=previews.filter((_,index)=>!uploadedIndexes.has(index));
+        previewUrls.current.filter((_,index)=>uploadedIndexes.has(index)).forEach(url=>URL.revokeObjectURL(url));
+        previewUrls.current=remainingPreviews.map(item=>item.url);
+        setPreviews(remainingPreviews);
+        setFiles(current=>current.filter((_,index)=>!uploadedIndexes.has(index)));
       }
-      if(!uploadError&&uploaded===files.length) {
+      if(failures.length===0) {
         setDone(true);
         setMessage(`Đã đăng thành công ${uploaded} ảnh. Kỷ niệm được hiển thị ngay.`);
       } else {
-        setMessage(`${uploaded?`Đã đăng ${uploaded} ảnh. `:""}${uploadError||"Có ảnh chưa được đăng."} Nhấn đăng tiếp để thử lại với ảnh còn lại.`);
+        setMessage(`Đã đăng ${uploaded}/${files.length} ảnh. Còn ${failures.length} ảnh chưa thành công. Nhấn đăng tiếp để thử lại đúng các ảnh còn lại. Lỗi đầu tiên: ${failures[0]}`);
       }
     } catch(error) {
       setMessage(error instanceof Error?error.message:"Có lỗi khi tạo kỷ niệm");
@@ -166,10 +181,12 @@ export function UploadForm({albums,places,milestones,selected}:{
       <h2>4. Ảnh và lời nhắn</h2>
       <label className="field">Ngày kỷ niệm<input type="date" required disabled={locked} value={takenOn} onChange={e=>setTakenOn(e.target.value)}/></label>
       <p className={styles.helper}>Dùng ngày này cho ảnh, album mới, địa điểm mới và cột mốc mới. Nội dung đã có không bị đổi ngày.</p>
-      <label className="field">Ảnh kỷ niệm (tối đa 10 ảnh/lần)<input type="file" disabled={busy||done} accept="image/jpeg,image/png,image/webp,image/avif" multiple onChange={chooseFiles}/></label>
+      <label className="field">Ảnh kỷ niệm (tối đa 100 ảnh/lần)<input type="file" disabled={busy||done} accept="image/jpeg,image/png,image/webp,image/avif" multiple onChange={chooseFiles}/></label>
+      <p className={styles.helper}>Mỗi ảnh được gửi riêng; có thể thử lại các ảnh lỗi mà không tải lại ảnh đã đăng.</p>
+      {progress&&<div className={styles.uploadProgress} role="status" aria-live="polite"><p>Đã xử lý {progress.processed}/{progress.total} ảnh · Thành công {progress.uploaded}</p><progress value={progress.processed} max={progress.total}/></div>}
       {previews.length>0&&<div className={styles.previews}>{previews.map((preview,i)=><div className={styles.preview} key={preview.url}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={preview.url} alt={`Ảnh xem trước ${i+1}`}/>
+        <img loading="lazy" src={preview.url} alt={`Ảnh xem trước ${i+1}`}/>
         <small title={preview.name}>{preview.name}</small>
         <label className="field">Tên ảnh<input maxLength={150} disabled={busy} value={preview.title} onChange={e=>setPreviews(items=>items.map((item,j)=>j===i?{...item,title:e.target.value}:item))}/></label>
         <label className="field">Câu chuyện riêng của ảnh<textarea maxLength={2000} disabled={busy} value={preview.description} onChange={e=>setPreviews(items=>items.map((item,j)=>j===i?{...item,description:e.target.value}:item))}/></label>
