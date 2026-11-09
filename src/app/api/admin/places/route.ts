@@ -1,3 +1,4 @@
+import { invalidateFamilyPublic } from "@/lib/family";
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
@@ -65,6 +66,7 @@ export async function POST(request: Request) {
       await replaceAlbums(tx as unknown as ReturnType<typeof db>, placeId, data);
       return placeId;
     });
+    invalidateFamilyPublic();
     return NextResponse.json({ ok: true, id }, { status: 201 });
   } catch {
     return fail("Không thể thêm địa điểm. Kiểm tra album và migration 0027.", 400);
@@ -79,7 +81,8 @@ export async function PATCH(request: Request) {
   if (body.restore === true) {
     try {
       const rows = await db().unsafe("UPDATE family_places SET archived_at=NULL WHERE id::text=$1 RETURNING id", [id]);
-      return rows.length ? NextResponse.json({ ok: true }) : fail("Không tìm thấy địa điểm", 404);
+      if (rows.length) invalidateFamilyPublic();
+    return rows.length ? NextResponse.json({ ok: true }) : fail("Không tìm thấy địa điểm", 404);
     } catch {
       return fail("Không thể khôi phục địa điểm", 500);
     }
@@ -99,6 +102,7 @@ export async function PATCH(request: Request) {
       await replaceAlbums(tx as unknown as ReturnType<typeof db>, id, data);
       return true;
     });
+    if (changed) invalidateFamilyPublic();
     return changed ? NextResponse.json({ ok: true }) : fail("Không tìm thấy địa điểm", 404);
   } catch {
     return fail("Không thể cập nhật địa điểm. Kiểm tra album liên quan.", 400);
@@ -114,6 +118,7 @@ export async function DELETE(request: Request) {
     const rows = await db().unsafe(
       "UPDATE family_places SET archived_at=now(),visibility=false WHERE id::text=$1 AND archived_at IS NULL RETURNING id",
       [body.id]);
+    if (rows.length) invalidateFamilyPublic();
     return rows.length ? NextResponse.json({ ok: true }) : fail("Không tìm thấy địa điểm", 404);
   } catch {
     return fail("Không thể lưu trữ địa điểm", 500);

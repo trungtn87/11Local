@@ -1,3 +1,4 @@
+import { invalidateFamilyPublic } from "@/lib/family";
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
@@ -17,6 +18,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       "DELETE FROM family_photos WHERE id::text=$1 RETURNING id",
       [id],
     );
+    if (rows.length) invalidateFamilyPublic();
     return rows.length
       ? NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } })
       : NextResponse.json({ error: "Không tìm thấy ảnh" }, { status: 404 });

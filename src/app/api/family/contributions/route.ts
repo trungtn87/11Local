@@ -1,3 +1,4 @@
+import {invalidateFamilyPublic} from "@/lib/family";
 import {NextResponse} from "next/server";
 import {db} from "@/lib/db";
 import {getCurrentUser} from "@/lib/user-auth";
@@ -83,6 +84,7 @@ export async function POST(request: Request) {
         [user.id,request_id,albumId,placeId,milestoneId]);
       return {album_id:albumId,place_id:placeId,milestone_id:milestoneId};
     });
+    invalidateFamilyPublic();
     return NextResponse.json({ok:true,...result},{status:201,headers:{"Cache-Control":"no-store"}});
   } catch (error) {
     if (error instanceof ContributionError) return response(error.message,error.status);
