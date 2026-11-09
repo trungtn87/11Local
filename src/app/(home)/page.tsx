@@ -14,7 +14,7 @@ export default async function Home() {
   return (
     <main className="wrap home-wrap">
       {/* B. Hero Section — Phương án 2 */}
-      <section className="hero-section" aria-label="Giới thiệu Nhà của Gấu">
+      <section className="hero-section" aria-label="Giới thiệu Gia đình Gấu">
         <div className="hero-banner-card">
           <div className="hero-banner-copy">
             <span className="hero-eyebrow-pill">
@@ -24,7 +24,7 @@ export default async function Home() {
               <span>Khám phá cuốn album gia đình</span>
             </span>
 
-            <h1 className="hero-banner-title">Nhà của Gấu</h1>
+            <h1 className="hero-banner-title">Gia đình Gấu</h1>
 
             <p className="hero-banner-slogan">
               <span>“Nơi lưu giữ những năm tháng yêu thương.”</span>
@@ -50,39 +50,10 @@ export default async function Home() {
           </div>
         </div>
 
-        <p className="hero-quote-bar">
-          Góc nhỏ ấm áp lưu lại từng bức ảnh, chuyến đi xa và những cột mốc trưởng
-          thành đáng nhớ của Gấu bên gia đình.
-        </p>
-
-        <div className="hero-cta-row">
-          <Link href="/album" className="hero-cta hero-cta-coral">
-            <span className="hero-cta-icon" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="4" width="18" height="16" rx="3" />
-                <circle cx="8.5" cy="9.5" r="1.5" />
-                <path d="m21 15-4.5-4.5L7 20" />
-              </svg>
-            </span>
-            <span>Xem Album của Gấu</span>
-            <span className="hero-cta-arrow" aria-hidden="true">→</span>
-          </Link>
-
-          <Link href="/dong-gop" className="hero-cta hero-cta-honey">
-            <span className="hero-cta-icon" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                <circle cx="12" cy="13" r="4" />
-              </svg>
-            </span>
-            <span>Cùng góp kỷ niệm</span>
-            <span className="hero-cta-arrow" aria-hidden="true">→</span>
-          </Link>
-        </div>
       </section>
 
-      {/* C. Khám phá Nhà của Gấu — 4 Thẻ Pastel */}
-      <section className="explore-section" aria-label="Khám phá Nhà của Gấu">
+      {/* C. Khám phá Gia đình Gấu — 4 Thẻ Pastel */}
+      <section className="explore-section" aria-label="Khám phá Gia đình Gấu">
         <div className="feature-grid">
           <Link href="/album" className="feature-card feature-pink">
             <span className="feature-badge badge-coral" aria-hidden="true">
