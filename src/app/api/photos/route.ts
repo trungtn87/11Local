@@ -23,10 +23,10 @@ export async function POST(request:Request){
     await tx.unsafe("SELECT pg_advisory_xact_lock(hashtextextended($1,0))",[user.id]);
     const daily=await tx.unsafe("SELECT count(*)::int AS count FROM family_photos WHERE uploaded_by::text=$1 AND created_at > now()-interval '24 hours'",[user.id]);
     if(Number(daily[0]?.count)>=30)return null;
-    const rows=await tx.unsafe("INSERT INTO family_photos(album_id,uploaded_by,content,caption,width,height,status) VALUES ($1::uuid,$2::uuid,$3,$4,$5,$6,'pending') RETURNING id::text",[id,user.id,out.data,caption,out.info.width,out.info.height]);
+    const rows=await tx.unsafe("INSERT INTO family_photos(album_id,uploaded_by,content,caption,width,height,status) VALUES ($1::uuid,$2::uuid,$3,$4,$5,$6,'approved') RETURNING id::text",[id,user.id,out.data,caption,out.info.width,out.info.height]);
     return String(rows[0].id);
   });
   if(!insertedId)return NextResponse.json({error:"Bạn đã đạt giới hạn 30 ảnh trong 24 giờ"},{status:429});
-  return NextResponse.json({ok:true,id:insertedId,status:"pending"},{status:201});
+  return NextResponse.json({ok:true,id:insertedId,status:"approved"},{status:201});
  }catch(error){console.error("Photo upload failed",error instanceof Error?error.name:"unknown");return NextResponse.json({error:"Không thể tải ảnh. Vui lòng thử lại."},{status:500});}
 }

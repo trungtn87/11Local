@@ -25,8 +25,7 @@ export default async function Account() {
             <h2>{user.name}</h2>
             <p>{user.email}</p>
             <p>
-              Bạn có thể đóng góp ảnh vào các cuốn album của Gấu. Ảnh được kiểm
-              duyệt trước khi hiển thị công khai.
+              Bạn có thể đóng góp ảnh vào các cuốn album của Gấu. Ảnh sẽ hiển thị ngay sau khi đăng thành công.
             </p>
             <div className="empty-actions">
               <Link className="primary" href="/dong-gop">
