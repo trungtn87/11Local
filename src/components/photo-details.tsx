@@ -105,8 +105,6 @@ export function PhotoDetails({id,title:initialTitle,caption:initialCaption,canEd
       {placeTitle&&<span>📍 {placeTitle}</span>}
       {milestoneTitle&&<span>🌱 {milestoneTitle}</span>}
     </div>
-    {/* metadata ends above; comments remain tied to the current photo */}
-    <section className={styles.comments}>}
     <section style={{marginTop:28}}>
       <h2>Bình luận ({comments.length})</h2>
       {loading?<p>Đang tải bình luận…</p>:comments.length===0?<p>Chưa có lời nhắn nào cho bức ảnh này.</p>:null}
