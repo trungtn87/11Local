@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { LngLatBounds, Marker, type Map as MapType } from "maplibre-gl";
 import Link from "next/link";
 import { MapCanvas } from "@/features/map/map-canvas";
@@ -12,6 +13,18 @@ const validCoords = (place: Place) => Number.isFinite(place.latitude) && Number.
 export function MemoryMap({ places }: { places: Place[] }) {
   const [map, setMap] = useState<MapType | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Default closed on small screens, open on desktop. Preserve deliberate user choices.
+  const [desktop, setDesktop] = useState(false);
+  const [listOverride, setListOverride] = useState<boolean | null>(null);
+  const listExpanded = listOverride ?? desktop;
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 781px)");
+    const update = () => setDesktop(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
   // Only family memories belong on this map; curated legacy records stay untouched in storage.
   const pins = useMemo(() => places.filter(place => place.kind === "memory" && validCoords(place)), [places]);
   const selected = pins.find(place => place.id === selectedId) || null;
@@ -63,6 +76,13 @@ export function MemoryMap({ places }: { places: Place[] }) {
       <aside className="map-list gau-map-sidebar" aria-label="Địa điểm và ảnh gia đình">
         <div className="gau-map-sidebar-heading">
           <h2>Địa điểm ({pins.length})</h2>
+          <button type="button" className="gau-map-list-toggle"
+            aria-expanded={listExpanded}
+            aria-controls="gau-map-list-content"
+            onClick={() => setListOverride(!listExpanded)}>
+            {listExpanded ? "Thu gọn" : "Hiện danh sách"}
+            {listExpanded ? <ChevronUp size={17} aria-hidden="true" /> : <ChevronDown size={17} aria-hidden="true" />}
+          </button>
         </div>
         {selected && <section id="gau-map-selected" className="gau-map-selected" aria-live="polite">
           <div className="gau-map-selected-heading">
@@ -84,7 +104,8 @@ export function MemoryMap({ places }: { places: Place[] }) {
               <Link key={id} href={`/album/${id}`}>Album liên quan {index + 1} →</Link>)}
           </div>}
         </section>}
-        <div className="gau-map-place-list">
+        <div id="gau-map-list-content" className="gau-map-list-content" hidden={!listExpanded}>
+          <div className="gau-map-place-list">
           {pins.length ? pins.map(place => <article key={place.id}
             className={"gau-map-place " + (selectedId === place.id ? "active" : "")}>
             <button type="button" className="gau-map-place-focus"
@@ -100,7 +121,8 @@ export function MemoryMap({ places }: { places: Place[] }) {
             Gia đình chưa ghim địa điểm nào. Khi thêm địa điểm kỷ niệm, ghim sẽ xuất hiện trên bản đồ.
           </div>}
         </div>
-        <Link className="gau-map-add" href="/dong-gop">+ Góp thêm địa điểm kỷ niệm</Link>
+          <Link className="gau-map-add" href="/dong-gop">+ Góp thêm địa điểm kỷ niệm</Link>
+        </div>
       </aside>
     </div>
   </div>;
