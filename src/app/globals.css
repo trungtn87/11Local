@@ -819,7 +819,40 @@ button {
   left: 19px;
   width: 4px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #56B57C, #F8C64E 52%, #ECA0AC);
+  background: linear-gradient(0deg, #56B57C, #F8C64E 52%, #ECA0AC);
+}
+.tree-direction-label,
+.tree-origin-label {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  margin: 0 0 16px 54px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.tree-direction-label {
+  color: #9A3E55;
+  background: var(--pink-pastel);
+}
+.tree-origin-label {
+  margin-top: 4px;
+  margin-bottom: 0;
+  color: #285C3C;
+  background: var(--green-pastel);
+}
+.tree-origin-label::before {
+  content: "";
+  position: absolute;
+  left: -44px;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translateY(-50%);
+  border: 3px solid var(--bg);
+  border-radius: 50%;
+  background: #4BAE73;
 }
 .tree-year {
   position: relative;
