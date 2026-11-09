@@ -14,11 +14,11 @@ export function UploadForm({albums,places,milestones,selected}:{
   const initialAlbum=albums.some(a=>a.id===selected)?selected:albums[0]?.id||"";
   const [albumMode,setAlbumMode]=useState<"existing"|"new">(albums.length?"existing":"new");
   const [albumId,setAlbumId]=useState(initialAlbum);
-  const [albumTitle,setAlbumTitle]=useState(""),[albumDescription,setAlbumDescription]=useState(""),[albumDate,setAlbumDate]=useState("");
+  const [albumTitle,setAlbumTitle]=useState(""),[albumDescription,setAlbumDescription]=useState("");
   const [placeMode,setPlaceMode]=useState<Choice>("none"),[placeId,setPlaceId]=useState(places[0]?.id||"");
-  const [placeTitle,setPlaceTitle]=useState(""),[placeDate,setPlaceDate]=useState(""),[pin,setPin]=useState<MemoryPin|null>(null);
+  const [placeTitle,setPlaceTitle]=useState(""),[pin,setPin]=useState<MemoryPin|null>(null);
   const [milestoneMode,setMilestoneMode]=useState<Choice>("none"),[milestoneId,setMilestoneId]=useState(milestones[0]?.id||"");
-  const [milestoneTitle,setMilestoneTitle]=useState(""),[milestoneDetails,setMilestoneDetails]=useState(""),[milestoneDate,setMilestoneDate]=useState("");
+  const [milestoneTitle,setMilestoneTitle]=useState(""),[milestoneDetails,setMilestoneDetails]=useState("");
   const [takenOn,setTakenOn]=useState(""),[caption,setCaption]=useState("");
   const [files,setFiles]=useState<File[]>([]);
   const [previews,setPreviews]=useState<{url:string;name:string;title:string;description:string}[]>([]);
@@ -30,6 +30,12 @@ export function UploadForm({albums,places,milestones,selected}:{
 
   // Manage object URLs from the input event, not from a state-setting effect.
   useEffect(()=>()=>{previewUrls.current.forEach(url=>URL.revokeObjectURL(url));},[]);
+  // Use the browser calendar date (not UTC) so midnight in Việt Nam is correct.
+  useEffect(()=>{
+    const now=new Date();
+    const localToday=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+    setTakenOn(current=>current||localToday);
+  },[]);
   function chooseFiles(event:React.ChangeEvent<HTMLInputElement>) {
     const chosen=Array.from(event.target.files||[]).slice(0,10);
     previewUrls.current.forEach(url=>URL.revokeObjectURL(url));
@@ -52,13 +58,13 @@ export function UploadForm({albums,places,milestones,selected}:{
         const payload={
           request_id:requestId.current,
           album:albumMode==="existing"?{mode:"existing",id:albumId}:{
-            mode:"new",title:albumTitle,description:albumDescription,event_date:albumDate||takenOn||null
+            mode:"new",title:albumTitle,description:albumDescription,event_date:takenOn
           },
           place:placeMode==="none"?{mode:"none"}:placeMode==="existing"?{mode:"existing",id:placeId}:{
-            mode:"new",title:placeTitle,latitude:pin!.latitude,longitude:pin!.longitude,visited_on:placeDate||takenOn||null
+            mode:"new",title:placeTitle,latitude:pin!.latitude,longitude:pin!.longitude,visited_on:takenOn
           },
           milestone:milestoneMode==="none"?{mode:"none"}:milestoneMode==="existing"?{mode:"existing",id:milestoneId}:{
-            mode:"new",title:milestoneTitle,details:milestoneDetails,event_date:milestoneDate||takenOn
+            mode:"new",title:milestoneTitle,details:milestoneDetails,event_date:takenOn
           }
         };
         const r=await fetch("/api/family/contributions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
@@ -122,7 +128,6 @@ export function UploadForm({albums,places,milestones,selected}:{
         </select></label>
         :<div className={styles.fields}>
           <label className="field">Tên album<input required disabled={locked} maxLength={150} value={albumTitle} onChange={e=>setAlbumTitle(e.target.value)} placeholder="Ví dụ: Sinh nhật Gấu tròn 2 tuổi"/></label>
-          <label className="field">Ngày kỷ niệm (tùy chọn)<input type="date" disabled={locked} value={albumDate} onChange={e=>setAlbumDate(e.target.value)}/></label>
           <label className="field">Giới thiệu album<textarea maxLength={2000} disabled={locked} value={albumDescription} onChange={e=>setAlbumDescription(e.target.value)}/></label>
         </div>}
     </section>
@@ -139,7 +144,6 @@ export function UploadForm({albums,places,milestones,selected}:{
       </select></label>}
       {placeMode==="new"&&<div className={styles.fields}>
         <label className="field">Tên địa điểm<input required disabled={locked} maxLength={150} value={placeTitle} onChange={e=>setPlaceTitle(e.target.value)} placeholder="Ví dụ: Công viên nơi Gấu tập đi"/></label>
-        <label className="field">Ngày ghé thăm (tùy chọn)<input type="date" disabled={locked} value={placeDate} onChange={e=>setPlaceDate(e.target.value)}/></label>
         {prepared?<p className={styles.helper}>Đã lưu vị trí cho lượt đóng góp này.</p>
           :<ContributionPinPicker value={pin} onChange={setPinPoint}/>}
       </div>}
@@ -157,14 +161,14 @@ export function UploadForm({albums,places,milestones,selected}:{
       </select></label>}
       {milestoneMode==="new"&&<div className={styles.fields}>
         <label className="field">Tên cột mốc<input required disabled={locked} maxLength={150} value={milestoneTitle} onChange={e=>setMilestoneTitle(e.target.value)} placeholder="Ví dụ: Gấu biết đi những bước đầu tiên"/></label>
-        <label className="field">Ngày diễn ra<input type="date" required={!takenOn} disabled={locked} value={milestoneDate} onChange={e=>setMilestoneDate(e.target.value)}/></label>
         <label className="field">Câu chuyện<textarea disabled={locked} maxLength={4000} value={milestoneDetails} onChange={e=>setMilestoneDetails(e.target.value)}/></label>
       </div>}
     </section>
 
     <section className={styles.section}>
       <h2>4. Ảnh và lời nhắn</h2>
-      <label className="field">Ngày chụp (tùy chọn)<input type="date" disabled={locked} value={takenOn} onChange={e=>setTakenOn(e.target.value)}/></label>
+      <label className="field">Ngày kỷ niệm<input type="date" required disabled={locked} value={takenOn} onChange={e=>setTakenOn(e.target.value)}/></label>
+      <p className={styles.helper}>Dùng ngày này cho ảnh, album mới, địa điểm mới và cột mốc mới. Nội dung đã có không bị đổi ngày.</p>
       <label className="field">Ảnh kỷ niệm (tối đa 10 ảnh/lần)<input type="file" disabled={busy||done} accept="image/jpeg,image/png,image/webp,image/avif" multiple onChange={chooseFiles}/></label>
       {previews.length>0&&<div className={styles.previews}>{previews.map((preview,i)=><div className={styles.preview} key={preview.url}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
