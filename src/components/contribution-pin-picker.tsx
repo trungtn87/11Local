@@ -3,38 +3,94 @@
 import {useEffect,useState} from "react";
 import {Marker,type Map as MapType} from "maplibre-gl";
 import {MapCanvas} from "@/features/map/map-canvas";
+import {canCommitPinTap} from "@/lib/map-pin-selection";
 import styles from "./upload-form.module.css";
 
 export type MemoryPin = {latitude:number;longitude:number};
 
-// The marker itself is draggable (rather than forcing visitors to drag the map).
-// Initial center is just a suggestion; no location is submitted until the pin is moved or the map clicked.
+// Keep the pin fixed to a geographic coordinate; only a deliberate tap or completed
+// marker drag changes the selection. Pinch/double-tap zoom must not choose another point.
 export function ContributionPinPicker({value,onChange}:{value:MemoryPin|null;onChange:(point:MemoryPin)=>void}) {
   const [map,setMap]=useState<MapType|null>(null);
   useEffect(()=>{
     if(!map)return;
     const initial=value ? {lng:value.longitude,lat:value.latitude}:map.getCenter();
-    if (value) map.jumpTo({center:[initial.lng,initial.lat],zoom:Math.max(map.getZoom(),12)});
+    if(value)map.jumpTo({center:[initial.lng,initial.lat],zoom:Math.max(map.getZoom(),12)});
+
     const markerElement=document.createElement("button");
     markerElement.type="button";
     markerElement.className=styles.draggablePin;
-    markerElement.textContent="📍";
     markerElement.title="Kéo ghim để chọn vị trí";
     markerElement.setAttribute("aria-label","Kéo ghim đến vị trí kỷ niệm");
-    const marker=new Marker({element:markerElement,draggable:true})
+    const pinShape=document.createElement("span");
+    pinShape.className=styles.draggablePinShape;
+    pinShape.setAttribute("aria-hidden","true");
+    markerElement.appendChild(pinShape);
+
+    // MapLibre owns the marker's outer transform. The pin tip, not its center,
+    // is the exact geographic anchor, irrespective of zoom level.
+    const marker=new Marker({element:markerElement,draggable:true,anchor:"bottom"})
       .setLngLat([initial.lng,initial.lat]).addTo(map);
-    const choose=(lng:number,lat:number)=>onChange({
-      longitude:Number(lng.toFixed(6)),latitude:Number(lat.toFixed(6)),
-    });
-    const dragEnd=()=>{const point=marker.getLngLat();choose(point.lng,point.lat);};
-    const click=(event:{lngLat:{lng:number;lat:number}})=>{
-      marker.setLngLat([event.lngLat.lng,event.lngLat.lat]);
-      choose(event.lngLat.lng,event.lngLat.lat);
+
+    let committed={longitude:initial.lng,latitude:initial.lat};
+    let ignoreClicksUntil=0;
+    let pendingTap:ReturnType<typeof setTimeout>|null=null;
+    const cancelPendingTap=()=>{
+      if(pendingTap!==null){clearTimeout(pendingTap);pendingTap=null;}
     };
+    const choose=(lng:number,lat:number)=>{
+      committed={longitude:Number(lng.toFixed(6)),latitude:Number(lat.toFixed(6))};
+      onChange(committed);
+    };
+    const dragEnd=()=>{
+      if(Date.now()<ignoreClicksUntil){
+        marker.setLngLat([committed.longitude,committed.latitude]);
+        return;
+      }
+      const point=marker.getLngLat();
+      choose(point.lng,point.lat);
+    };
+    const multiTouch=(event:{originalEvent:TouchEvent})=>{
+      if(event.originalEvent.touches.length<2)return;
+      ignoreClicksUntil=Date.now()+550;
+      cancelPendingTap();
+    };
+    const click=(event:{lngLat:{lng:number;lat:number};originalEvent:MouseEvent})=>{
+      // MapLibre fires click events before dblclick, so commit only after
+      // the double-click window. Never commit during/after a pinch gesture.
+      cancelPendingTap();
+      if(!canCommitPinTap(map.isZooming(),event.originalEvent.detail,Date.now(),ignoreClicksUntil))return;
+      const {lng,lat}=event.lngLat;
+      pendingTap=setTimeout(()=>{
+        pendingTap=null;
+        if(!canCommitPinTap(map.isZooming(),1,Date.now(),ignoreClicksUntil))return;
+        marker.setLngLat([lng,lat]);
+        choose(lng,lat);
+      },280);
+    };
+    const stopMarkerClick=(event:MouseEvent)=>event.stopPropagation();
+
+    markerElement.addEventListener("click",stopMarkerClick);
     marker.on("dragend",dragEnd);
     map.on("click",click);
-    return ()=>{map.off("click",click);marker.off("dragend",dragEnd);marker.remove();};
-    // Pin position is preserved in React after a selection; the mounted marker keeps its own position.
+    map.on("dblclick",cancelPendingTap);
+    map.on("zoomstart",cancelPendingTap);
+    map.on("touchstart",multiTouch);
+    map.on("touchmove",multiTouch);
+
+    return ()=>{
+      cancelPendingTap();
+      map.off("touchmove",multiTouch);
+      map.off("touchstart",multiTouch);
+      map.off("zoomstart",cancelPendingTap);
+      map.off("dblclick",cancelPendingTap);
+      map.off("click",click);
+      marker.off("dragend",dragEnd);
+      markerElement.removeEventListener("click",stopMarkerClick);
+      marker.remove();
+    };
+    // Value is read only when the picker mounts; the marker retains its
+    // geographic position until the visitor intentionally selects again.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[map,onChange]);
   return <div className={styles.pinSection}>
