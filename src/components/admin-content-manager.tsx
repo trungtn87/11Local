@@ -13,7 +13,6 @@ type Row = {
 type Data = { albums: Row[]; places: Row[]; milestones: Row[] };
 const kinds = [
   { id: "album" as const, title: "Album", icon: Album },
-  { id: "place" as const, title: "Địa điểm", icon: MapPin },
   { id: "milestone" as const, title: "Cột mốc", icon: CalendarDays },
 ];
 const plural: Record<Kind, keyof Data> = { album: "albums", place: "places", milestone: "milestones" };
@@ -133,7 +132,7 @@ export function AdminContentManager() {
   return (
     <section className="admin-panel admin-content-manager" id="quan-ly-noi-dung">
       <div className="admin-section-heading">
-        <div><h2>Album, địa điểm và cột mốc</h2><p>Quản lý các kỷ niệm của gia đình tại một nơi.</p></div>
+        <div><h2>Album và cột mốc</h2><p>Địa điểm có mục quản lý riêng ở menu bên trái.</p></div>
       </div>
       <div className="admin-content-tabs" role="group" aria-label="Loại nội dung">
         {kinds.map(({ id, title, icon: Icon }) => (
