@@ -29,7 +29,7 @@ async function rawAlbum(id:string) {
        LEFT JOIN users u ON u.id=p.uploaded_by
        LEFT JOIN family_places pl ON pl.id=p.place_id
        LEFT JOIN family_milestones m ON m.id=p.milestone_id
-       WHERE p.album_id::text=$1 AND p.status='approved' ORDER BY p.created_at DESC`,[id]);
+       WHERE p.album_id::text=$1 AND p.status='approved' ORDER BY p.created_at DESC,p.id DESC`,[id]);
     const row=a[0] as unknown as {id:string;title:string;description:string;event_date:string|null};
     return {...row,photos:p as unknown as Photo[]};
 }

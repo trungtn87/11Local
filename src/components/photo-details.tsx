@@ -1,10 +1,15 @@
 "use client";
 
-import {useEffect,useState,type FormEvent} from "react";
+import {useEffect,useRef,useState,type FormEvent} from "react";
 import Link from "next/link";
+import {useRouter} from "next/navigation";
+import {horizontalSwipe} from "@/lib/photo-navigation";
+import styles from "./photo-details.module.css";
 
 type Comment = {id:string;body:string;created_at:string;author_id:string;author_name:string};
-export function PhotoDetails({id,title:initialTitle,caption:initialCaption,canEdit,canComment,userId,admin,albumId}:{id:string;title:string;caption:string;canEdit:boolean;canComment:boolean;userId:string|null;admin:boolean;albumId:string}) {
+export function PhotoDetails({id,title:initialTitle,caption:initialCaption,canEdit,canComment,userId,admin,backHref,backLabel,position,total,previousHref,nextHref,uploaderName,takenOn,placeTitle,milestoneTitle}:{id:string;title:string;caption:string;canEdit:boolean;canComment:boolean;userId:string|null;admin:boolean;backHref:string;backLabel:string;position:number;total:number;previousHref:string|null;nextHref:string|null;uploaderName:string;takenOn:string|null;placeTitle:string|null;milestoneTitle:string|null}) {
+  const router=useRouter();
+  const touchStart=useRef<{x:number;y:number}|null>(null);
   const [title,setTitle]=useState(initialTitle),[caption,setCaption]=useState(initialCaption);
   const [editing,setEditing]=useState(false),[saving,setSaving]=useState(false);
   const [comments,setComments]=useState<Comment[]>([]);
@@ -19,6 +24,17 @@ export function PhotoDetails({id,title:initialTitle,caption:initialCaption,canEd
       .finally(()=>{if(active)setLoading(false);});
     return ()=>{active=false;};
   },[id]);
+  useEffect(()=>{
+    function onKeyDown(event:KeyboardEvent) {
+      if(event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
+      const target=event.target as HTMLElement|null;
+      if(target?.isContentEditable||target?.closest("input, textarea, select, [contenteditable='true']"))return;
+      const href=event.key==="ArrowLeft"?previousHref:event.key==="ArrowRight"?nextHref:null;
+      if(href){event.preventDefault();router.push(href,{scroll:false});}
+    }
+    window.addEventListener("keydown",onKeyDown);
+    return ()=>window.removeEventListener("keydown",onKeyDown);
+  },[previousHref,nextHref,router]);
   async function save(event:FormEvent) {
     event.preventDefault();setSaving(true);setError("");
     try {
@@ -47,9 +63,32 @@ export function PhotoDetails({id,title:initialTitle,caption:initialCaption,canEd
     }catch(e){setError(e instanceof Error?e.message:"Không thể xóa bình luận");}
   }
   return <div className="wrap" style={{maxWidth:900,paddingBottom:48}}>
-    <p><Link href={`/album/${albumId}`}>← Quay lại album</Link></p>
-    {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={`/api/photos/${id}`} alt={title||"Ảnh kỷ niệm"} style={{display:"block",maxHeight:"75vh",width:"100%",objectFit:"contain",borderRadius:16}}/>
+    <p><Link href={backHref}>← {backLabel}</Link></p>
+    <div className={styles.viewer}
+      aria-label="Trình xem ảnh kỷ niệm"
+      onTouchStart={event=>{
+        const point=event.touches.length===1?event.touches[0]:null;
+        touchStart.current=point?{x:point.clientX,y:point.clientY}:null;
+      }}
+      onTouchEnd={event=>{
+        const start=touchStart.current;
+        touchStart.current=null;
+        const end=event.changedTouches[0];
+        if(!start||!end)return;
+        const direction=horizontalSwipe(start,{x:end.clientX,y:end.clientY});
+        const href=direction==="previous"?previousHref:direction==="next"?nextHref:null;
+        if(href)router.push(href,{scroll:false});
+      }}
+      onTouchCancel={()=>{touchStart.current=null;}}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={`/api/photos/${id}`} alt={title||"Ảnh kỷ niệm"} draggable={false}/>
+      {previousHref&&<Link className={styles.previous} href={previousHref} scroll={false} prefetch={false} aria-label="Xem ảnh trước">‹</Link>}
+      {nextHref&&<Link className={styles.next} href={nextHref} scroll={false} prefetch={false} aria-label="Xem ảnh tiếp theo">›</Link>}
+    </div>
+    <div className={styles.counter} aria-live="polite">
+      <strong>Ảnh {position} / {total}</strong>
+      {total>1&&<span>Vuốt trái/phải để chuyển ảnh · Máy tính dùng phím ← →</span>}
+    </div>
     {editing?<form onSubmit={save}>
       <label className="field">Tên ảnh<input value={title} maxLength={150} onChange={e=>setTitle(e.target.value)}/></label>
       <label className="field">Câu chuyện của ảnh<textarea value={caption} maxLength={2000} onChange={e=>setCaption(e.target.value)}/></label>
@@ -60,6 +99,12 @@ export function PhotoDetails({id,title:initialTitle,caption:initialCaption,canEd
       {caption&&<p style={{whiteSpace:"pre-wrap"}}>{caption}</p>}
       {canEdit&&<button className="secondary" onClick={()=>setEditing(true)}>Sửa thông tin ảnh</button>}
     </section>}
+    <div className={styles.meta}>
+      <span>Đăng bởi {uploaderName}</span>
+      {takenOn&&<span>📅 {takenOn}</span>}
+      {placeTitle&&<span>📍 {placeTitle}</span>}
+      {milestoneTitle&&<span>🌱 {milestoneTitle}</span>}
+    </div>
     <section style={{marginTop:28}}>
       <h2>Bình luận ({comments.length})</h2>
       {loading?<p>Đang tải bình luận…</p>:comments.length===0?<p>Chưa có lời nhắn nào cho bức ảnh này.</p>:null}
