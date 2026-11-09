@@ -3,6 +3,7 @@
 import {useEffect,useState} from "react";
 import {Marker,type Map as MapType} from "maplibre-gl";
 import {MapCanvas} from "@/features/map/map-canvas";
+import {canCommitPinTap} from "@/lib/map-pin-selection";
 import styles from "./upload-form.module.css";
 
 export type MemoryPin = {latitude:number;longitude:number};
@@ -58,11 +59,11 @@ export function ContributionPinPicker({value,onChange}:{value:MemoryPin|null;onC
       // MapLibre fires click events before dblclick, so commit only after
       // the double-click window. Never commit during/after a pinch gesture.
       cancelPendingTap();
-      if(map.isZooming()||Date.now()<ignoreClicksUntil||event.originalEvent.detail>1)return;
+      if(!canCommitPinTap(map.isZooming(),event.originalEvent.detail,Date.now(),ignoreClicksUntil))return;
       const {lng,lat}=event.lngLat;
       pendingTap=setTimeout(()=>{
         pendingTap=null;
-        if(map.isZooming()||Date.now()<ignoreClicksUntil)return;
+        if(!canCommitPinTap(map.isZooming(),1,Date.now(),ignoreClicksUntil))return;
         marker.setLngLat([lng,lat]);
         choose(lng,lat);
       },280);
