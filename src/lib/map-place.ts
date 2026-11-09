@@ -1,4 +1,4 @@
-import { isUuid, optionalDate } from "./family-contribution";
+import { isUuid, optionalDate } from "./family-contribution.ts";
 
 export const MAP_CATEGORIES = [
   { value: "food", label: "Quán ăn, cà phê", emoji: "🍜" },
