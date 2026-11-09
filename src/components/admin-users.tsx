@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Check, Clock3, LockKeyhole, RefreshCw, Search, ShieldCheck, UserRoundX } from "lucide-react";
+import { Check, Clock3, LockKeyhole, RefreshCw, Search, ShieldCheck, UserRoundX, UsersRound } from "lucide-react";
 
 type Status = "pending" | "approved" | "rejected" | "blocked";
 type User = {
@@ -47,7 +47,15 @@ export function AdminUsers() {
     }
   }, []);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    let active = true;
+    fetch("/api/admin/users", { cache: "no-store" })
+      .then((response) => { if (!response.ok) throw new Error(); return response.json(); })
+      .then((body: { users?: User[] }) => { if (active && Array.isArray(body.users)) setUsers(body.users); })
+      .catch(() => { if (active) setMessage("Không thể tải danh sách thành viên."); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
 
   const counts = useMemo(() => ({
     all: users.length,
