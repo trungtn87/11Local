@@ -44,7 +44,15 @@ export function AdminContentManager() {
       setLoading(false);
     }
   }, []);
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    let active = true;
+    fetch("/api/admin/family", { cache: "no-store" })
+      .then((response) => { if (!response.ok) throw new Error(); return response.json(); })
+      .then((body: Data) => { if (active) setData(body); })
+      .catch(() => { if (active) setMessage("Không thể tải danh sách quản trị."); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
 
   const rows = useMemo(() => data[plural[tab]].filter((row) =>
     (tab !== "album" || showArchived || !row.archived_at) &&
