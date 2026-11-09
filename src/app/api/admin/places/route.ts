@@ -62,7 +62,7 @@ export async function POST(request: Request) {
         [data.title,data.description,data.address,data.latitude,data.longitude,data.category,data.kind,
           data.visibility,data.visited_on,data.album_ids[0] ?? null]);
       const placeId = String(rows[0].id);
-      await replaceAlbums(tx as ReturnType<typeof db>, placeId, data);
+      await replaceAlbums(tx as unknown as ReturnType<typeof db>, placeId, data);
       return placeId;
     });
     return NextResponse.json({ ok: true, id }, { status: 201 });
@@ -96,7 +96,7 @@ export async function PATCH(request: Request) {
         [data.title,data.description,data.address,data.latitude,data.longitude,data.category,data.kind,
           data.visibility,data.visited_on,data.album_ids[0] ?? null,id]);
       if (!rows.length) return false;
-      await replaceAlbums(tx as ReturnType<typeof db>, id, data);
+      await replaceAlbums(tx as unknown as ReturnType<typeof db>, id, data);
       return true;
     });
     return changed ? NextResponse.json({ ok: true }) : fail("Không tìm thấy địa điểm", 404);
