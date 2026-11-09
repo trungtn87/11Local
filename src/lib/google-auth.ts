@@ -1,9 +1,9 @@
 export const OAUTH_STATE_COOKIE = "11local_oauth_state";
 
-// 11Local's production OAuth client is registered on this exact public origin.
+// Gia đình Gấu uses this exact, Google-authorized production OAuth origin.
 // Do not derive it from Docker, proxy headers, or a possibly malformed SITE_URL.
 export function googleOAuthOrigin(requestOrigin: string) {
-  return process.env.NODE_ENV === "production" ? "https://11local.vn" : requestOrigin;
+  return process.env.NODE_ENV === "production" ? "https://gaufamily.io.vn" : requestOrigin;
 }
 
 export function googleOAuthCallbackUrl(requestOrigin: string) {
@@ -13,7 +13,7 @@ export function googleOAuthCallbackUrl(requestOrigin: string) {
 export function safeReturnTo(value: string | null | undefined) {
   if (!value || !value.startsWith("/") || /[\\\x00-\x20]/.test(value)) return "/tai-khoan";
   try {
-    const base = "https://11local.invalid";
+    const base = "https://gaufamily.invalid";
     const url = new URL(value, base);
     if (url.origin !== base) return "/tai-khoan";
     return url.pathname + url.search + url.hash;
