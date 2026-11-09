@@ -18,12 +18,14 @@ export default async function AlbumDetail({params}:{params:Promise<{id:string}>}
       <Link href={`/dong-gop?album=${id}`} className="primary">💝 Góp ảnh vào album</Link>
     </div>
     {data.photos.length>0?<div className="photo-grid">{data.photos.map(p=><figure key={p.id}>
-      <a href={`/api/photos/${p.id}`} target="_blank" rel="noreferrer">
+      <Link href={`/anh/${p.id}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img loading="lazy" src={`/api/photos/${p.id}`} alt={p.caption||data.title}/>
-      </a>
+        <img loading="lazy" src={`/api/photos/${p.id}`} alt={p.title||p.caption||data.title}/>
+      </Link>
       <figcaption>
-        {p.caption||"Kỷ niệm của Gấu"}
+        <strong>{p.title||"Kỷ niệm của Gấu"}</strong>
+        {p.caption&&<small>{p.caption}</small>}
+        <small><Link href={`/anh/${p.id}`}>Xem ảnh và bình luận</Link></small>
         {p.taken_on&&<small>📅 {p.taken_on}</small>}
         {p.place_title&&<small>📍 {p.place_title}</small>}
         {p.milestone_title&&<small>🌱 {p.milestone_title}</small>}
