@@ -294,3 +294,40 @@
 @media (prefers-reduced-motion: reduce) {
   .admin-stat-card:hover { transform: none; }
 }
+
+.admin-content-tabs { display: flex; flex-wrap: wrap; gap: 9px; padding-bottom: 17px; border-bottom: 1px solid var(--admin-border); }
+.admin-content-tabs > button {
+  display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--admin-border);
+  background: #fff; color: #796a5e; border-radius: 12px; padding: 9px 13px; font-size: .84rem; font-weight: 700;
+}
+.admin-content-tabs > button.active { background: #ffeae6; border-color: #e9bbb5; color: #a63d48; }
+.admin-content-tabs > button span { color: #ae9685; font-size: .73rem; }
+.admin-content-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 17px 0; }
+.admin-content-toolbar .admin-search-input { flex: 1 1 220px; }
+.admin-archive-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; color: #76675c; }
+.admin-archive-toggle input { accent-color: #c64c56; width: 16px; height: 16px; }
+.admin-add-button { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.admin-content-list { display: grid; gap: 10px; }
+.admin-content-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  border: 1px solid var(--admin-border); border-radius: 14px; padding: 13px;
+  background: #fffdfb;
+}
+.admin-content-row-info { min-width: 0; display: grid; gap: 4px; }
+.admin-content-row-info strong { overflow-wrap: anywhere; font-size: .9rem; }
+.admin-content-row-info small { color: var(--admin-muted); font-size: .76rem; }
+.admin-content-actions, .admin-form-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.admin-content-actions button { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; padding: 8px 11px; }
+.admin-content-editor { margin-top: 20px; padding: 20px; border: 1px solid #f0daca; border-radius: 16px; background: #fffaf5; }
+.admin-content-editor h3 { margin: 0; font-size: 1.04rem; }
+.admin-content-editor .field { max-width: 640px; }
+.admin-editor-grid { max-width: 640px; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.admin-form-buttons { margin-top: 12px; }
+@media(max-width: 550px) {
+  .admin-content-row { align-items: flex-start; flex-direction: column; }
+  .admin-content-actions { width: 100%; }
+  .admin-content-toolbar .admin-add-button { flex: 1 1 100%; justify-content: center; }
+  .admin-content-tabs { flex-wrap: nowrap; overflow-x: auto; }
+  .admin-content-tabs button { flex: 0 0 auto; white-space: nowrap; }
+  .admin-content-editor { padding: 14px; }
+}
