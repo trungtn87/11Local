@@ -19,7 +19,10 @@ export function UploadForm({albums,places,milestones,selected}:{
   const [placeTitle,setPlaceTitle]=useState(""),[pin,setPin]=useState<MemoryPin|null>(null);
   const [milestoneMode,setMilestoneMode]=useState<Choice>("none"),[milestoneId,setMilestoneId]=useState(milestones[0]?.id||"");
   const [milestoneTitle,setMilestoneTitle]=useState(""),[milestoneDetails,setMilestoneDetails]=useState("");
-  const [takenOn,setTakenOn]=useState(""),[caption,setCaption]=useState("");
+  const [takenOn,setTakenOn]=useState(()=>{
+    const now=new Date();
+    return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+  }),[caption,setCaption]=useState("");
   const [files,setFiles]=useState<File[]>([]);
   const [previews,setPreviews]=useState<{url:string;name:string;title:string;description:string}[]>([]);
   const previewUrls=useRef<string[]>([]);
@@ -30,12 +33,6 @@ export function UploadForm({albums,places,milestones,selected}:{
 
   // Manage object URLs from the input event, not from a state-setting effect.
   useEffect(()=>()=>{previewUrls.current.forEach(url=>URL.revokeObjectURL(url));},[]);
-  // Use the browser calendar date (not UTC) so midnight in Việt Nam is correct.
-  useEffect(()=>{
-    const now=new Date();
-    const localToday=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
-    setTakenOn(current=>current||localToday);
-  },[]);
   function chooseFiles(event:React.ChangeEvent<HTMLInputElement>) {
     const chosen=Array.from(event.target.files||[]).slice(0,10);
     previewUrls.current.forEach(url=>URL.revokeObjectURL(url));
