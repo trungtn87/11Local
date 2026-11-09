@@ -122,8 +122,10 @@
 }
 
 .embedded {
-  position: absolute;
-  inset: 0;
+  /* Fill the caller's sized frame without escaping to the nearest positioned ancestor. */
+  position: relative;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   isolation: isolate;
   background: #dff4ff;
