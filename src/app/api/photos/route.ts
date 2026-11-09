@@ -16,7 +16,8 @@ export async function POST(request:Request) {
   try {
     const data=await request.formData();
     const albumId=String(data.get("album_id")||"");
-    const caption=String(data.get("caption")||"").slice(0,500);
+    const caption=String(data.get("caption")||"").trim().slice(0,2000);
+    const title=String(data.get("title")||"").trim().slice(0,150);
     const batchRaw=data.get("batch_id");
     const batchId=batchRaw===null?null:batchRaw;
     const takenOn=optionalDate(data.get("taken_on"));
@@ -46,8 +47,8 @@ export async function POST(request:Request) {
         milestoneId=batches[0].milestone_id as string|null;
       }
       const rows=await tx.unsafe(
-        "INSERT INTO family_photos(album_id,uploaded_by,content,caption,width,height,status,place_id,milestone_id,taken_on) VALUES ($1::uuid,$2::uuid,$3,$4,$5,$6,'approved',$7::uuid,$8::uuid,$9::date) RETURNING id::text",
-        [albumId,user.id,out.data,caption,out.info.width,out.info.height,placeId,milestoneId,takenOn]);
+        "INSERT INTO family_photos(album_id,uploaded_by,content,caption,width,height,status,place_id,milestone_id,taken_on,title) VALUES ($1::uuid,$2::uuid,$3,$4,$5,$6,'approved',$7::uuid,$8::uuid,$9::date,$10) RETURNING id::text",
+        [albumId,user.id,out.data,caption,out.info.width,out.info.height,placeId,milestoneId,takenOn,title||file.name.replace(/\.[^.]+$/,"").slice(0,150)]);
       return {kind:"ok",id:String(rows[0].id)} as const;
     });
     if(result.kind==="invalidBatch") return fail("Lượt đóng góp không còn hợp lệ; hãy tải lại trang",409);
