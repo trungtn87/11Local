@@ -30,20 +30,12 @@ export async function POST(request:Request) {
     const sql=db();
     const exists=await sql.unsafe("SELECT id FROM family_albums WHERE id::text=$1 AND archived_at IS NULL",[albumId]);
     if(!exists.length) return fail("Không tìm thấy album",404);
-    const preflight=await sql.unsafe(
-      "SELECT count(*)::int AS count FROM family_photos WHERE uploaded_by::text=$1 AND created_at > now()-interval '24 hours'",[user.id]);
-    if(Number(preflight[0]?.count)>=30) return fail("Bạn đã đạt giới hạn 30 ảnh trong 24 giờ",429);
-
     const bytes=Buffer.from(await file.arrayBuffer());
     const out=await sharp(bytes,{limitInputPixels:50_000_000}).rotate()
       .resize({width:2048,height:2048,fit:"inside",withoutEnlargement:true})
       .webp({quality:82}).toBuffer({resolveWithObject:true});
     // The lock keeps quota checks correct even when several photos are uploaded concurrently.
     const result=await sql.begin(async tx=>{
-      await tx.unsafe("SELECT pg_advisory_xact_lock(hashtextextended($1,0))",[user.id]);
-      const daily=await tx.unsafe(
-        "SELECT count(*)::int AS count FROM family_photos WHERE uploaded_by::text=$1 AND created_at > now()-interval '24 hours'",[user.id]);
-      if(Number(daily[0]?.count)>=30) return {kind:"quota"} as const;
       let placeId:string|null=null,milestoneId:string|null=null;
       if(batchId!==null) {
         const batches=await tx.unsafe(
@@ -58,7 +50,6 @@ export async function POST(request:Request) {
         [albumId,user.id,out.data,caption,out.info.width,out.info.height,placeId,milestoneId,takenOn]);
       return {kind:"ok",id:String(rows[0].id)} as const;
     });
-    if(result.kind==="quota") return fail("Bạn đã đạt giới hạn 30 ảnh trong 24 giờ",429);
     if(result.kind==="invalidBatch") return fail("Lượt đóng góp không còn hợp lệ; hãy tải lại trang",409);
     invalidateFamilyPublic();
     return NextResponse.json({ok:true,id:result.id,status:"approved"},{status:201});
