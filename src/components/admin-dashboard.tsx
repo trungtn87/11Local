@@ -78,7 +78,7 @@ export function AdminDashboard({ authenticated, albums, photos }: Props) {
     try {
       const response = await fetch("/api/admin/session", { method: "DELETE" });
       if (!response.ok) throw new Error();
-      window.location.assign("/admin");
+      window.location.reload();
     } catch {
       setMessage("Không thể đăng xuất Admin. Vui lòng thử lại.");
     }
