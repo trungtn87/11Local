@@ -34,8 +34,8 @@ export default async function Contribute({
           <GauEmptyMascot width={104} height={96} className="empty-mascot" />
           <h2>Đăng nhập để chia sẻ những khoảnh khắc của bạn</h2>
           <p>
-            Ảnh do người thân đóng góp sẽ được nén nhẹ nhàng và duyệt trước khi hiển
-            thị trong cuốn album chung của Gấu.
+            Ảnh của thành viên đã được duyệt sẽ được nén nhẹ nhàng và hiển thị ngay
+            trong cuốn album chung của Gấu.
           </p>
           <div className="empty-actions">
             <a
