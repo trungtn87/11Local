@@ -72,6 +72,12 @@ export async function POST(request: Request) {
           [milestone.title,milestone.details,milestone.event_date,albumId,user.id]);
         milestoneId=String(rows[0].id);
       }
+      if (placeId) {
+        // One location may have memories from many visits and albums.
+        await tx.unsafe(
+          "INSERT INTO family_place_albums(place_id,album_id) VALUES($1::uuid,$2::uuid) ON CONFLICT DO NOTHING",
+          [placeId,albumId]);
+      }
       await tx.unsafe(
         "INSERT INTO family_contribution_batches(user_id,request_id,album_id,place_id,milestone_id) VALUES($1::uuid,$2::uuid,$3::uuid,$4::uuid,$5::uuid)",
         [user.id,request_id,albumId,placeId,milestoneId]);

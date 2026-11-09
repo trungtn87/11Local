@@ -4,14 +4,15 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   Album, ArrowLeft, CheckCircle2, ChevronRight, House, Images,
-  LayoutDashboard, LogOut, ShieldCheck, Trash2, UsersRound
+  LayoutDashboard, LogOut, MapPin, ShieldCheck, Trash2, UsersRound
 } from "lucide-react";
 import { AdminContentManager } from "./admin-content-manager";
+import { AdminPlaceManager } from "./admin-place-manager";
 import { AdminUsers } from "./admin-users";
 
 type AlbumRow = { id: string; title: string };
 type Photo = { id: string; caption: string; album_title: string; uploader: string };
-type Section = "overview" | "members" | "memories" | "photos";
+type Section = "overview" | "members" | "memories" | "places" | "photos";
 type Props = {
   authenticated: boolean;
   albums: AlbumRow[];
@@ -22,6 +23,7 @@ const navigation = [
   { id: "overview" as const, label: "Tổng quan", icon: LayoutDashboard },
   { id: "members" as const, label: "Thành viên", icon: UsersRound },
   { id: "memories" as const, label: "Quản lý kỷ niệm", icon: Album },
+  { id: "places" as const, label: "Quản lý địa điểm", icon: MapPin },
   { id: "photos" as const, label: "Quản lý ảnh", icon: Images },
 ];
 
@@ -193,10 +195,13 @@ export function AdminDashboard({ authenticated, albums, photos }: Props) {
               <button type="button" onClick={() => setSection("memories")}><Album size={20} />
                 <span><strong>Quản lý album và cột mốc</strong><small>Thêm, sửa, lưu trữ nội dung</small></span><ChevronRight size={18} /></button>
             </div>
+              <button type="button" onClick={() => setSection("places")}><MapPin size={20} />
+                <span><strong>Quản lý địa điểm bản đồ</strong><small>Danh mục, ghim, ẩn/hiện và album liên quan</small></span><ChevronRight size={18} /></button>
           </section>
         </>}
         {section === "members" && <AdminUsers />}
         {section === "memories" && <AdminContentManager />}
+        {section === "places" && <AdminPlaceManager />}
         {section === "photos" && <section className="admin-panel">
           <div className="admin-section-heading">
             <div><h2>Ảnh trong album</h2><p>Ảnh được công khai ngay sau khi thành viên đã duyệt tải lên. Xóa vĩnh viễn ảnh không phù hợp tại đây.</p></div>

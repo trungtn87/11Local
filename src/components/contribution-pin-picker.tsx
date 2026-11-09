@@ -14,6 +14,7 @@ export function ContributionPinPicker({value,onChange}:{value:MemoryPin|null;onC
   useEffect(()=>{
     if(!map)return;
     const initial=value ? {lng:value.longitude,lat:value.latitude}:map.getCenter();
+    if (value) map.jumpTo({center:[initial.lng,initial.lat],zoom:Math.max(map.getZoom(),12)});
     const markerElement=document.createElement("button");
     markerElement.type="button";
     markerElement.className=styles.draggablePin;
