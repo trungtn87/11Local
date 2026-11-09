@@ -90,11 +90,17 @@ export async function GET(request: NextRequest) {
           avatar_url = EXCLUDED.avatar_url,
           updated_at = now(),
           last_login_at = now()
-      RETURNING id, email, display_name, avatar_url
+      RETURNING id, email, display_name, avatar_url, family_access_status
     `;
     const row = rows[0];
     if (!row) return loginRedirect(request, "account_failed");
 
+    const status=String(row.family_access_status);
+    if (status !== "approved") {
+      const response=loginRedirect(request,status === "blocked"?"blocked":status === "rejected"?"rejected":"pending");
+      response.cookies.set(userCookie.name,"",{path:"/",maxAge:0,httpOnly:true,sameSite:"lax"});
+      return response;
+    }
     const response = NextResponse.redirect(new URL(returnTo, googleOAuthOrigin(request.nextUrl.origin)));
     response.cookies.set(
       userCookie.name,

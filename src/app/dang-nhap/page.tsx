@@ -3,7 +3,9 @@ import { GauEmptyMascot } from "@/components/gau-mascot";
 
 export const metadata = { title: "Đăng nhập | Gia đình Gấu" };
 
-export default function Login() {
+export default async function Login({searchParams}:{searchParams:Promise<{error?:string}>}) {
+  const {error}=await searchParams;
+  const messages:Record<string,string>={pending:"Tài khoản Google của bạn đang chờ quản trị viên phê duyệt.",rejected:"Yêu cầu tham gia đã bị từ chối. Liên hệ quản trị viên.",blocked:"Tài khoản đã bị khóa. Liên hệ quản trị viên.",auth_failed:"Không thể hoàn tất đăng nhập. Vui lòng thử lại.",invalid_state:"Phiên đăng nhập hết hạn. Vui lòng thử lại."};
   return (
     <main className="wrap narrow">
       <div className="panel account-panel">
@@ -18,6 +20,7 @@ export default function Login() {
           Đăng nhập Google để chia sẻ ảnh và kỷ niệm. Mọi người đều có thể xem
           album công khai mà không cần đăng nhập.
         </p>
+        {error && <p role="status" className="status">{messages[error]||"Không thể đăng nhập. Vui lòng thử lại."}</p>}
         <div className="empty-actions">
           <a
             className="primary"
