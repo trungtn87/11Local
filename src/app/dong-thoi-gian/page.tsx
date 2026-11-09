@@ -18,7 +18,8 @@ export default async function Timeline() {
       </div>
 
       {years.length > 0 ? (
-        <section className="memory-tree" aria-label="Cây thời gian kỷ niệm">
+        <section className="memory-tree memory-tree-upward" aria-label="Cây thời gian kỷ niệm, mới nhất ở trên, cũ nhất ở dưới">
+          <p className="tree-direction-label">↑ Gần hiện tại</p>
           {years.map((year) => (
             <details className="tree-year" key={year.year} open>
               <summary className="tree-year-summary">
@@ -51,6 +52,7 @@ export default async function Timeline() {
               ))}
             </details>
           ))}
+          <p className="tree-origin-label">🌱 Những ngày đầu tiên</p>
         </section>
       ) : (
         <div className="empty-scrapbook">
