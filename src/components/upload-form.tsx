@@ -171,7 +171,7 @@ export function UploadForm({albums,places,milestones,selected}:{
         <small title={preview.name}>{preview.name}</small>
       </div>)}</div>}
       <label className="field">Ghi chú cho ảnh<textarea maxLength={500} disabled={locked} value={caption} onChange={e=>setCaption(e.target.value)} placeholder="Một kỷ niệm nhỏ của gia đình…"/></label>
-      <p className={styles.helper}>Ảnh sẽ được nén WebP tối đa 2048px; ảnh gốc vẫn ở thiết bị của bạn. Giới hạn 30 ảnh/24 giờ.</p>
+      <p className={styles.helper}>Ảnh sẽ được nén WebP tối đa 2048px; ảnh gốc vẫn ở thiết bị của bạn. Không giới hạn số ảnh đăng mỗi ngày.</p>
     </section>
 
     <p className={styles.note}>Thành viên đã được duyệt sẽ đăng công khai ngay, không phải chờ Admin duyệt ảnh, album, địa điểm hay cột mốc. Admin có thể quản lý nội dung.</p>
