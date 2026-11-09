@@ -10,7 +10,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(publicSiteOrigin()),
-  title: "Nhà của Gấu | Nơi lưu giữ những năm tháng yêu thương",
+  title: "Gia đình Gấu | Nơi lưu giữ những năm tháng yêu thương",
   description: "Album, chuyến đi và kỷ niệm của Gấu cùng gia đình.",
   icons: { icon: "/icon.svg" },
 };
@@ -22,7 +22,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <SiteNav />
         {children}
         <footer className="footer">
-          © Nhà của Gấu · <a href="/chinh-sach-bao-mat">Chính sách bảo mật</a> · <a href="/dieu-khoan-su-dung">Điều khoản</a>
+          © Gia đình Gấu · <a href="/chinh-sach-bao-mat">Chính sách bảo mật</a> · <a href="/dieu-khoan-su-dung">Điều khoản</a>
         </footer>
       </body>
     </html>

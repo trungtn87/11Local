@@ -4,7 +4,7 @@ import { formatTimelineDate, groupMilestones } from "@/lib/family-timeline";
 import { GauEmptyMascot } from "@/components/gau-mascot";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Cây thời gian của Gấu | Nhà của Gấu" };
+export const metadata = { title: "Cây thời gian của Gấu | Gia đình Gấu" };
 
 export default async function Timeline() {
   const years = groupMilestones(await milestones());

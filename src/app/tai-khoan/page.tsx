@@ -4,7 +4,7 @@ import { LogoutButton } from "@/components/logout-button";
 import { GauEmptyMascot } from "@/components/gau-mascot";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Tài khoản | Nhà của Gấu" };
+export const metadata = { title: "Tài khoản | Gia đình Gấu" };
 
 export default async function Account() {
   const user = await getCurrentUser();
@@ -16,7 +16,7 @@ export default async function Account() {
           <GauEmptyMascot width={88} height={80} />
           <div>
             <p className="eyebrow">🏡 Thành viên gia đình</p>
-            <h1>Tài khoản Nhà của Gấu</h1>
+            <h1>Tài khoản Gia đình Gấu</h1>
           </div>
         </div>
 
