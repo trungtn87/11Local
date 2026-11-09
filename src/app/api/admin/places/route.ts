@@ -82,7 +82,7 @@ export async function PATCH(request: Request) {
     try {
       const rows = await db().unsafe("UPDATE family_places SET archived_at=NULL WHERE id::text=$1 RETURNING id", [id]);
       if (rows.length) invalidateFamilyPublic();
-      return rows.length ? NextResponse.json({ ok: true }) : fail("Không tìm thấy địa điểm", 404);
+    return rows.length ? NextResponse.json({ ok: true }) : fail("Không tìm thấy địa điểm", 404);
     } catch {
       return fail("Không thể khôi phục địa điểm", 500);
     }
@@ -119,7 +119,7 @@ export async function DELETE(request: Request) {
       "UPDATE family_places SET archived_at=now(),visibility=false WHERE id::text=$1 AND archived_at IS NULL RETURNING id",
       [body.id]);
     if (rows.length) invalidateFamilyPublic();
-      return rows.length ? NextResponse.json({ ok: true }) : fail("Không tìm thấy địa điểm", 404);
+    return rows.length ? NextResponse.json({ ok: true }) : fail("Không tìm thấy địa điểm", 404);
   } catch {
     return fail("Không thể lưu trữ địa điểm", 500);
   }
