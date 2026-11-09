@@ -11,8 +11,8 @@ Nơi lưu giữ những năm tháng yêu thương của Gấu và gia đình.
 - Next.js 16, PostgreSQL Neon, MapLibre, Docker trên VPS Nhân Hòa.
 
 ## Cấu hình
-Cần DATABASE_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, USER_SESSION_SECRET, ADMIN_PASSWORD, ADMIN_SESSION_SECRET, SITE_URL=https://11local.vn.
-OAuth callback https://11local.vn/api/auth/google/callback.
+Cần DATABASE_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, USER_SESSION_SECRET, ADMIN_PASSWORD, ADMIN_SESSION_SECRET, SITE_URL=https://gaufamily.io.vn.
+OAuth callback https://gaufamily.io.vn/api/auth/google/callback.
 Bản đồ mặc định OpenFreeMap với POI nền (quán ăn, du lịch, khu vực...) giữ nguyên theo style nhà cung cấp; NEXT_PUBLIC_MAP_STYLE_URL tùy chọn.
 Admin có mục **Quản lý địa điểm** riêng: ghim kéo thả, danh mục, phân biệt điểm giới thiệu/điểm gia đình đã ghé, ẩn/hiện, lưu trữ có khôi phục, liên kết nhiều album.
 Dữ liệu POI nền chỉ để xem, không thể sửa/xóa qua Admin; Admin chỉ quản lý các địa điểm lưu trong family_places.
@@ -42,3 +42,7 @@ Mọi người được xem nội dung công khai. Người dùng đã đăng nh
 - Thêm địa điểm gia đình đã ghé; gắn cùng điểm với 2 album, xác minh cả hai album hiện trên trang bản đồ.
 - Địa điểm bị ẩn/lưu trữ không xuất hiện trên bản đồ; album và ảnh không bị xóa.
 - Thành viên được duyệt tiếp tục tạo địa điểm cùng ảnh trong Cùng góp kỷ niệm; tạo thêm album cho điểm đã có không ghi đè liên kết trước.
+
+## Tên miền mới (Nhân Hòa Vibe)
+
+Tên miền chính thức là `https://gaufamily.io.vn`. Sau khi merge, vào Vibe Hosting, cập nhật **runtime** `SITE_URL`, gắn cả tên miền gốc và `www`, kích hoạt SSL/TLS trong panel (hoặc tại reverse proxy) rồi **redeploy thủ công** từ GitHub. Chỉ sửa Dockerfile không thể tự cấp chứng chỉ HTTPS. Xem [hướng dẫn đổi domain và SSL](deploy/nhanhoa/GAUFAMILY_DOMAIN.md).

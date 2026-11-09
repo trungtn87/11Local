@@ -10,7 +10,7 @@ FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ARG SITE_URL=https://11local.vn
+ARG SITE_URL=https://gaufamily.io.vn
 ARG NEXT_PUBLIC_MAP_STYLE_URL=https://tiles.openfreemap.org/styles/bright
 ENV DEPLOY_STANDALONE=1
 ENV SITE_URL=${SITE_URL}
@@ -30,7 +30,7 @@ FROM node:22-bookworm-slim AS runner
 WORKDIR /app
 # Keep the public origin in the runtime image, not just the build stage.
 # Nhân Hòa runtime environment may override this value for another public URL.
-ARG SITE_URL=https://11local.vn
+ARG SITE_URL=https://gaufamily.io.vn
 ENV SITE_URL=${SITE_URL}
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1

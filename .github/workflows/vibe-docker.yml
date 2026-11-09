@@ -28,11 +28,11 @@ jobs:
 
       - name: Build exact Nhân Hòa Dockerfile (lint + unit tests + Next build)
         run: |
-          docker build --build-arg SITE_URL=https://11local.vn -f deploy/nhanhoa/Dockerfile -t 11local-vibe-ci .
+          docker build --build-arg SITE_URL=https://gaufamily.io.vn -f deploy/nhanhoa/Dockerfile -t 11local-vibe-ci .
 
       - name: Verify SITE_URL is present in the runtime container
         run: |
-          test "$(docker run --rm --entrypoint printenv 11local-vibe-ci SITE_URL)" = "https://11local.vn"
+          test "$(docker run --rm --entrypoint printenv 11local-vibe-ci SITE_URL)" = "https://gaufamily.io.vn"
 
       - name: Check 11Local resource endpoint inside built image
         run: |
