@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Album, Archive, CalendarDays, MapPin, Pencil, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
+import { Album, Archive, CalendarDays, Pencil, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
 
 type Kind = "album" | "place" | "milestone";
 type Row = {
