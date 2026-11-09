@@ -1,66 +1,98 @@
-/* Gia đình Gấu — sky blue, coral and sunshine scrapbook home */
-.gau-home-hero { margin-bottom: 30px; }
+/* Gia đình Gấu — compact pastel scrapbook hero */
+.gau-home-hero { margin-bottom: 18px; }
 .gau-home-hero .gau-memory-banner {
-  min-height: 350px;
+  min-height: 292px;
   grid-template-columns: minmax(0, .98fr) minmax(0, 1.02fr);
-  gap: 12px;
-  padding: 34px 32px;
+  gap: 18px;
+  padding: 25px 30px;
   isolation: isolate;
   background:
-    radial-gradient(circle at 8% 9%, rgba(255,255,255,.9), transparent 32%),
-    radial-gradient(circle at 90% 85%, rgba(255,233,174,.38), transparent 38%),
-    linear-gradient(132deg, #9fdaff 0%, #72b8e7 44%, #a5d5f0 72%, #e9f4e3 100%);
-  box-shadow: 0 16px 36px rgba(62,107,139,.14);
+    radial-gradient(circle at 12% 16%, rgba(255,255,255,.95), transparent 42%),
+    radial-gradient(circle at 92% 86%, rgba(255,229,177,.56), transparent 44%),
+    linear-gradient(130deg, #fff4e9, #d8eff6 61%, #fce8e0);
+  box-shadow: 0 8px 24px rgba(98,78,67,.09);
 }
 .gau-home-hero .gau-memory-banner::after {
-  content: ""; position: absolute; inset: auto -7% -65% 30%;
-  height: 105%; border-radius: 50%; pointer-events: none;
-  background: rgba(255,255,255,.18); z-index: -1;
+  content: ""; position: absolute; inset: auto -12% -78% 29%;
+  height: 115%; border-radius: 50%; pointer-events: none;
+  background: rgba(255,255,255,.24); z-index: -1;
 }
 .gau-home-hero .hero-banner-copy { min-width: 0; }
-.gau-home-hero .hero-banner-title { margin: 16px 0 8px; font-weight: 800; letter-spacing: -.045em; font-size: clamp(2.1rem,4vw,3.3rem); }
-.gau-home-hero .hero-banner-title span { color: #ffecf0; }
-.gau-home-hero .hero-banner-slogan { line-height: 1.5; max-width: 430px; }
-.gau-home-hero .hero-banner-slogan > span { font-size: 1.6rem; color: #ff9fad; }
-.gau-hero-description { max-width: 440px; color: #173b50; font-size: .9rem; line-height: 1.7; margin: 18px 0 16px; font-weight: 600; }
-.gau-hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
-.gau-hero-button { min-height: 43px; padding: 10px 15px; border-radius: 17px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; text-decoration: none; font-weight: 750; font-size: .84rem; box-shadow: 0 6px 14px rgba(42,68,84,.13); }
-.gau-hero-primary { color: white; background: linear-gradient(135deg,#ff6179,#ea334c); }
-.gau-hero-secondary { color: #4b311b; background: linear-gradient(135deg,#ffe587,#ffbe33); }
-.gau-photo-collage { height: 285px; min-width: 0; width: 100%; position: relative; align-self: center; }
-.gau-polaroid { position: absolute; width: 45%; height: 75%; padding: 9px 9px 28px; background: white; border-radius: 6px; box-shadow: 0 12px 23px rgba(47,71,82,.27); border: 1px solid rgba(100,71,47,.14); display: flex; flex-direction: column; text-decoration: none; transition: transform .2s ease; }
-.gau-polaroid img { width: 100%; height: 100%; object-fit: cover; border-radius: 2px; min-height: 0; }
-.gau-photo-caption { font-size: .65rem; line-height: 1.2; font-weight: 700; color: #765846; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; padding-top: 8px; }
-.gau-photo-tape { position: absolute; top: -12px; left: 33%; width: 65px; height: 24px; background: rgba(249,213,158,.84); transform: rotate(-8deg); box-shadow: 0 1px 2px rgba(64,47,29,.1); z-index: 2; }
-.gau-polaroid-1 { left: 5%; top: 15%; transform: rotate(-10deg); z-index: 2; }
-.gau-polaroid-2 { left: 32%; top: 2%; transform: rotate(8deg); z-index: 3; }
-.gau-polaroid-3 { right: 0; top: 21%; transform: rotate(-6deg); z-index: 4; }
-.gau-polaroid-4 { right: 21%; bottom: -3%; width: 34%; height: 61%; transform: rotate(7deg); z-index: 5; }
-.gau-polaroid-1:hover { transform: translateY(-5px) rotate(-10deg); }
-.gau-polaroid-2:hover { transform: translateY(-5px) rotate(8deg); }
-.gau-polaroid-3:hover { transform: translateY(-5px) rotate(-6deg); }
-.gau-polaroid-4:hover { transform: translateY(-5px) rotate(7deg); }
-.gau-collage-heart { position: absolute; left: 5%; bottom: 0; font-size: 55px; color: #ff7b94; z-index: 5; pointer-events: none; }
-.gau-collage-sparkle { position: absolute; right: 6%; top: -6%; font-size: 36px; color: #ffe67b; z-index: 5; pointer-events: none; }
-.gau-photo-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #4c3b36; text-align: center; gap: 8px; }
-.gau-photo-placeholder p { margin: 0; font-weight: 700; font-size: .9rem; }
-.gau-home-hero + .albums-showcase { margin-top: 10px; }
+.gau-home-hero .hero-eyebrow-pill {
+  background: #fff3cf; color: #75523a;
+  box-shadow: none; font-size: .78rem; padding: 6px 12px;
+}
+.gau-home-hero .hero-banner-title {
+  max-width: 460px; margin: 15px 0 12px;
+  color: #533c32; text-shadow: none;
+  font-size: clamp(1.75rem,3.5vw,2.8rem); line-height: 1.15; letter-spacing: -.035em;
+}
+.gau-home-hero .hero-banner-title span { color: #e95770; }
+.gau-home-hero .hero-banner-slogan {
+  display: block; color: #725d53; text-shadow: none;
+  font-size: clamp(.86rem,1.6vw,1rem); font-style: normal;
+  font-weight: 500; line-height: 1.55; padding: 0;
+}
+.gau-home-hero .hero-banner-slogan::after { display: none; }
+.gau-photo-collage { height: 240px; min-width: 0; width: 100%; position: relative; align-self: center; }
+.gau-polaroid {
+  position: absolute; width: 45%; height: 78%; padding: 7px 7px 26px;
+  background: white; border-radius: 9px;
+  box-shadow: 0 8px 18px rgba(71,76,78,.19);
+  border: 1px solid rgba(100,71,47,.1);
+  display: flex; flex-direction: column; text-decoration: none;
+  transition: transform .2s ease;
+}
+.gau-polaroid img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; min-height: 0; }
+.gau-photo-caption {
+  font-size: .63rem; line-height: 1.2; font-weight: 700; color: #765846;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  text-align: center; padding-top: 7px;
+}
+.gau-photo-tape {
+  position: absolute; top: -10px; left: 31%; width: 50px; height: 18px;
+  background: rgba(249,213,158,.8); transform: rotate(-8deg); z-index: 2;
+}
+.gau-polaroid-1 { left: 4%; top: 15%; transform: rotate(-10deg); z-index: 2; }
+.gau-polaroid-2 { left: 31%; top: 2%; transform: rotate(7deg); z-index: 3; }
+.gau-polaroid-3 { right: 0; top: 19%; transform: rotate(-7deg); z-index: 4; }
+.gau-polaroid-1:hover { transform: translateY(-4px) rotate(-10deg); }
+.gau-polaroid-2:hover { transform: translateY(-4px) rotate(7deg); }
+.gau-polaroid-3:hover { transform: translateY(-4px) rotate(-7deg); }
+.gau-collage-heart { position: absolute; left: 5%; bottom: 0; font-size: 34px; color: #f78fa1; z-index: 5; pointer-events: none; }
+.gau-collage-sparkle { position: absolute; right: 4%; top: -2%; font-size: 28px; color: #f5c45e; z-index: 5; pointer-events: none; }
+.gau-photo-placeholder {
+  width: 100%; height: 100%; display: flex; align-items: center;
+  justify-content: center; flex-direction: column; color: #6c5349;
+  text-align: center; gap: 8px;
+}
+.gau-photo-placeholder p { margin: 0; font-weight: 700; font-size: .85rem; }
+.gau-home-hero + .albums-showcase { margin-top: 0; }
+.gau-home-hero + .albums-showcase .section-head { align-items: center; }
 @media (max-width: 760px) {
-  .gau-home-hero .gau-memory-banner { grid-template-columns: 1fr; gap: 18px; padding: 22px 18px 16px; min-height: auto; }
+  .gau-home-hero { margin-bottom: 12px; }
+  .gau-home-hero .gau-memory-banner {
+    grid-template-columns: minmax(0,1fr);
+    gap: 6px; min-height: 0; padding: 20px 18px 12px; border-radius: 25px;
+  }
   .gau-home-hero .hero-banner-copy { text-align: left; }
-  .gau-home-hero .hero-banner-title { font-size: clamp(1.9rem,7vw,2.8rem); }
-  .gau-home-hero .hero-banner-slogan { font-size: .94rem; }
-  .gau-hero-description { margin: 12px 0; font-size: .82rem; }
-  .gau-hero-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
-  .gau-hero-button { font-size: .72rem; padding: 9px 7px; min-width: 0; min-height: 44px; }
-  .gau-photo-collage { height: 205px; max-width: 430px; margin: 0 auto; }
-  .gau-polaroid { padding: 6px 6px 23px; }
-  .gau-photo-caption { font-size: .57rem; padding-top: 6px; }
-  .gau-photo-tape { width: 46px; height: 17px; top: -8px; }
-  .gau-collage-heart { font-size: 34px; }
-  .gau-collage-sparkle { font-size: 27px; }
+  .gau-home-hero .hero-eyebrow-pill { font-size: .66rem; }
+  .gau-home-hero .hero-banner-title {
+    margin: 11px 0 7px; max-width: 340px;
+    font-size: clamp(1.65rem,6vw,2.1rem);
+  }
+  .gau-home-hero .hero-banner-slogan { font-size: .81rem; }
+  .gau-photo-collage { height: 158px; max-width: 380px; margin: 0 auto; }
+  .gau-polaroid { padding: 5px 5px 20px; border-radius: 7px; }
+  .gau-photo-caption { font-size: .54rem; padding-top: 5px; }
+  .gau-photo-tape { width: 38px; height: 14px; top: -7px; }
+  .gau-collage-heart { font-size: 26px; }
+  .gau-collage-sparkle { font-size: 23px; }
 }
 @media (max-width: 370px) {
-  .gau-hero-actions { grid-template-columns: 1fr; }
-  .gau-photo-collage { height: 175px; }
+  .gau-home-hero .gau-memory-banner { padding: 16px 14px 10px; }
+  .gau-photo-collage { height: 140px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gau-polaroid { transition: none; }
 }
