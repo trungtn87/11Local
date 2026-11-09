@@ -69,7 +69,7 @@ export function MemoryMap({ places }: { places: Place[] }) {
     const popup = new Popup({ offset: 24, closeButton: true, closeOnClick: false })
       .setLngLat([selected.longitude,selected.latitude])
       .setDOMContent(node).addTo(map);
-    return () => popup.remove();
+    return () => { popup.remove(); };
   }, [map,selected]);
 
   function focus(place: Place) {
