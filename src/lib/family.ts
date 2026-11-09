@@ -10,7 +10,7 @@ export type Place = {
 };
 export type Milestone = {id:string;title:string;details:string;event_date:string;album_id:string|null;photo_count:number};
 export type Photo = {
-  id:string;caption:string;created_at:string;uploader_name:string;taken_on:string|null;
+  id:string;title:string;caption:string;created_at:string;uploader_name:string;taken_on:string|null;
   place_title:string|null;milestone_title:string|null;
 };
 
@@ -22,7 +22,7 @@ async function rawAlbum(id:string) {
     const a=await db().unsafe("SELECT id::text,title,description,event_date::text FROM family_albums WHERE id::text=$1 AND archived_at IS NULL",[id]);
     if(!a.length)return null;
     const p=await db().unsafe(
-      `SELECT p.id::text,p.caption,p.created_at::text,p.taken_on::text,
+      `SELECT p.id::text,p.title,p.caption,p.created_at::text,p.taken_on::text,
         COALESCE(u.display_name,'Gia đình Gấu') AS uploader_name,
         pl.title AS place_title,m.title AS milestone_title
        FROM family_photos p
