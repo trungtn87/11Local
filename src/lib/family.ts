@@ -5,6 +5,7 @@ export type Album = {
 };
 export type Place = {
   id:string;title:string;latitude:number;longitude:number;visited_on:string|null;album_id:string|null;
+  album_ids:string[];category:string;kind:"memory"|"curated";description:string;address:string;
 };
 export type Milestone = {id:string;title:string;details:string;event_date:string;album_id:string|null};
 export type Photo = {
@@ -39,14 +40,28 @@ export async function places():Promise<Place[]> {
   try {
     const r=await db().unsafe(
       `SELECT pl.id::text,pl.title,pl.latitude,pl.longitude,pl.visited_on::text,
+        pl.category,pl.kind,pl.description,pl.address,
         COALESCE(
           (SELECT p.album_id::text FROM family_photos p
            JOIN family_albums a ON a.id=p.album_id AND a.archived_at IS NULL
            WHERE p.place_id=pl.id AND p.status='approved'
            ORDER BY p.created_at DESC LIMIT 1),
-          (SELECT a.id::text FROM family_albums a WHERE a.id=pl.album_id AND a.archived_at IS NULL)
-        ) AS album_id
-       FROM family_places pl ORDER BY pl.visited_on DESC NULLS LAST`);
+          (SELECT a.id::text FROM family_albums a WHERE a.id=pl.album_id AND a.archived_at IS NULL),
+          (SELECT l.album_id::text FROM family_place_albums l
+           JOIN family_albums a ON a.id=l.album_id AND a.archived_at IS NULL
+           WHERE l.place_id=pl.id ORDER BY l.created_at LIMIT 1)
+        ) AS album_id,
+        ARRAY(
+          SELECT a.id::text FROM family_albums a
+          WHERE a.archived_at IS NULL AND (
+            a.id=pl.album_id OR
+            EXISTS (SELECT 1 FROM family_place_albums l WHERE l.place_id=pl.id AND l.album_id=a.id) OR
+            EXISTS (SELECT 1 FROM family_photos p WHERE p.place_id=pl.id AND p.album_id=a.id AND p.status='approved')
+          ) ORDER BY a.event_date DESC NULLS LAST,a.created_at DESC
+        ) AS album_ids
+       FROM family_places pl
+       WHERE pl.visibility=true AND pl.archived_at IS NULL
+       ORDER BY pl.visited_on DESC NULLS LAST,pl.created_at DESC`);
     return r.map(x=>({...x,latitude:Number(x.latitude),longitude:Number(x.longitude)})) as unknown as Place[];
   } catch {return [];}
 }
