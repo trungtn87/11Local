@@ -22,16 +22,22 @@ export function UploadForm({albums,places,milestones,selected}:{
   const [takenOn,setTakenOn]=useState(""),[caption,setCaption]=useState("");
   const [files,setFiles]=useState<File[]>([]);
   const [previews,setPreviews]=useState<{url:string;name:string}[]>([]);
+  const previewUrls=useRef<string[]>([]);
   const [prepared,setPrepared]=useState<Prepared|null>(null);
   const [busy,setBusy]=useState(false),[done,setDone]=useState(false),[message,setMessage]=useState("");
   const requestId=useRef<string|null>(null);
   const locked=busy||prepared!==null;
 
-  useEffect(()=>{
-    const urls=files.map(file=>({url:URL.createObjectURL(file),name:file.name}));
-    setPreviews(urls);
-    return ()=>urls.forEach(item=>URL.revokeObjectURL(item.url));
-  },[files]);
+  // Manage object URLs from the input event, not from a state-setting effect.
+  useEffect(()=>()=>{previewUrls.current.forEach(url=>URL.revokeObjectURL(url));},[]);
+  function chooseFiles(event:React.ChangeEvent<HTMLInputElement>) {
+    const chosen=Array.from(event.target.files||[]).slice(0,10);
+    previewUrls.current.forEach(url=>URL.revokeObjectURL(url));
+    const next=chosen.map(file=>({name:file.name,url:URL.createObjectURL(file)}));
+    previewUrls.current=next.map(item=>item.url);
+    setPreviews(next);
+    setFiles(chosen);
+  }
   const setPinPoint=useCallback((point:MemoryPin)=>setPin(point),[]);
 
   async function submit(event:FormEvent<HTMLFormElement>) {
@@ -77,7 +83,12 @@ export function UploadForm({albums,places,milestones,selected}:{
           uploaded++;
         } catch {uploadError="Không kết nối được máy chủ";break;}
       }
-      if(uploaded)setFiles(current=>current.slice(uploaded));
+      if(uploaded) {
+        previewUrls.current.slice(0,uploaded).forEach(url=>URL.revokeObjectURL(url));
+        previewUrls.current=previewUrls.current.slice(uploaded);
+        setPreviews(current=>current.slice(uploaded));
+        setFiles(current=>current.slice(uploaded));
+      }
       if(!uploadError&&uploaded===files.length) {
         setDone(true);
         setMessage(`Đã đăng thành công ${uploaded} ảnh. Kỷ niệm được hiển thị ngay.`);
@@ -153,7 +164,7 @@ export function UploadForm({albums,places,milestones,selected}:{
     <section className={styles.section}>
       <h2>4. Ảnh và lời nhắn</h2>
       <label className="field">Ngày chụp (tùy chọn)<input type="date" disabled={locked} value={takenOn} onChange={e=>setTakenOn(e.target.value)}/></label>
-      <label className="field">Ảnh kỷ niệm (tối đa 10 ảnh/lần)<input type="file" disabled={busy||done} accept="image/jpeg,image/png,image/webp,image/avif" multiple onChange={e=>setFiles(Array.from(e.target.files||[]).slice(0,10))}/></label>
+      <label className="field">Ảnh kỷ niệm (tối đa 10 ảnh/lần)<input type="file" disabled={busy||done} accept="image/jpeg,image/png,image/webp,image/avif" multiple onChange={chooseFiles}/></label>
       {previews.length>0&&<div className={styles.previews}>{previews.map((preview,i)=><div className={styles.preview} key={preview.url}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={preview.url} alt={`Ảnh xem trước ${i+1}`}/>
