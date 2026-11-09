@@ -418,7 +418,7 @@ button {
 }
 
 /* ==========================================================================
-   C. Khám phá Nhà của Gấu (4 Pastel Cards)
+   C. Khám phá Gia đình Gấu (4 Pastel Cards)
    ========================================================================== */
 .explore-section {
   margin: 18px 0 28px;
@@ -1157,8 +1157,14 @@ button {
     height: 42px;
   }
 
+  .site-header-inner { gap: 8px; }
+  .brand { gap: 7px; min-width: 0; }
+  .brand-copy { min-width: 0; }
+
   .brand-title {
-    font-size: 1.26rem;
+    font-size: clamp(1.07rem, 5.15vw, 1.26rem);
+    white-space: nowrap;
+    letter-spacing: -0.025em;
   }
 
   .brand-copy small {
@@ -1193,8 +1199,10 @@ button {
 
   .hero-banner-title {
     margin: 7px 0 4px;
-    font-size: 1.62rem;
-    white-space: nowrap;
+    font-size: clamp(1.36rem, 5.2vw, 1.62rem);
+    white-space: normal;
+    text-wrap: balance;
+    overflow-wrap: normal;
   }
 
   .hero-banner-slogan {

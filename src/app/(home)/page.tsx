@@ -14,7 +14,7 @@ export default async function Home() {
   return (
     <main className="wrap home-wrap">
       {/* B. Hero Section — Phương án 2 */}
-      <section className="hero-section" aria-label="Giới thiệu Nhà của Gấu">
+      <section className="hero-section" aria-label="Giới thiệu Gia đình Gấu">
         <div className="hero-banner-card">
           <div className="hero-banner-copy">
             <span className="hero-eyebrow-pill">
@@ -24,7 +24,7 @@ export default async function Home() {
               <span>Khám phá cuốn album gia đình</span>
             </span>
 
-            <h1 className="hero-banner-title">Nhà của Gấu</h1>
+            <h1 className="hero-banner-title">Gia đình Gấu</h1>
 
             <p className="hero-banner-slogan">
               <span>“Nơi lưu giữ những năm tháng yêu thương.”</span>
@@ -52,8 +52,8 @@ export default async function Home() {
 
       </section>
 
-      {/* C. Khám phá Nhà của Gấu — 4 Thẻ Pastel */}
-      <section className="explore-section" aria-label="Khám phá Nhà của Gấu">
+      {/* C. Khám phá Gia đình Gấu — 4 Thẻ Pastel */}
+      <section className="explore-section" aria-label="Khám phá Gia đình Gấu">
         <div className="feature-grid">
           <Link href="/album" className="feature-card feature-pink">
             <span className="feature-badge badge-coral" aria-hidden="true">

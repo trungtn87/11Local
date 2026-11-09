@@ -39,11 +39,11 @@ export function SiteNav() {
     <>
       <header className="site-header">
         <div className="site-header-inner">
-          <Link className="brand" href="/" aria-label="Nhà của Gấu — Trang chủ">
+          <Link className="brand" href="/" aria-label="Gia đình Gấu — Trang chủ">
             <GauLogoMark size={48} className="brand-logo" />
             <span className="brand-copy">
               <span className="brand-title">
-                Nhà của <em>Gấu</em>
+                Gia đình <em>Gấu</em>
               </span>
               <small>Album • Chuyến đi • Kỷ niệm</small>
             </span>

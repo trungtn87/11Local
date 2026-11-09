@@ -3,7 +3,7 @@ import { albums } from "@/lib/family";
 import { GauEmptyMascot } from "@/components/gau-mascot";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Album của Gấu | Nhà của Gấu" };
+export const metadata = { title: "Album của Gấu | Gia đình Gấu" };
 
 export default async function Albums({
   searchParams,

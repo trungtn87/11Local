@@ -1,7 +1,7 @@
 import type { SVGProps } from "react";
 
 /**
- * Original warm family album illustrations for "Nhà của Gấu" (Phương án 2).
+ * Original warm family album illustrations for "Gia đình Gấu" (Phương án 2).
  * Cute Family Scrapbook / Warm Pastel / Modern Family Journal style.
  * Non-copyrighted original vector artwork.
  */

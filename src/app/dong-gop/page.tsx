@@ -5,7 +5,7 @@ import { UploadForm } from "@/components/upload-form";
 import { GauEmptyMascot } from "@/components/gau-mascot";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Góp kỷ niệm | Nhà của Gấu" };
+export const metadata = { title: "Góp kỷ niệm | Gia đình Gấu" };
 
 export default async function Contribute({
   searchParams,

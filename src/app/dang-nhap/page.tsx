@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { GauEmptyMascot } from "@/components/gau-mascot";
 
-export const metadata = { title: "Đăng nhập | Nhà của Gấu" };
+export const metadata = { title: "Đăng nhập | Gia đình Gấu" };
 
 export default function Login() {
   return (
@@ -11,7 +11,7 @@ export default function Login() {
           <GauEmptyMascot width={88} height={80} />
           <div>
             <p className="eyebrow">💝 Cùng góp kỷ niệm</p>
-            <h1>Đăng nhập Nhà của Gấu</h1>
+            <h1>Đăng nhập Gia đình Gấu</h1>
           </div>
         </div>
         <p>
