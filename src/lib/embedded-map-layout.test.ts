@@ -14,10 +14,10 @@ test("embedded map remains inside the contribution and admin pin frames", () => 
 
   // Absolute positioning here escapes the frame if a caller omits position:relative.
   const embedded = rule(mapCss, "embedded");
-  assert.match(embedded, /position:\\s*relative\\s*;/);
-  assert.match(embedded, /width:\\s*100%\\s*;/);
-  assert.match(embedded, /height:\\s*100%\\s*;/);
+  assert.match(embedded, /position:\s*relative\s*;/);
+  assert.match(embedded, /width:\s*100%\s*;/);
+  assert.match(embedded, /height:\s*100%\s*;/);
 
   // The map picker provides its own positioning boundary for future overlays too.
-  assert.match(rule(frameCss, "mapFrame"), /position:\\s*relative\\s*;/);
+  assert.match(rule(frameCss, "mapFrame"), /position:\s*relative\s*;/);
 });
