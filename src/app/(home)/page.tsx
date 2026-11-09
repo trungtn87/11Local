@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { randomInt } from "node:crypto";
 import { albums } from "@/lib/family";
 import { GauEmptyMascot } from "@/components/gau-mascot";
 import "./home-refresh.css";
@@ -11,7 +12,7 @@ export default async function Home() {
   // Only published album covers are eligible for the collage.
   const photoAlbums = albumItems.filter((album) => Boolean(album.cover_id));
   for (let i = photoAlbums.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = randomInt(i + 1);
     [photoAlbums[i], photoAlbums[j]] = [photoAlbums[j], photoAlbums[i]];
   }
   const heroAlbums = photoAlbums.slice(0, 4);
