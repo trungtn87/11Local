@@ -1,122 +1,56 @@
 import Link from "next/link";
-import { albums, milestones, places } from "@/lib/family";
-import { GauEmptyMascot, GauHeroIllustration } from "@/components/gau-mascot";
+import { randomInt } from "node:crypto";
+import { albums } from "@/lib/family";
+import { GauEmptyMascot } from "@/components/gau-mascot";
+import "./home-refresh.css";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [albumItems, placeItems, milestoneItems] = await Promise.all([
-    albums(),
-    places(),
-    milestones(),
-  ]);
+  const albumItems = await albums();
+  // A fresh set on each request, without a client timer or external image provider.
+  // Only published album covers are eligible for the collage.
+  const photoAlbums = albumItems.filter((album) => Boolean(album.cover_id));
+  for (let i = photoAlbums.length - 1; i > 0; i--) {
+    const j = randomInt(i + 1);
+    [photoAlbums[i], photoAlbums[j]] = [photoAlbums[j], photoAlbums[i]];
+  }
+  const heroAlbums = photoAlbums.slice(0, 4);
 
   return (
     <main className="wrap home-wrap">
-      {/* B. Hero Section — Phương án 2 */}
-      <section className="hero-section" aria-label="Giới thiệu Gia đình Gấu">
-        <div className="hero-banner-card">
+      <section className="hero-section gau-home-hero" aria-label="Giới thiệu Gia đình Gấu">
+        <div className="hero-banner-card gau-memory-banner">
           <div className="hero-banner-copy">
-            <span className="hero-eyebrow-pill">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12 2L14.3 9.2L21.5 11.5L14.3 13.8L12 21L9.7 13.8L2.5 11.5L9.7 9.2L12 2Z" />
-              </svg>
-              <span>Khám phá cuốn album gia đình</span>
-            </span>
-
-            <h1 className="hero-banner-title">Gia đình Gấu</h1>
-
-            <p className="hero-banner-slogan">
-              <span>“Nơi lưu giữ những năm tháng yêu thương.”</span>
-              <svg
-                className="hero-slogan-heart"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#F7A7AE"
-                strokeWidth="2.3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M12 20.5s-7-4.4-9.2-8.4C1 8.6 3.2 4.5 7 4.5c2.2 0 3.8 1.2 5 2.8 1.2-1.6 2.8-2.8 5-2.8 3.8 0 6 4.1 4.2 7.6-2.2 4-9.2 8.4-9.2 8.4z" />
-              </svg>
-            </p>
+            <span className="hero-eyebrow-pill">✦ Khám phá cuốn album gia đình</span>
+            <h1 className="hero-banner-title">Gia đình <span>Gấu</span></h1>
+            <p className="hero-banner-slogan">“Nơi lưu giữ những năm tháng yêu thương.” <span aria-hidden="true">♡</span></p>
+            <p className="gau-hero-description">Góc nhỏ ấm áp lưu lại những bức ảnh, chuyến đi và dấu mốc trưởng thành đáng nhớ của Gấu.</p>
+            <div className="gau-hero-actions">
+              <Link href="/album" className="gau-hero-button gau-hero-primary">Xem album của Gấu <span aria-hidden="true">→</span></Link>
+              <Link href="/dong-gop" className="gau-hero-button gau-hero-secondary">Cùng góp kỷ niệm <span aria-hidden="true">→</span></Link>
+            </div>
           </div>
-
-          <div className="hero-banner-art">
-            <GauHeroIllustration className="hero-art" />
+          <div className="gau-photo-collage" aria-label={heroAlbums.length ? "Ảnh kỷ niệm gia đình từ các album" : "Khung ảnh kỷ niệm đang chờ gia đình bổ sung"}>
+            {heroAlbums.length > 0 ? heroAlbums.map((album, index) => (
+              <Link href={`/album/${album.id}`} className={`gau-polaroid gau-polaroid-${index + 1}`} key={album.id} aria-label={`Xem album ${album.title}`}>
+                <span className="gau-photo-tape" aria-hidden="true" />
+                <img src={`/api/photos/${album.cover_id}`} alt={album.title} loading={index === 0 ? "eager" : "lazy"} />
+                <span className="gau-photo-caption">{album.title}</span>
+              </Link>
+            )) : (
+              <div className="gau-photo-placeholder">
+                <GauEmptyMascot width={150} height={136} />
+                <p>Chờ những bức ảnh đầu tiên của nhà Gấu ♡</p>
+              </div>
+            )}
+            <span className="gau-collage-heart" aria-hidden="true">♡</span>
+            <span className="gau-collage-sparkle" aria-hidden="true">✦</span>
           </div>
-        </div>
-
-      </section>
-
-      {/* C. Khám phá Gia đình Gấu — 4 Thẻ Pastel */}
-      <section className="explore-section" aria-label="Khám phá Gia đình Gấu">
-        <div className="feature-grid">
-          <Link href="/album" className="feature-card feature-pink">
-            <span className="feature-badge badge-coral" aria-hidden="true">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="4" width="18" height="16" rx="3" />
-                <circle cx="8.5" cy="9.5" r="1.5" />
-                <path d="m21 15-4.5-4.5L7 20" />
-              </svg>
-            </span>
-            <h2>Album của Gấu</h2>
-            <p>
-              {albumItems.length > 0
-                ? `${albumItems.length} cuốn album gia đình`
-                : "Những khoảnh khắc yêu thương"}
-            </p>
-          </Link>
-
-          <Link href="/ban-do" className="feature-card feature-green">
-            <span className="feature-badge badge-green" aria-hidden="true">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
-                <line x1="9" y1="3" x2="9" y2="18" />
-                <line x1="15" y1="6" x2="15" y2="21" />
-              </svg>
-            </span>
-            <h2>Gấu đã đi đâu?</h2>
-            <p>
-              {placeItems.length > 0
-                ? `${placeItems.length} điểm đến đã ghim`
-                : "Bản đồ hành trình gia đình"}
-            </p>
-          </Link>
-
-          <Link href="/dong-thoi-gian" className="feature-card feature-yellow">
-            <span className="feature-badge badge-yellow" aria-hidden="true">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="9" />
-                <polyline points="12 7 12 12 15.5 14" />
-              </svg>
-            </span>
-            <h2>Gấu lớn lên</h2>
-            <p>
-              {milestoneItems.length > 0
-                ? `${milestoneItems.length} dấu mốc trưởng thành`
-                : "Những cột mốc đáng nhớ"}
-            </p>
-          </Link>
-
-          <Link href="/dong-gop" className="feature-card feature-purple">
-            <span className="feature-badge badge-purple" aria-hidden="true">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-                <path d="M12 8v6" />
-                <path d="M9 11h6" />
-              </svg>
-            </span>
-            <h2>Cùng góp kỷ niệm</h2>
-            <p>Chia sẻ ảnh cùng gia đình</p>
-          </Link>
         </div>
       </section>
 
-      {/* D. Album mới của Gấu */}
+            {/* D. Album mới của Gấu */}
       <section className="albums-showcase" aria-label="Album mới của Gấu">
         <div className="section-head">
           <div className="section-head-left">
