@@ -13,8 +13,7 @@ export default async function Timeline() {
     <main className="wrap">
       <div className="page-title">
         <p className="eyebrow">🌱 Lớn lên cùng yêu thương</p>
-        <h1>Cây thời gian của Gấu</h1>
-        <p>Từng năm, từng tháng và từng kỷ niệm trên hành trình lớn lên của Gấu.</p>
+        <h1>Kỷ niệm gia đình</h1>
       </div>
 
       {years.length > 0 ? (

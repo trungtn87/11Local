@@ -26,10 +26,6 @@ export default async function Albums({
       <div className="page-title">
         <p className="eyebrow">🖼️ Những câu chuyện bằng hình ảnh</p>
         <h1>Album của Gấu</h1>
-        <p>
-          Ai cũng có thể cùng xem những cuốn album gia đình. Thành viên đăng nhập
-          Google có thể đóng góp thêm ảnh kỷ niệm.
-        </p>
         {q && (
           <p className="search-filter-tag">
             Đang lọc theo từ khóa: <strong>“{query.q}”</strong> ·{" "}

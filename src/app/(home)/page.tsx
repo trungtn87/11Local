@@ -24,7 +24,6 @@ export default async function Home() {
           <div className="hero-banner-copy">
             <span className="hero-eyebrow-pill">♡ Nhật ký gia đình</span>
             <h1 className="hero-banner-title">Mỗi khoảnh khắc, <span>một kỷ niệm.</span></h1>
-            <p className="hero-banner-slogan">Cùng Gấu lưu giữ những ngày thật đẹp.</p>
           </div>
           <div className="gau-photo-collage" aria-label={heroAlbums.length ? "Ảnh kỷ niệm gia đình từ các album" : "Khung ảnh kỷ niệm đang chờ gia đình bổ sung"}>
             {heroAlbums.length > 0 ? heroAlbums.map((album, index) => (
