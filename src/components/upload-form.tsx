@@ -145,7 +145,7 @@ export function UploadForm({albums,places,milestones,selected}:{
     </section>
 
     <section className={styles.section}>
-      <h2>2. Địa điểm đã đi <small>(không bắt buộc)</small></h2>
+      <h2>2. Địa điểm đã đi</h2>
       <div className={styles.choiceGrid}>
         <button type="button" disabled={locked} aria-pressed={placeMode==="none"} onClick={()=>setPlaceMode("none")}>Bỏ qua</button>
         <button type="button" disabled={locked||!places.length} aria-pressed={placeMode==="existing"} onClick={()=>setPlaceMode("existing")}>Đã có</button>
@@ -156,13 +156,12 @@ export function UploadForm({albums,places,milestones,selected}:{
       </select></label>}
       {placeMode==="new"&&<div className={styles.fields}>
         <label className="field">Tên địa điểm<input required disabled={locked} maxLength={150} value={placeTitle} onChange={e=>setPlaceTitle(e.target.value)} placeholder="Ví dụ: Công viên nơi Gấu tập đi"/></label>
-        {prepared?<p className={styles.helper}>Đã lưu vị trí cho lượt đóng góp này.</p>
-          :<ContributionPinPicker value={pin} onChange={setPinPoint}/>}
+        {!prepared&&<ContributionPinPicker value={pin} onChange={setPinPoint}/>}
       </div>}
     </section>
 
     <section className={styles.section}>
-      <h2>3. Cột mốc trên cây thời gian <small>(tùy chọn)</small></h2>
+      <h2>3. Cột mốc trên cây thời gian</h2>
       <div className={styles.choiceGrid}>
         <button type="button" disabled={locked} aria-pressed={milestoneMode==="none"} onClick={()=>setMilestoneMode("none")}>Bỏ qua</button>
         <button type="button" disabled={locked||!milestones.length} aria-pressed={milestoneMode==="existing"} onClick={()=>setMilestoneMode("existing")}>Đã có</button>
@@ -180,9 +179,7 @@ export function UploadForm({albums,places,milestones,selected}:{
     <section className={styles.section}>
       <h2>4. Ảnh và lời nhắn</h2>
       <label className="field">Ngày kỷ niệm<input type="date" required disabled={locked} value={takenOn} onChange={e=>setTakenOn(e.target.value)}/></label>
-      <p className={styles.helper}>Dùng ngày này cho ảnh, album mới, địa điểm mới và cột mốc mới. Nội dung đã có không bị đổi ngày.</p>
       <label className="field">Ảnh kỷ niệm (tối đa 100 ảnh/lần)<input type="file" disabled={busy||done} accept="image/jpeg,image/png,image/webp,image/avif" multiple onChange={chooseFiles}/></label>
-      <p className={styles.helper}>Mỗi ảnh được gửi riêng; có thể thử lại các ảnh lỗi mà không tải lại ảnh đã đăng.</p>
       {progress&&<div className={styles.uploadProgress} role="status" aria-live="polite"><p>Đã xử lý {progress.processed}/{progress.total} ảnh · Thành công {progress.uploaded}</p><progress value={progress.processed} max={progress.total}/></div>}
       {previews.length>0&&<div className={styles.previews}>{previews.map((preview,i)=><div className={styles.preview} key={preview.url}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -192,11 +189,8 @@ export function UploadForm({albums,places,milestones,selected}:{
         <label className="field">Câu chuyện riêng của ảnh<textarea maxLength={2000} disabled={busy} value={preview.description} onChange={e=>setPreviews(items=>items.map((item,j)=>j===i?{...item,description:e.target.value}:item))}/></label>
       </div>)}</div>}
       <label className="field">Lời nhắn chung (dùng cho ảnh chưa có mô tả riêng)<textarea maxLength={2000} disabled={locked} value={caption} onChange={e=>setCaption(e.target.value)} placeholder="Một kỷ niệm nhỏ của gia đình…"/></label>
-      <p className={styles.helper}>Ảnh sẽ được nén WebP tối đa 2048px; ảnh gốc vẫn ở thiết bị của bạn. Không giới hạn số ảnh đăng mỗi ngày.</p>
     </section>
 
-    <p className={styles.note}>Thành viên đã được duyệt sẽ đăng công khai ngay, không phải chờ Admin duyệt ảnh, album, địa điểm hay cột mốc. Admin có thể quản lý nội dung.</p>
-    {prepared&&<p className={styles.helper}>Thông tin album, địa điểm và cột mốc đã lưu. Nếu còn ảnh bị lỗi, bạn có thể tiếp tục tải lên mà không tạo trùng nội dung.</p>}
     {message&&<p className={styles.error} role="alert">{message}</p>}
     <div className={styles.actions}>
       <button type="submit" className="primary" disabled={busy||!files.length}>{busy?"Đang đăng ảnh…":prepared?"Đăng tiếp ảnh còn lại":"Lưu kỷ niệm & đăng ảnh"}</button>
