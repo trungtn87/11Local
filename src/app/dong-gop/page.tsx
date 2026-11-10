@@ -13,9 +13,7 @@ export default async function Contribute({searchParams}:{searchParams:Promise<{a
   ]);
   return <main className="wrap narrow">
     <div className="page-title">
-      <p className="eyebrow">💝 Cùng góp kỷ niệm</p>
       <h1>Gửi ảnh và câu chuyện cho Gấu</h1>
-      <p>Thành viên Google đã được duyệt có thể tạo album, ghim địa điểm, thêm cột mốc trên cây thời gian và đăng ảnh ngay, không chờ duyệt nội dung.</p>
     </div>
     {!user ? <div className="empty-scrapbook">
       <GauEmptyMascot width={104} height={96} className="empty-mascot"/>
